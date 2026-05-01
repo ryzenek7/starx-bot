@@ -32,7 +32,7 @@ module.exports = (client) => {
 const embed = new EmbedBuilder()
   .setColor("#2b2d31")
   .setTitle("🌟 StarX Exchange")
-  .setDescription("Treść embeda")
+  .setDescription("Wybierz kategorię ticketa")
   .setImage("https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand")
   .setFooter({ text: "© 2026 StarX Exchange x TICKET" });
 
