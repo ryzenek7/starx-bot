@@ -16,7 +16,7 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("⭐ StarX Exchange » STAKE ACC")
         .setDescription("💸 Wybierz opcję z menu poniżej.")
-        .setImage("https://i.imgur.com/4idb1UZ_d.webp?maxwidth=760&fidelity=grand")
+        .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "© 2026 StarX Exchange x Stake"
         });
@@ -69,7 +69,7 @@ module.exports = (client) => {
 
 💸 **Cena: 40 ZŁ**
         `)
-        .setImage("https://i.imgur.com/4idb1UZ_d.webp?maxwidth=760&fidelity=grand")
+        .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "StarX Exchange © 2026"
         });
