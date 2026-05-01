@@ -34,13 +34,13 @@ const embed = new EmbedBuilder()
   .setTitle("🌟 StarX Exchange")
   .setDescription("Treść embeda")
   .setImage("https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand")
-  .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
+  .setFooter({ text: "© 2026 StarX Exchange x TICKET" });
 
       const select = new StringSelectMenuBuilder()
         .setCustomId('ticket_select')
         .setPlaceholder('Wybierz kategorię')
         .addOptions([
-          { label: 'Wymiana', value: 'wymiana' },
+          { label: 'Wymiana / Zakup', value: 'Wymiana / Zakup' },
           { label: 'Pomoc', value: 'pomoc' },
           { label: 'Middleman', value: 'mm' }
         ]);
