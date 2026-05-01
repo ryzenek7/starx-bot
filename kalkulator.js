@@ -23,7 +23,7 @@ module.exports = async (client) => {
         .setColor("#2b2d31")
         .setTitle("🌟 StarX Exchange » PROWIZJE")
         .setDescription("💸 Wybierz metodę płatności z menu poniżej.")
-        .setFooter({ text: "© 2026 StarX Exchange" });
+        .setFooter({ text: "© 2026 StarX Exchange x Prowizje" });
 
       const menu = new StringSelectMenuBuilder()
         .setCustomId("show_rates")
