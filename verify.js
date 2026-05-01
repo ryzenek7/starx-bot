@@ -28,7 +28,7 @@ module.exports = (client) => {
 
 > 🚀 Uzyskaj pełny dostęp do serwera
             `)
-            .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
+            .setImage("https://i.imgur.com/0h2yrK7_d.webp?maxwidth=760&fidelity=grand")
             .setFooter({
                 text: "© 2026 StarX Exchange × Weryfikacja"
             });
