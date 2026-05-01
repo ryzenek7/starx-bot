@@ -1,0 +1,91 @@
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  Events
+} = require("discord.js");
+
+module.exports = (client) => {
+  const CHANNEL_ID = "1499812157246669001";
+
+  // ==========================
+  // PANEL
+  // ==========================
+  async function sendPanel() {
+    try {
+      const channel = await client.channels.fetch(CHANNEL_ID);
+
+      const embed = new EmbedBuilder()
+        .setColor("#2b2d31")
+        .setTitle("⭐ StarX Exchange » STAKE ACC")
+        .setDescription("💸 Wybierz opcję z menu poniżej.")
+        .setFooter({
+          text: "© 2026 StarX Exchange x Stake"
+        });
+
+      const menu = new StringSelectMenuBuilder()
+        .setCustomId("stake_menu")
+        .setPlaceholder("📦 Wybierz opcję")
+        .addOptions([
+          {
+            label: "Zobacz cenę konta",
+            value: "konto_stake",
+            emoji: "💰"
+          }
+        ]);
+
+      const row = new ActionRowBuilder().addComponents(menu);
+
+      await channel.send({
+        embeds: [embed],
+        components: [row]
+      });
+
+      console.log("✅ Panel stake wysłany");
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  // ==========================
+  // READY
+  // ==========================
+  if (client.isReady()) {
+    sendPanel();
+  } else {
+    client.once(Events.ClientReady, () => {
+      sendPanel();
+    });
+  }
+
+  // ==========================
+  // MENU
+  // ==========================
+  client.on(Events.InteractionCreate, async (interaction) => {
+    if (!interaction.isStringSelectMenu()) return;
+    if (interaction.customId !== "stake_menu") return;
+
+    if (interaction.values[0] === "konto_stake") {
+      const embed = new EmbedBuilder()
+        .setColor("#2b2d31")
+        .setTitle("⭐ KONTO STAKE » CENA")
+        .setDescription(`
+🎮 **Stake Account**
+🔓 Full Access  
+🪪 ID Verify  
+🎯 Ready2Play  
+
+💸 **Cena: 40 ZŁ**
+        `)
+        .setThumbnail("https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand")
+        .setFooter({
+          text: "StarX Exchange x Stake © 2026"
+        });
+
+      await interaction.reply({
+        embeds: [embed],
+        flags: 64
+      });
+    }
+  });
+};
