@@ -34,6 +34,9 @@ module.exports = (client) => {
         .setTitle('💸︲🌟 StarX Exchange » TICKETY')
         .setDescription('Wybierz kategorię ticketa poniżej 👇')
         .setImage('https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand');
+            .setFooter({
+                text: "© 2026 StarX Exchange × Weryfikacja"
+            });
 
       const select = new StringSelectMenuBuilder()
         .setCustomId('ticket_select')
