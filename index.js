@@ -34,6 +34,7 @@ require("./opinie")(client);
 require("./kalkulator")(client);
 require("./verify")(client);
 require("./verifyping")(client);
+require("./obliczprowizje")(client);
 // =====================
 // READY
 // =====================
