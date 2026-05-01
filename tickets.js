@@ -33,7 +33,7 @@ const embed = new EmbedBuilder()
   .setColor("#2b2d31")
   .setTitle("🌟 StarX Exchange")
   .setDescription("Wybierz kategorię ticketa")
-  .setImage("https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand")
+  .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
   .setFooter({ text: "© 2026 StarX Exchange x TICKET" });
 
       const select = new StringSelectMenuBuilder()
