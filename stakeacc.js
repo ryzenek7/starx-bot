@@ -62,12 +62,13 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("⭐ KONTO STAKE » CENA")
         .setDescription(`
-🎮 **Stake Account**
-🔓 Full Access  
-🪪 ID Verify  
-🎯 Ready2Play  
+🎮 **KONTO STAKE (2 POZIOM WERYFIKACJI):**
+- 🔓 Pełny dostęp (E-mail oraz Stake)
+- 🪪 Zweryfikowane dowodem osobistym 
+- 🎯 Gotowe do wpłat i wypłat
 
 💸 **Cena: 40 ZŁ**
+
         `)
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
