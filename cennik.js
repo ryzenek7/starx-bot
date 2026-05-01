@@ -7,8 +7,14 @@ const {
 
 module.exports = (client) => {
 
+  // ========================
+  // CONFIG
+  // ========================
   const CHANNEL_ID = "1499902366843932763";
 
+  // ========================
+  // READY
+  // ========================
   client.once(Events.ClientReady, async () => {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
@@ -45,17 +51,21 @@ module.exports = (client) => {
       console.log("✅ Cennik wysłany");
 
     } catch (err) {
-      console.log(err);
+      console.log("❌ Błąd:", err);
     }
   });
 
+  // ========================
+  // MENU
+  // ========================
   client.on(Events.InteractionCreate, async (interaction) => {
 
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "starx_cennik") return;
 
-    if (interaction.values[0] === "konta") {
+    try {
 
+      // odpowiedź użytkownikowi
       const embed = new EmbedBuilder()
         .setColor("#5865F2")
         .setTitle("💎 StarX Exchange » KONTA PREMIUM")
@@ -64,13 +74,33 @@ module.exports = (client) => {
           "▶️ **YouTube Premium** — `15 zł`\n\n" +
           "🎬 **Netflix Lifetime Account** — `30 zł`"
         )
-        .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
         .setFooter({ text: "StarX Exchange • Najniższe prowizje" });
 
       await interaction.reply({
         embeds: [embed],
         ephemeral: true
       });
+
+      // reset menu (bez zaznaczenia)
+      const menu = new StringSelectMenuBuilder()
+        .setCustomId("starx_cennik")
+        .setPlaceholder("Wybierz interesujący cię produkt..")
+        .addOptions([
+          {
+            label: "KONTA PREMIUM",
+            value: "konta",
+            emoji: "💎"
+          }
+        ]);
+
+      const row = new ActionRowBuilder().addComponents(menu);
+
+      await interaction.message.edit({
+        components: [row]
+      });
+
+    } catch (err) {
+      console.log("❌ Błąd menu:", err);
     }
 
   });
