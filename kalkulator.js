@@ -2,67 +2,59 @@ const {
   EmbedBuilder,
   ActionRowBuilder,
   StringSelectMenuBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
   Events
 } = require("discord.js");
 
 module.exports = (client) => {
-
   const CHANNEL_ID = "1499568863602540645";
 
-  let selectedType = {};
-  let selectedFrom = {};
-
-  // =====================
-  // PROWIZJE
-  // =====================
-  const rates = {
-    "BLIK_PAYPAL": 8,
-    "BLIK_CRYPTO": 8,
-    "BLIK_LTC": 8,
-
-    "PAYPAL_BLIK": 7,
-    "PAYPAL_CRYPTO": 7,
-    "PAYPAL_LTC": 7.5,
-
-    "LTC_PAYPAL": 4,
-    "LTC_BLIK": 3.5,
-    "LTC_CRYPTO": 3.5,
-
-    "CRYPTO_PAYPAL": 3.5,
-    "CRYPTO_BLIK": 3.5,
-    "CRYPTO_LTC": 3.5
-  };
-
-  // =====================
+  // ======================
   // PANEL
-  // =====================
+  // ======================
   async function sendPanel() {
     const channel = await client.channels.fetch(CHANNEL_ID);
 
     const embed = new EmbedBuilder()
       .setColor("#2b2d31")
-      .setTitle("🌟 StarX Exchange » OBLICZ PROWIZJĘ")
-      .setDescription(
-`💸 Oblicz ile dostaniesz lub ile musisz wpłacić.
-
-📦 Kliknij menu poniżej.`
-      )
-      .setFooter({ text: "© 2026 StarX Exchange x Kalkulator" });
+      .setTitle("🌟 StarX Exchange » PROWIZJE")
+      .setDescription("💸 Wybierz metodę płatności z menu poniżej.")
+      .setFooter({ text: "© 2026 StarX Exchange" });
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId("calc_type")
-      .setPlaceholder("💸 Wybierz opcję")
+      .setCustomId("show_rates")
+      .setPlaceholder("💰 Wybierz metodę")
       .addOptions([
         {
-          label: "Jaką kwotę otrzymam?",
-          value: "otrzymam"
+          label: "BLIK",
+          value: "BLIK",
+          emoji: {
+            id: "123456789012345678",
+            name: "blik"
+          }
         },
         {
-          label: "Ile muszę wpłacić aby dostać X?",
-          value: "wplace"
+          label: "PAYPAL",
+          value: "PAYPAL",
+          emoji: {
+            id: "123456789012345679",
+            name: "paypal"
+          }
+        },
+        {
+          label: "CRYPTO",
+          value: "CRYPTO",
+          emoji: {
+            id: "123456789012345680",
+            name: "crypto"
+          }
+        },
+        {
+          label: "LTC",
+          value: "LTC",
+          emoji: {
+            id: "123456789012345681",
+            name: "ltc"
+          }
         }
       ]);
 
@@ -73,139 +65,87 @@ module.exports = (client) => {
       components: [row]
     });
 
-    console.log("✅ Kalkulator wysłany");
+    console.log("✅ Panel prowizji wysłany");
   }
 
-  // =====================
+  // ======================
   // READY
-  // =====================
+  // ======================
   client.on(Events.ClientReady, async () => {
     setTimeout(sendPanel, 3000);
   });
 
-  // =====================
+  // ======================
   // INTERACTIONS
-  // =====================
-  client.on(Events.InteractionCreate, async interaction => {
+  // ======================
+  client.on(Events.InteractionCreate, async (interaction) => {
+    if (!interaction.isStringSelectMenu()) return;
+    if (interaction.customId !== "show_rates") return;
 
-    // KROK 1
-    if (interaction.isStringSelectMenu()) {
+    const type = interaction.values[0];
+    let desc = "";
 
-      // typ
-      if (interaction.customId === "calc_type") {
+    // ======================
+    // BLIK
+    // ======================
+    if (type === "BLIK") {
+      desc = `
+<:blik:123456789012345678>︲BLIK ➜ <:paypal:123456789012345679>︲PAYPAL × **8.0%**
+<:blik:123456789012345678>︲BLIK ➜ <:crypto:123456789012345680>︲CRYPTO × **8.0%**
+<:blik:123456789012345678>︲BLIK ➜ <:ltc:123456789012345681>︲LTC × **8.0%**
 
-        selectedType[interaction.user.id] = interaction.values[0];
-
-        const menu = new StringSelectMenuBuilder()
-          .setCustomId("calc_from")
-          .setPlaceholder("📤 Z jakiej metody?")
-          .addOptions([
-            { label: "BLIK", value: "BLIK" },
-            { label: "PAYPAL", value: "PAYPAL" },
-            { label: "LTC", value: "LTC" },
-            { label: "CRYPTO", value: "CRYPTO" }
-          ]);
-
-        return interaction.reply({
-          content: "📤 Wybierz metodę Z:",
-          components: [new ActionRowBuilder().addComponents(menu)],
-          ephemeral: true
-        });
-      }
-
-      // from
-      if (interaction.customId === "calc_from") {
-
-        selectedFrom[interaction.user.id] = interaction.values[0];
-
-        const menu = new StringSelectMenuBuilder()
-          .setCustomId("calc_to")
-          .setPlaceholder("📥 Na jaką metodę?")
-          .addOptions([
-            { label: "BLIK", value: "BLIK" },
-            { label: "PAYPAL", value: "PAYPAL" },
-            { label: "LTC", value: "LTC" },
-            { label: "CRYPTO", value: "CRYPTO" }
-          ]);
-
-        return interaction.update({
-          content: "📥 Wybierz metodę NA:",
-          components: [new ActionRowBuilder().addComponents(menu)]
-        });
-      }
-
-      // to
-      if (interaction.customId === "calc_to") {
-
-        const modal = new ModalBuilder()
-          .setCustomId(`calc_modal_${interaction.values[0]}`)
-          .setTitle("🌟 StarX Exchange");
-
-        modal.addComponents(
-          new ActionRowBuilder().addComponents(
-            new TextInputBuilder()
-              .setCustomId("kwota")
-              .setLabel("Podaj kwotę")
-              .setStyle(TextInputStyle.Short)
-              .setRequired(true)
-          )
-        );
-
-        return interaction.showModal(modal);
-      }
+⚠️ Minimalna prowizja przy wymianie z **BLIK** wynosi **2 PLN**
+`;
     }
 
-    // MODAL
-    if (interaction.isModalSubmit()) {
+    // ======================
+    // PAYPAL
+    // ======================
+    if (type === "PAYPAL") {
+      desc = `
+<:paypal:123456789012345679>︲PAYPAL ➜ <:blik:123456789012345678>︲BLIK × **7.0%**
+<:paypal:123456789012345679>︲PAYPAL ➜ <:crypto:123456789012345680>︲CRYPTO × **7.0%**
+<:paypal:123456789012345679>︲PAYPAL ➜ <:ltc:123456789012345681>︲LTC × **7.5%**
 
-      if (!interaction.customId.startsWith("calc_modal_")) return;
-
-      const to = interaction.customId.replace("calc_modal_", "");
-      const from = selectedFrom[interaction.user.id];
-      const type = selectedType[interaction.user.id];
-
-      const key = `${from}_${to}`;
-
-      if (!rates[key]) {
-        return interaction.reply({
-          content: "❌ Nie można wymienić tej metody.",
-          ephemeral: true
-        });
-      }
-
-      const percent = rates[key];
-
-      const kwota = parseFloat(
-        interaction.fields.getTextInputValue("kwota").replace(",", ".")
-      );
-
-      let wynik = 0;
-
-      if (type === "otrzymam") {
-        wynik = kwota - (kwota * percent / 100);
-      } else {
-        wynik = kwota / (1 - percent / 100);
-      }
-
-      const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
-        .setTitle("🌟 StarX Exchange » WYNIK")
-        .setDescription(
-`📤 Z: **${from}**
-📥 Na: **${to}**
-
-💸 Prowizja: **${percent}%**
-
-💰 Wynik: **${wynik.toFixed(2)} zł**`
-        )
-        .setFooter({ text: "© 2026 StarX Exchange x Kalkulator" });
-
-      await interaction.reply({
-        embeds: [embed],
-        ephemeral: true
-      });
+⚠️ Minimalna prowizja przy wymianie z **PAYPAL** wynosi **2 PLN**
+`;
     }
 
+    // ======================
+    // CRYPTO
+    // ======================
+    if (type === "CRYPTO") {
+      desc = `
+<:crypto:123456789012345680>︲CRYPTO ➜ <:paypal:123456789012345679>︲PAYPAL × **3.5%**
+<:crypto:123456789012345680>︲CRYPTO ➜ <:blik:123456789012345678>︲BLIK × **3.5%**
+<:crypto:123456789012345680>︲CRYPTO ➜ <:ltc:123456789012345681>︲LTC × **3.5%**
+
+⚠️ Minimalna prowizja przy wymianie z **CRYPTO** wynosi **2 PLN**
+`;
+    }
+
+    // ======================
+    // LTC
+    // ======================
+    if (type === "LTC") {
+      desc = `
+<:ltc:123456789012345681>︲LTC ➜ <:paypal:123456789012345679>︲PAYPAL × **4.0%**
+<:ltc:123456789012345681>︲LTC ➜ <:blik:123456789012345678>︲BLIK × **3.5%**
+<:ltc:123456789012345681>︲LTC ➜ <:crypto:123456789012345680>︲CRYPTO × **3.5%**
+
+⚠️ Minimalna prowizja przy wymianie z **LTC** wynosi **2 PLN**
+`;
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor("#2b2d31")
+      .setTitle(`🌟 ${type} » PROWIZJE`)
+      .setDescription(desc)
+      .setFooter({ text: "StarX Exchange © 2026" });
+
+    await interaction.reply({
+      embeds: [embed],
+      ephemeral: true
+    });
   });
-
 };
