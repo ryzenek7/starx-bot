@@ -31,13 +31,13 @@ module.exports = (client) => {
   };
 
   // =========================
-  // EMOJI (PODMIEŃ ID)
+  // TWOJE EMOJI
   // =========================
   const names = {
-    BLIK: "<:blik:ID_BLIK>︲BLIK",
-    PAYPAL: "<:PAYPAL:ID_PAYPAL>︲PAYPAL",
-    CRYPTO: "<:crypto:ID_CRYPTO>︲CRYPTO",
-    LTC: "<:ltc:ID_LTC>︲LTC"
+    BLIK: "<:blik:1499784231608389742>︲BLIK",
+    PAYPAL: "<:PAYPAL:1499784258091483236>︲PAYPAL",
+    CRYPTO: "<:crypto:1499784635201224724>︲CRYPTO",
+    LTC: "<:LTC:1499784285211726014>︲LTC"
   };
 
   const arrow = "➡️";
@@ -73,26 +73,10 @@ module.exports = (client) => {
         .setCustomId("calc_from")
         .setPlaceholder("🏆 Wybierz metodę")
         .addOptions([
-          {
-            label: "BLIK",
-            value: "BLIK",
-            emoji: "💳"
-          },
-          {
-            label: "PAYPAL",
-            value: "PAYPAL",
-            emoji: "💰"
-          },
-          {
-            label: "CRYPTO",
-            value: "CRYPTO",
-            emoji: "🪙"
-          },
-          {
-            label: "LTC",
-            value: "LTC",
-            emoji: "💠"
-          }
+          { label: "BLIK", value: "BLIK", emoji: "💳" },
+          { label: "PAYPAL", value: "PAYPAL", emoji: "💰" },
+          { label: "CRYPTO", value: "CRYPTO", emoji: "🪙" },
+          { label: "LTC", value: "LTC", emoji: "💠" }
         ]);
 
       const row = new ActionRowBuilder().addComponents(menu);
