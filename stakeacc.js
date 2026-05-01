@@ -14,7 +14,7 @@ module.exports = (client) => {
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
-        .setTitle("⭐ StarX Exchange » KONTO STAKE🎰")
+        .setTitle("⭐ StarX Exchange » KONTO STAKE 🎰")
         .setDescription("💸 Wybierz opcję z menu poniżej.")
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
