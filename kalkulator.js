@@ -6,7 +6,7 @@ const {
 } = require("discord.js");
 
 module.exports = (client) => {
-  const CHANNEL_ID = "1499568863602540645";
+  const CHANNEL_ID = "1499513009188376767";
 
   // ==========================
   // WYSYŁANIE PANELU
