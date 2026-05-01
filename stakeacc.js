@@ -6,11 +6,8 @@ const {
 } = require("discord.js");
 
 module.exports = (client) => {
-  const CHANNEL_ID = "1499812157246669001";
+  const CHANNEL_ID = "1499568863602540645";
 
-  // ==========================
-  // PANEL
-  // ==========================
   async function sendPanel() {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
@@ -19,6 +16,7 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("⭐ StarX Exchange » STAKE ACC")
         .setDescription("💸 Wybierz opcję z menu poniżej.")
+        .setImage("https://i.imgur.com/4idb1UZ_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "© 2026 StarX Exchange x Stake"
         });
@@ -47,9 +45,6 @@ module.exports = (client) => {
     }
   }
 
-  // ==========================
-  // READY
-  // ==========================
   if (client.isReady()) {
     sendPanel();
   } else {
@@ -58,9 +53,6 @@ module.exports = (client) => {
     });
   }
 
-  // ==========================
-  // MENU
-  // ==========================
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "stake_menu") return;
@@ -77,9 +69,9 @@ module.exports = (client) => {
 
 💸 **Cena: 40 ZŁ**
         `)
-        .setThumbnail("https://i.imgur.com/4idb1UZ_d.webp?maxwidth=760&fidelity=grand")
+        .setImage("https://i.imgur.com/4idb1UZ_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
-          text: "StarX Exchange x Stake © 2026"
+          text: "StarX Exchange © 2026"
         });
 
       await interaction.reply({
@@ -89,4 +81,3 @@ module.exports = (client) => {
     }
   });
 };
-
