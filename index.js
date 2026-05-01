@@ -36,6 +36,7 @@ require("./verify")(client);
 require("./verifyping")(client);
 require("./obliczprowizje")(client);
 require("./stakeacc")(client);
+require("./cennik")(client);
 // =====================
 // READY
 // =====================
