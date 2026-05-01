@@ -8,130 +8,131 @@ const {
 module.exports = (client) => {
   const CHANNEL_ID = "1499568863602540645";
 
-  // ======================
-  // PANEL
-  // ======================
+  // ==========================
+  // WYSYŁANIE PANELU
+  // ==========================
   async function sendPanel() {
-    const channel = await client.channels.fetch(CHANNEL_ID);
+    try {
+      const channel = await client.channels.fetch(CHANNEL_ID);
 
-    const embed = new EmbedBuilder()
-      .setColor("#2b2d31")
-      .setTitle("🌟 StarX Exchange » PROWIZJE")
-      .setDescription("💸 Wybierz metodę płatności z menu poniżej.")
-      .setFooter({ text: "© 2026 StarX Exchange" });
+      if (!channel) {
+        return console.log("❌ Nie znaleziono kanału.");
+      }
 
-    const menu = new StringSelectMenuBuilder()
-      .setCustomId("show_rates")
-      .setPlaceholder("💰 Wybierz metodę")
-      .addOptions([
-        {
-          label: "BLIK",
-          value: "BLIK",
-          emoji: {
-            id: "123456789012345678",
-            name: "blik"
+      const embed = new EmbedBuilder()
+        .setColor("#2b2d31")
+        .setTitle("🌟 StarX Exchange » PROWIZJE")
+        .setDescription("💸 Wybierz metodę płatności z menu poniżej.")
+        .setFooter({ text: "© 2026 StarX Exchange" });
+
+      const menu = new StringSelectMenuBuilder()
+        .setCustomId("show_rates")
+        .setPlaceholder("💰 Wybierz metodę")
+        .addOptions([
+          {
+            label: "BLIK",
+            value: "BLIK",
+            emoji: "💳"
+          },
+          {
+            label: "PAYPAL",
+            value: "PAYPAL",
+            emoji: "💙"
+          },
+          {
+            label: "CRYPTO",
+            value: "CRYPTO",
+            emoji: "🪙"
+          },
+          {
+            label: "LTC",
+            value: "LTC",
+            emoji: "💠"
           }
-        },
-        {
-          label: "PAYPAL",
-          value: "PAYPAL",
-          emoji: {
-            id: "123456789012345679",
-            name: "paypal"
-          }
-        },
-        {
-          label: "CRYPTO",
-          value: "CRYPTO",
-          emoji: {
-            id: "123456789012345680",
-            name: "crypto"
-          }
-        },
-        {
-          label: "LTC",
-          value: "LTC",
-          emoji: {
-            id: "123456789012345681",
-            name: "ltc"
-          }
-        }
-      ]);
+        ]);
 
-    const row = new ActionRowBuilder().addComponents(menu);
+      const row = new ActionRowBuilder().addComponents(menu);
 
-    await channel.send({
-      embeds: [embed],
-      components: [row]
-    });
+      await channel.send({
+        embeds: [embed],
+        components: [row]
+      });
 
-    console.log("✅ Panel prowizji wysłany");
+      console.log("✅ Panel prowizji wysłany.");
+    } catch (err) {
+      console.log("❌ Błąd przy wysyłaniu panelu:");
+      console.log(err);
+    }
   }
 
-  // ======================
+  // ==========================
   // READY
-  // ======================
-  client.on(Events.ClientReady, async () => {
-    setTimeout(sendPanel, 3000);
+  // ==========================
+  client.once(Events.ClientReady, async () => {
+    console.log(`✅ Bot zalogowany jako ${client.user.tag}`);
+
+    setTimeout(() => {
+      sendPanel();
+    }, 3000);
   });
 
-  // ======================
-  // INTERACTIONS
-  // ======================
+  // ==========================
+  // INTERAKCJE
+  // ==========================
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "show_rates") return;
 
-    const type = interaction.values[0];
+    const selected = interaction.values[0];
     let desc = "";
 
-    // ======================
+    // ==========================
     // BLIK
-    // ======================
-    if (type === "BLIK") {
+    // ==========================
+    if (selected === "BLIK") {
       desc = `
-<:blik:123456789012345678>︲BLIK ➜ <:paypal:123456789012345679>︲PAYPAL × **8.0%**
-<:blik:123456789012345678>︲BLIK ➜ <:crypto:123456789012345680>︲CRYPTO × **8.0%**
-<:blik:123456789012345678>︲BLIK ➜ <:ltc:123456789012345681>︲LTC × **8.0%**
+💳︲BLIK ➜ 💙︲PAYPAL × **8.0%**
+💳︲BLIK ➜ 🪙︲CRYPTO × **8.0%**
+💳︲BLIK ➜ 💠︲LTC × **8.0%**
 
 ⚠️ Minimalna prowizja przy wymianie z **BLIK** wynosi **2 PLN**
 `;
     }
 
-    // ======================
+    // ==========================
     // PAYPAL
-    // ======================
-    if (type === "PAYPAL") {
+    // ==========================
+    if (selected === "PAYPAL") {
       desc = `
-<:paypal:123456789012345679>︲PAYPAL ➜ <:blik:123456789012345678>︲BLIK × **7.0%**
-<:paypal:123456789012345679>︲PAYPAL ➜ <:crypto:123456789012345680>︲CRYPTO × **7.0%**
-<:paypal:123456789012345679>︲PAYPAL ➜ <:ltc:123456789012345681>︲LTC × **7.5%**
+💙︲PAYPAL ➜ 💳︲BLIK × **7.0%**
+💙︲PAYPAL ➜ 🪙︲CRYPTO × **7.0%**
+💙︲PAYPAL ➜ 💠︲LTC × **7.5%**
 
 ⚠️ Minimalna prowizja przy wymianie z **PAYPAL** wynosi **2 PLN**
 `;
     }
 
-    // ======================
+    // ==========================
     // CRYPTO
-    // ======================
-    if (type === "CRYPTO") {
+    // ==========================
+    if (selected === "CRYPTO") {
       desc = `
-<:crypto:123456789012345680>︲CRYPTO ➜ <:paypal:123456789012345679>︲PAYPAL × **3.5%**
-<:crypto:123456789012345680>︲CRYPTO ➜ <:blik:123456789012345678>︲BLIK × **3.5%**
-<:crypto:123456789012345680>︲CRYPTO ➜ <:ltc:123456789012345681>︲LTC × **3.5%**
+🪙︲CRYPTO ➜ 💙︲PAYPAL × **3.5%**
+🪙︲CRYPTO ➜ 💳︲BLIK × **3.5%**
+🪙︲CRYPTO ➜ 💠︲LTC × **3.5%**
 
 ⚠️ Minimalna prowizja przy wymianie z **CRYPTO** wynosi **2 PLN**
 `;
     }
 
-    // ======================
+    // ==========================
     // LTC
-    // ======================
-    if (type === "LTC") {
+    // ==========================
+    if (selected === "LTC") {
       desc = `
-<:ltc:123456789012345681>︲LTC ➜ <:paypal:123456789012345679>︲PAYPAL × **4.0%**
-<:ltc:123456789012345681>︲LTC ➜ <:blik:123456789012345678>︲BLIK × **3.5%**
-<:ltc:123456789012345681>︲LTC ➜ <:crypto:123456789012345680>︲CRYPTO × **3.5%**
+💠︲LTC ➜ 💙︲PAYPAL × **4.0%**
+💠︲LTC ➜ 💳︲BLIK × **3.5%**
+💠︲LTC ➜ 🪙︲CRYPTO × **3.5%**
 
 ⚠️ Minimalna prowizja przy wymianie z **LTC** wynosi **2 PLN**
 `;
@@ -139,7 +140,7 @@ module.exports = (client) => {
 
     const embed = new EmbedBuilder()
       .setColor("#2b2d31")
-      .setTitle(`🌟 ${type} » PROWIZJE`)
+      .setTitle(`🌟 ${selected} » PROWIZJE`)
       .setDescription(desc)
       .setFooter({ text: "StarX Exchange © 2026" });
 
