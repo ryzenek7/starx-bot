@@ -20,7 +20,7 @@ module.exports = (client) => {
                 name: "StarX Exchange × Bot",
                 iconURL: client.user.displayAvatarURL()
             })
-            .setTitle("🍃 ! STARX EXCHANGE × WERYFIKACJA")
+            .setTitle("🌟 ! STARX EXCHANGE × WERYFIKACJA")
             .setDescription(`
 > ✅ **Witaj**, wybierz opcję poniżej aby przejść weryfikację.
 
