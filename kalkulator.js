@@ -37,32 +37,18 @@ module.exports = (client) => {
     BLIK: "<:blik:1499784231608389742>︲BLIK",
     PAYPAL: "<:PAYPAL:1499784258091483236>︲PAYPAL",
     CRYPTO: "<:crypto:1499784635201224724>︲CRYPTO",
-    LTC: "<:LTC:1499784285211726014>︲LTC"
+    LTC: "<:ltc:1499784285211726014>︲LTC"
   };
 
   const arrow = "➡️";
 
   // =========================
-  // PANEL
+  // PANEL PO READY
   // =========================
-  client.on("ready", async () => {
+  client.once("ready", async () => {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
       if (!channel) return;
-
-      const messages = await channel.messages.fetch({ limit: 20 });
-
-      const oldPanel = messages.find(
-        msg =>
-          msg.author.id === client.user.id &&
-          msg.embeds.length > 0 &&
-          msg.embeds[0].title === "💱 Wymień Hajs × Prowizje"
-      );
-
-      if (oldPanel) {
-        console.log("✅ Panel kalkulatora już istnieje");
-        return;
-      }
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
@@ -86,7 +72,7 @@ module.exports = (client) => {
         components: [row]
       });
 
-      console.log("✅ Panel kalkulatora wysłany");
+      console.log("✅ Kalkulator wysłany");
 
     } catch (err) {
       console.log("❌ Błąd panelu:", err.message);
@@ -101,7 +87,7 @@ module.exports = (client) => {
 
       if (!interaction.isStringSelectMenu()) return;
 
-      // WYBÓR STARTOWY
+      // WYBÓR PIERWSZY
       if (interaction.customId === "calc_from") {
 
         const from = interaction.values[0];
