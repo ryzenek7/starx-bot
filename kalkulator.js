@@ -31,112 +31,140 @@ module.exports = (client) => {
     };
 
     // =========================
-    // EMOJI + NAZWY
+    // EMOJI / NAZWY
+    // PODMIEŃ ID EMOJI JEŚLI MASZ CUSTOM
     // =========================
     const labels = {
-        BLIK: ":blk:︲BLIK",
-        PAYPAL: ":pp:︲PAYPAL",
-        CRYPTO: ":crypto:︲CRYPTO",
-        LTC: ":ltc:︲LTC"
+        BLIK: "💳︲BLIK",
+        PAYPAL: "💰︲PAYPAL",
+        CRYPTO: "🪙︲CRYPTO",
+        LTC: "💠︲LTC"
     };
 
-    const arrow = ":strzalka:";
+    const arrow = "➡️";
 
     // =========================
-    // PANEL
+    // READY
     // =========================
-    client.once("ready", async () => {
-        const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
-        if (!channel) return;
+    client.on("ready", async () => {
+        try {
+            const channel = await client.channels.fetch(CHANNEL_ID);
+            if (!channel) return;
 
-        const embed = new EmbedBuilder()
-            .setColor("#2b2d31")
-            .setTitle("💱 Wymień Hajs × Prowizje")
-            .setDescription("📦 Wybierz metodę płatności poniżej");
+            const messages = await channel.messages.fetch({ limit: 20 });
 
-        const menu = new StringSelectMenuBuilder()
-            .setCustomId("exchange_select")
-            .setPlaceholder("Wybierz metodę...")
-            .addOptions([
-                {
-                    label: "BLIK",
-                    value: "BLIK",
-                    emoji: "💳"
-                },
-                {
-                    label: "PAYPAL",
-                    value: "PAYPAL",
-                    emoji: "💰"
-                },
-                {
-                    label: "CRYPTO",
-                    value: "CRYPTO",
-                    emoji: "🪙"
-                },
-                {
-                    label: "LTC",
-                    value: "LTC",
-                    emoji: "💠"
-                }
-            ]);
-
-        const row = new ActionRowBuilder().addComponents(menu);
-
-        await channel.send({
-            embeds: [embed],
-            components: [row]
-        });
-    });
-
-    // =========================
-    // OBSŁUGA MENU
-    // =========================
-    client.on(Events.InteractionCreate, async (interaction) => {
-        if (!interaction.isStringSelectMenu()) return;
-        if (interaction.customId !== "exchange_select") return;
-
-        const from = interaction.values[0];
-
-        const secondMenu = new StringSelectMenuBuilder()
-            .setCustomId(`exchange_to_${from}`)
-            .setPlaceholder("Na co chcesz wymienić?")
-            .addOptions(
-                ["BLIK", "PAYPAL", "CRYPTO", "LTC"]
-                    .filter(x => x !== from)
-                    .map(x => ({
-                        label: x,
-                        value: x
-                    }))
+            const oldPanel = messages.find(
+                msg =>
+                    msg.author.id === client.user.id &&
+                    msg.embeds.length > 0 &&
+                    msg.embeds[0].title === "💱 Wymień Hajs × Prowizje"
             );
 
-        const row = new ActionRowBuilder().addComponents(secondMenu);
+            if (oldPanel) {
+                console.log("✅ Panel kalkulatora już istnieje");
+                return;
+            }
 
-        await interaction.reply({
-            content: "➡️ Wybierz docelową metodę płatności:",
-            components: [row],
-            ephemeral: true
-        });
+            const embed = new EmbedBuilder()
+                .setColor("#2b2d31")
+                .setTitle("💱 Wymień Hajs × Prowizje")
+                .setDescription("📦 Wybierz metodę płatności poniżej");
+
+            const menu = new StringSelectMenuBuilder()
+                .setCustomId("exchange_from")
+                .setPlaceholder("🏆 Wybierz metodę")
+                .addOptions([
+                    {
+                        label: "BLIK",
+                        value: "BLIK",
+                        emoji: "💳"
+                    },
+                    {
+                        label: "PAYPAL",
+                        value: "PAYPAL",
+                        emoji: "💰"
+                    },
+                    {
+                        label: "CRYPTO",
+                        value: "CRYPTO",
+                        emoji: "🪙"
+                    },
+                    {
+                        label: "LTC",
+                        value: "LTC",
+                        emoji: "💠"
+                    }
+                ]);
+
+            const row = new ActionRowBuilder().addComponents(menu);
+
+            await channel.send({
+                embeds: [embed],
+                components: [row]
+            });
+
+            console.log("✅ Panel kalkulatora wysłany");
+
+        } catch (err) {
+            console.log("❌ Błąd kalkulator ready:", err.message);
+        }
     });
 
     // =========================
-    // DRUGI WYBÓR
+    // INTERACTION
     // =========================
-    client.on(Events.InteractionCreate, async (interaction) => {
-        if (!interaction.isStringSelectMenu()) return;
-        if (!interaction.customId.startsWith("exchange_to_")) return;
+    client.on(Events.InteractionCreate, async interaction => {
 
-        const from = interaction.customId.replace("exchange_to_", "");
-        const to = interaction.values[0];
+        try {
 
-        const key = `${from}_${to}`;
-        const fee = rates[key] || 8.0;
+            if (!interaction.isStringSelectMenu()) return;
 
-        await interaction.reply({
-            content:
+            // WYBÓR STARTOWY
+            if (interaction.customId === "exchange_from") {
+
+                const from = interaction.values[0];
+
+                const menu = new StringSelectMenuBuilder()
+                    .setCustomId(`exchange_to_${from}`)
+                    .setPlaceholder("📦 Na co wymienić?")
+                    .addOptions(
+                        ["BLIK", "PAYPAL", "CRYPTO", "LTC"]
+                            .filter(x => x !== from)
+                            .map(x => ({
+                                label: x,
+                                value: x
+                            }))
+                    );
+
+                const row = new ActionRowBuilder().addComponents(menu);
+
+                return interaction.reply({
+                    content: "➡️ Wybierz metodę docelową",
+                    components: [row],
+                    ephemeral: true
+                });
+            }
+
+            // WYBÓR DOCELOWY
+            if (interaction.customId.startsWith("exchange_to_")) {
+
+                const from = interaction.customId.replace("exchange_to_", "");
+                const to = interaction.values[0];
+
+                const fee = rates[`${from}_${to}`] || 8.0;
+
+                return interaction.reply({
+                    content:
 `${labels[from]} ${arrow} ${labels[to]}
 × Prowizja: ${fee.toFixed(1)}%`,
-            ephemeral: true
-        });
+                    ephemeral: true
+                });
+            }
+
+        } catch (err) {
+            console.log("❌ Błąd kalkulator interaction:", err.message);
+        }
+
     });
 
 };
