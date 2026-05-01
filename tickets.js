@@ -34,7 +34,7 @@ module.exports = (client) => {
         .setTitle('💸︲🌟 StarX Exchange » TICKETY')
         .setDescription('Wybierz kategorię ticketa poniżej 👇')
         .setImage('https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand');
-            .setFooter({
+        .setFooter({
                 text: "© 2026 StarX Exchange × Weryfikacja"
             });
 
