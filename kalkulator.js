@@ -1,152 +1,142 @@
 const {
-  EmbedBuilder,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-  Events
+    EmbedBuilder,
+    ActionRowBuilder,
+    StringSelectMenuBuilder,
+    Events
 } = require("discord.js");
 
 module.exports = (client) => {
-  const CHANNEL_ID = "1499513009188376767";
 
-  // ==========================
-  // WYSYŁANIE PANELU
-  // ==========================
-  async function sendPanel() {
-    try {
-      const channel = await client.channels.fetch(CHANNEL_ID);
+    const CHANNEL_ID = "1499513009188376767";
 
-      if (!channel) {
-        return console.log("❌ Nie znaleziono kanału.");
-      }
+    // =========================
+    // PROWIZJE
+    // =========================
+    const rates = {
+        "BLIK_PAYPAL": 8.0,
+        "BLIK_CRYPTO": 8.0,
+        "BLIK_LTC": 8.0,
 
-      const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
-        .setTitle("🌟 StarX Exchange » PROWIZJE")
-        .setDescription("💸 Wybierz metodę płatności z menu poniżej.")
-        .setFooter({ text: "© 2026 StarX Exchange" });
+        "PAYPAL_BLIK": 8.0,
+        "PAYPAL_CRYPTO": 8.0,
+        "PAYPAL_LTC": 8.0,
 
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId("show_rates")
-        .setPlaceholder("💰 Wybierz metodę")
-        .addOptions([
-          {
-            label: "BLIK",
-            value: "BLIK",
-            emoji: "💳"
-          },
-          {
-            label: "PAYPAL",
-            value: "PAYPAL",
-            emoji: "💙"
-          },
-          {
-            label: "CRYPTO",
-            value: "CRYPTO",
-            emoji: "🪙"
-          },
-          {
-            label: "LTC",
-            value: "LTC",
-            emoji: "💠"
-          }
-        ]);
+        "CRYPTO_BLIK": 8.0,
+        "CRYPTO_PAYPAL": 8.0,
+        "CRYPTO_LTC": 8.0,
 
-      const row = new ActionRowBuilder().addComponents(menu);
+        "LTC_BLIK": 8.0,
+        "LTC_PAYPAL": 8.0,
+        "LTC_CRYPTO": 8.0
+    };
 
-      await channel.send({
-        embeds: [embed],
-        components: [row]
-      });
+    // =========================
+    // EMOJI + NAZWY
+    // =========================
+    const labels = {
+        BLIK: ":blk:︲BLIK",
+        PAYPAL: ":pp:︲PAYPAL",
+        CRYPTO: ":crypto:︲CRYPTO",
+        LTC: ":ltc:︲LTC"
+    };
 
-      console.log("✅ Panel prowizji wysłany.");
-    } catch (err) {
-      console.log("❌ Błąd przy wysyłaniu panelu:");
-      console.log(err);
-    }
-  }
+    const arrow = ":strzalka:";
 
-  // ==========================
-  // READY
-  // ==========================
-  client.once(Events.ClientReady, async () => {
-    console.log(`✅ Bot zalogowany jako ${client.user.tag}`);
+    // =========================
+    // PANEL
+    // =========================
+    client.once("ready", async () => {
+        const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
+        if (!channel) return;
 
-    setTimeout(() => {
-      sendPanel();
-    }, 3000);
-  });
+        const embed = new EmbedBuilder()
+            .setColor("#2b2d31")
+            .setTitle("💱 Wymień Hajs × Prowizje")
+            .setDescription("📦 Wybierz metodę płatności poniżej");
 
-  // ==========================
-  // INTERAKCJE
-  // ==========================
-  client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isStringSelectMenu()) return;
-    if (interaction.customId !== "show_rates") return;
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId("exchange_select")
+            .setPlaceholder("Wybierz metodę...")
+            .addOptions([
+                {
+                    label: "BLIK",
+                    value: "BLIK",
+                    emoji: "💳"
+                },
+                {
+                    label: "PAYPAL",
+                    value: "PAYPAL",
+                    emoji: "💰"
+                },
+                {
+                    label: "CRYPTO",
+                    value: "CRYPTO",
+                    emoji: "🪙"
+                },
+                {
+                    label: "LTC",
+                    value: "LTC",
+                    emoji: "💠"
+                }
+            ]);
 
-    const selected = interaction.values[0];
-    let desc = "";
+        const row = new ActionRowBuilder().addComponents(menu);
 
-    // ==========================
-    // BLIK
-    // ==========================
-    if (selected === "BLIK") {
-      desc = `
-💳︲BLIK ➜ 💙︲PAYPAL × **8.0%**
-💳︲BLIK ➜ 🪙︲CRYPTO × **8.0%**
-💳︲BLIK ➜ 💠︲LTC × **8.0%**
-
-⚠️ Minimalna prowizja przy wymianie z **BLIK** wynosi **2 PLN**
-`;
-    }
-
-    // ==========================
-    // PAYPAL
-    // ==========================
-    if (selected === "PAYPAL") {
-      desc = `
-💙︲PAYPAL ➜ 💳︲BLIK × **7.0%**
-💙︲PAYPAL ➜ 🪙︲CRYPTO × **7.0%**
-💙︲PAYPAL ➜ 💠︲LTC × **7.5%**
-
-⚠️ Minimalna prowizja przy wymianie z **PAYPAL** wynosi **2 PLN**
-`;
-    }
-
-    // ==========================
-    // CRYPTO
-    // ==========================
-    if (selected === "CRYPTO") {
-      desc = `
-🪙︲CRYPTO ➜ 💙︲PAYPAL × **3.5%**
-🪙︲CRYPTO ➜ 💳︲BLIK × **3.5%**
-🪙︲CRYPTO ➜ 💠︲LTC × **3.5%**
-
-⚠️ Minimalna prowizja przy wymianie z **CRYPTO** wynosi **2 PLN**
-`;
-    }
-
-    // ==========================
-    // LTC
-    // ==========================
-    if (selected === "LTC") {
-      desc = `
-💠︲LTC ➜ 💙︲PAYPAL × **4.0%**
-💠︲LTC ➜ 💳︲BLIK × **3.5%**
-💠︲LTC ➜ 🪙︲CRYPTO × **3.5%**
-
-⚠️ Minimalna prowizja przy wymianie z **LTC** wynosi **2 PLN**
-`;
-    }
-
-    const embed = new EmbedBuilder()
-      .setColor("#2b2d31")
-      .setTitle(`🌟 ${selected} » PROWIZJE`)
-      .setDescription(desc)
-      .setFooter({ text: "StarX Exchange © 2026" });
-
-    await interaction.reply({
-      embeds: [embed],
-      ephemeral: true
+        await channel.send({
+            embeds: [embed],
+            components: [row]
+        });
     });
-  });
+
+    // =========================
+    // OBSŁUGA MENU
+    // =========================
+    client.on(Events.InteractionCreate, async (interaction) => {
+        if (!interaction.isStringSelectMenu()) return;
+        if (interaction.customId !== "exchange_select") return;
+
+        const from = interaction.values[0];
+
+        const secondMenu = new StringSelectMenuBuilder()
+            .setCustomId(`exchange_to_${from}`)
+            .setPlaceholder("Na co chcesz wymienić?")
+            .addOptions(
+                ["BLIK", "PAYPAL", "CRYPTO", "LTC"]
+                    .filter(x => x !== from)
+                    .map(x => ({
+                        label: x,
+                        value: x
+                    }))
+            );
+
+        const row = new ActionRowBuilder().addComponents(secondMenu);
+
+        await interaction.reply({
+            content: "➡️ Wybierz docelową metodę płatności:",
+            components: [row],
+            ephemeral: true
+        });
+    });
+
+    // =========================
+    // DRUGI WYBÓR
+    // =========================
+    client.on(Events.InteractionCreate, async (interaction) => {
+        if (!interaction.isStringSelectMenu()) return;
+        if (!interaction.customId.startsWith("exchange_to_")) return;
+
+        const from = interaction.customId.replace("exchange_to_", "");
+        const to = interaction.values[0];
+
+        const key = `${from}_${to}`;
+        const fee = rates[key] || 8.0;
+
+        await interaction.reply({
+            content:
+`${labels[from]} ${arrow} ${labels[to]}
+× Prowizja: ${fee.toFixed(1)}%`,
+            ephemeral: true
+        });
+    });
+
 };
