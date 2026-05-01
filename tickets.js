@@ -31,9 +31,9 @@ module.exports = (client) => {
 
       const embed = new EmbedBuilder()
         .setColor('#2b2d31')
-        .setTitle('💸︲ᴡʏᴍɪᴇɴ ʜᴀᴊꜱ × ᴛɪᴄᴋᴇᴛʏ')
+        .setTitle('💸︲🌟 StarX Exchange » TICKETY')
         .setDescription('Wybierz kategorię ticketa poniżej 👇')
-        .setImage('https://imgur.com/a/5xjKwLb');
+        .setImage('https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand');
 
       const select = new StringSelectMenuBuilder()
         .setCustomId('ticket_select')
