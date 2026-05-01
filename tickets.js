@@ -29,14 +29,12 @@ module.exports = (client) => {
         return;
       }
 
-      const embed = new EmbedBuilder()
-        .setColor('#2b2d31')
-        .setTitle('💸︲🌟 StarX Exchange » TICKETY')
-        .setDescription('Wybierz kategorię ticketa poniżej 👇')
-        .setImage('https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand');
-        .setFooter({
-                text: "© 2026 StarX Exchange × Weryfikacja"
-            });
+const embed = new EmbedBuilder()
+  .setColor("#2b2d31")
+  .setTitle("🌟 StarX Exchange")
+  .setDescription("Treść embeda")
+  .setImage("https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand")
+  .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
 
       const select = new StringSelectMenuBuilder()
         .setCustomId('ticket_select')
