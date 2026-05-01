@@ -77,7 +77,7 @@ module.exports = (client) => {
 
 💸 **Cena: 40 ZŁ**
         `)
-        .setThumbnail("https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand")
+        .setThumbnail("https://i.imgur.com/4idb1UZ_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "StarX Exchange x Stake © 2026"
         });
