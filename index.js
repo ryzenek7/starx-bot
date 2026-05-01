@@ -35,6 +35,7 @@ require("./kalkulator")(client);
 require("./verify")(client);
 require("./verifyping")(client);
 require("./obliczprowizje")(client);
+require("./stakeacc")(client);
 // =====================
 // READY
 // =====================
