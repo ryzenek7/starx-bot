@@ -39,7 +39,7 @@ module.exports = (client) => {
 
 ⚠️ Zaznaczenie ❌ bez dowodu oraz sensownego powodu bedzie skutkowało karą.`
         )
-        .setImage('https://imgur.com/a/5xjKwLb')
+        .setImage('https://i.imgur.com/5zjYMiw_d.webp?maxwidth=760&fidelity=grand')
         .setFooter({ text: '© 2026 StarX Exchange x Legit Check' });
 
       const row = new ActionRowBuilder().addComponents(
