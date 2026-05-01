@@ -26,6 +26,7 @@ module.exports = (client) => {
 ✅ <#1499519884860854505>
 ⭐ <#1499519935657935049>
 🧮 <#1499568863602540645>
+🥩<#1499812157246669001>
 
 💡 Życzymy miłego pobytu na serwerze i udanych wymian! 🔥
                 `)
