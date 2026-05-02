@@ -1,12 +1,9 @@
-// stakeacc.js FINAL PREMIUM V3
+// stakeacc.js FINAL WORKING (pod nowy index.js)
 
 const {
   EmbedBuilder,
   ActionRowBuilder,
   StringSelectMenuBuilder,
-  SlashCommandBuilder,
-  REST,
-  Routes,
   Events
 } = require("discord.js");
 
@@ -14,60 +11,11 @@ module.exports = (client) => {
   // ===============================
   // CONFIG
   // ===============================
-  const TOKEN = process.env.TOKEN;
-  const CLIENT_ID = "1499478004265517396";
   const OWNER_ID = "1499499185337012377";
   const CHANNEL_ID = "1499812157246669001";
 
   let stock = 4;
   let panelMessageId = null;
-
-  // ===============================
-  // REGISTER COMMANDS
-  // ===============================
-  async function registerCommands() {
-    const commands = [
-      new SlashCommandBuilder()
-        .setName("stakeadd")
-        .setDescription("Dodaj stock")
-        .addIntegerOption(option =>
-          option.setName("ilosc")
-            .setDescription("Ilość")
-            .setRequired(true)
-        ),
-
-      new SlashCommandBuilder()
-        .setName("stakeremove")
-        .setDescription("Usuń stock")
-        .addIntegerOption(option =>
-          option.setName("ilosc")
-            .setDescription("Ilość")
-            .setRequired(true)
-        ),
-
-      new SlashCommandBuilder()
-        .setName("stakeset")
-        .setDescription("Ustaw stock")
-        .addIntegerOption(option =>
-          option.setName("ilosc")
-            .setDescription("Ilość")
-            .setRequired(true)
-        ),
-
-      new SlashCommandBuilder()
-        .setName("stakepanel")
-        .setDescription("Odśwież panel")
-    ].map(cmd => cmd.toJSON());
-
-    const rest = new REST({ version: "10" }).setToken(TOKEN);
-
-    await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
-      { body: commands }
-    );
-
-    console.log("✅ Stake slash commands dodane");
-  }
 
   // ===============================
   // PANEL
@@ -80,8 +28,8 @@ module.exports = (client) => {
       // usuń stary panel
       if (panelMessageId) {
         try {
-          const old = await channel.messages.fetch(panelMessageId);
-          if (old) await old.delete();
+          const oldMsg = await channel.messages.fetch(panelMessageId);
+          if (oldMsg) await oldMsg.delete();
         } catch {}
       }
 
@@ -136,7 +84,6 @@ module.exports = (client) => {
   // READY
   // ===============================
   client.once(Events.ClientReady, async () => {
-    await registerCommands();
     await sendPanel();
   });
 
@@ -174,15 +121,20 @@ module.exports = (client) => {
       // ================= SLASH
       if (!interaction.isChatInputCommand()) return;
 
-      if (
-        ["stakeadd", "stakeremove", "stakeset", "stakepanel"].includes(interaction.commandName)
-      ) {
-        if (interaction.user.id !== OWNER_ID) {
-          return interaction.reply({
-            content: "❌ Nie masz permisji.",
-            flags: 64
-          });
-        }
+      const allowed = [
+        "stakeadd",
+        "stakeremove",
+        "stakeset",
+        "stakepanel"
+      ];
+
+      if (!allowed.includes(interaction.commandName)) return;
+
+      if (interaction.user.id !== OWNER_ID) {
+        return interaction.reply({
+          content: "❌ Nie masz permisji.",
+          flags: 64
+        });
       }
 
       // /stakeadd
