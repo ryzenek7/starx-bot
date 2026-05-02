@@ -16,6 +16,7 @@ module.exports = (client) => {
   const EMOJI_SPOTIFY = "<:Spotify:1500238701718933627>";
   const EMOJI_NETFLIX = "<:Netflix:1500238788306403398>";
   const EMOJI_YT = "<:ytpremium:1500239415937859605>";
+  const EMOJI_HBO = "<:HBOmax:1500239251143524464>";
 
   // ========================
   // READY
@@ -76,7 +77,8 @@ module.exports = (client) => {
         .setDescription(
           `${EMOJI_SPOTIFY} **Spotify Premium Lifetime** — \`x zł\`\n\n` +
           `${EMOJI_YT} **YouTube Premium** — \`x zł\`\n\n` +
-          `${EMOJI_NETFLIX} **Netflix Lifetime Account** — \`x zł\``
+          `${EMOJI_NETFLIX} **Netflix Lifetime Account** — \`x zł\`\n\n` +
+          `${EMOJI_HBO} **HBO MAX Premium** — \`x zł\``
         )
         .setFooter({ text: "StarX Exchange • Najniższe prowizje" });
 
