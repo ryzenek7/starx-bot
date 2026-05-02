@@ -119,6 +119,7 @@ module.exports = (client) => {
   // OWNER COMMANDS
   // =========================
   client.on(Events.MessageCreate, async (message) => {
+    console.log("KOMENDA WYKRYTA:", message.content);
     if (message.author.bot) return;
     if (message.author.id !== OWNER_ID) return;
 
