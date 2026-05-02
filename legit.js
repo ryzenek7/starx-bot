@@ -9,51 +9,54 @@ const {
 module.exports = (client) => {
 
   // =====================
-  // USTAWIENIA
+  // CONFIG
   // =====================
   const CHANNEL_ID = "1499519884860854505";
 
-  const START_YES = 1;
-  const START_NO = 1;
+  // EMOJI
+  const YES_EMOJI = "<:tak:1499784353012514917>";
+  const NO_EMOJI = "<:nie:1499784378992295956>";
 
-  let yesVotes = START_YES;
-  let noVotes = START_NO;
+  let yesVotes = 1;
+  let noVotes = 1;
 
-  const votedUsers = new Set();
   let legitMessageId = null;
+  const votedUsers = new Set();
 
   // =====================
-  // PANEL
+  // SEND PANEL
   // =====================
   async function sendPanel() {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
-      if (!channel) return console.log("❌ Nie znaleziono kanału legit.");
+      if (!channel) return;
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
         .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
         .setDescription(
-`<:yes:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+`${YES_EMOJI} Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-<:no:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+${NO_EMOJI} Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Oddanie głosu <:no:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
+⚠️ Oddanie głosu ${NO_EMOJI} bez dowodu i sensownego powodu może skutkować karą.`
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-        .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
+        .setFooter({
+          text: "© 2026 StarX Exchange x Legit Check"
+        });
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId("legit_yes")
-          .setLabel(`${yesVotes}`)
           .setEmoji("1499784353012514917")
+          .setLabel(`${yesVotes}`)
           .setStyle(ButtonStyle.Secondary),
 
         new ButtonBuilder()
           .setCustomId("legit_no")
-          .setLabel(`${noVotes}`)
           .setEmoji("1499784378992295956")
+          .setLabel(`${noVotes}`)
           .setStyle(ButtonStyle.Secondary)
       );
 
@@ -64,10 +67,10 @@ module.exports = (client) => {
 
       legitMessageId = msg.id;
 
-      console.log("✅ Panel legit wysłany.");
+      console.log("✅ Legit panel wysłany");
 
     } catch (err) {
-      console.log("❌ Błąd legit.js:", err);
+      console.log("❌ legit.js error:", err);
     }
   }
 
@@ -79,7 +82,7 @@ module.exports = (client) => {
   });
 
   // =====================
-  // BUTTONY
+  // BUTTONS
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isButton()) return;
@@ -103,26 +106,28 @@ module.exports = (client) => {
       .setColor("#2b2d31")
       .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
       .setDescription(
-`<:yes:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+`${YES_EMOJI} Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-<:no:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+${NO_EMOJI} Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Oddanie głosu <:no:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
+⚠️ Oddanie głosu ${NO_EMOJI} bez dowodu i sensownego powodu może skutkować karą.`
       )
       .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-      .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
+      .setFooter({
+        text: "© 2026 StarX Exchange x Legit Check"
+      });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("legit_yes")
-        .setLabel(`${yesVotes}`)
         .setEmoji("1499784353012514917")
+        .setLabel(`${yesVotes}`)
         .setStyle(ButtonStyle.Secondary),
 
       new ButtonBuilder()
         .setCustomId("legit_no")
-        .setLabel(`${noVotes}`)
         .setEmoji("1499784378992295956")
+        .setLabel(`${noVotes}`)
         .setStyle(ButtonStyle.Secondary)
     );
 
