@@ -25,7 +25,7 @@ const client = new Client({
 });
 
 // =====================
-// MODUŁY
+// MODUŁY (PRZED LOGIN)
 // =====================
 require("./tickets")(client);
 require("./welcome")(client);
@@ -35,6 +35,7 @@ require("./kalkulator")(client);
 require("./obliczprowizje")(client);
 require("./cennik")(client);
 require("./stakeacc")(client);
+require("./regulamin")(client);
 require("./verify")(client);
 require("./verifyping")(client);
 
