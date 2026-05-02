@@ -11,12 +11,15 @@ module.exports = (client) => {
     const VERIFY_URL = "https://vaultcord.win/starxexchange";
 
     // EMOTKI
-    const EMOJI_VERIFY = "<:yes:1499784353012514917>";
+    const EMOJI_VERIFY = "<:tak:1499784353012514917>";
     const EMOJI_LOCK = "🔒";
     const EMOJI_ROCKET = "🚀";
     const EMOJI_STAR = "🌟";
 
-    client.once(Events.ClientReady, async () => {
+    // =========================
+    // PANEL
+    // =========================
+    async function sendPanel() {
         try {
             const channel = await client.channels.fetch(VERIFY_CHANNEL_ID);
             if (!channel) return;
@@ -48,7 +51,7 @@ ${EMOJI_ROCKET} Uzyskaj pełny dostęp do serwera.`
                         label: "Zweryfikuj konto",
                         description: "Przejdź autoryzację Discord",
                         value: "verify",
-                        emoji: "✅"
+                        emoji: "1499784353012514917"
                     }
                 ]);
 
@@ -59,14 +62,22 @@ ${EMOJI_ROCKET} Uzyskaj pełny dostęp do serwera.`
                 components: [row]
             });
 
-            console.log("✅ Panel verify wysłany");
+            console.log("✅ Verify panel wysłany");
 
         } catch (err) {
             console.log("❌ Verify error:", err);
         }
+    }
+
+    // READY
+    client.once(Events.ClientReady, async () => {
+        await sendPanel();
     });
 
-    client.on(Events.InteractionCreate, async interaction => {
+    // =========================
+    // MENU
+    // =========================
+    client.on(Events.InteractionCreate, async (interaction) => {
 
         if (!interaction.isStringSelectMenu()) return;
         if (interaction.customId !== "verify_select") return;
