@@ -1,5 +1,4 @@
 // stakeacc.js
-// WERSJA POD RAILWAY (bez stakeData.json)
 
 const {
   EmbedBuilder,
@@ -9,12 +8,12 @@ const {
 } = require("discord.js");
 
 module.exports = (client) => {
+  // =========================
+  // USTAWIENIA
+  // =========================
   const OWNER_ID = "1499499185337012377";
   const CHANNEL_ID = "1499812157246669001";
 
-  // =========================
-  // STOCK (pamięć runtime)
-  // =========================
   let stock = 4;
   let panelMessageId = null;
 
@@ -77,7 +76,7 @@ module.exports = (client) => {
 
       console.log("✅ Stake panel uruchomiony");
     } catch (err) {
-      console.log("❌ Błąd stake panelu:", err);
+      console.log("❌ Błąd panelu stake:", err);
     }
   }
 
@@ -119,14 +118,16 @@ module.exports = (client) => {
   // OWNER COMMANDS
   // =========================
   client.on(Events.MessageCreate, async (message) => {
-console.log(`KOMENDA WYKRYTA: ${message.content}`);
+    console.log(`KOMENDA WYKRYTA: ${message.content}`);
+
     if (message.author.bot) return;
+    if (!message.guild) return;
     if (message.author.id !== OWNER_ID) return;
 
     const args = message.content.trim().split(/\s+/);
     const cmd = args[0].toLowerCase();
 
-    // .stakeadd 5
+    // .stakeadd 1
     if (cmd === ".stakeadd") {
       const amount = parseInt(args[1]);
       if (isNaN(amount)) return message.reply("❌ Podaj liczbę.");
@@ -137,7 +138,7 @@ console.log(`KOMENDA WYKRYTA: ${message.content}`);
       return message.reply(`✅ Dodano ${amount}. Aktualnie: ${stock}`);
     }
 
-    // .stakeremove 2
+    // .stakeremove 1
     if (cmd === ".stakeremove") {
       const amount = parseInt(args[1]);
       if (isNaN(amount)) return message.reply("❌ Podaj liczbę.");
@@ -171,11 +172,11 @@ console.log(`KOMENDA WYKRYTA: ${message.content}`);
     if (cmd === ".stakehelp") {
       return message.reply(
         "**Komendy:**\n" +
-          "`.stakeadd 5`\n" +
-          "`.stakeremove 2`\n" +
-          "`.stakeset 10`\n" +
-          "`.stakepanel`\n" +
-          "`.stakehelp`"
+        "`.stakeadd 1`\n" +
+        "`.stakeremove 1`\n" +
+        "`.stakeset 10`\n" +
+        "`.stakepanel`\n" +
+        "`.stakehelp`"
       );
     }
   });
