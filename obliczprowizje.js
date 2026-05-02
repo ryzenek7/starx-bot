@@ -16,6 +16,14 @@ module.exports = (client) => {
   let selectedFrom = {};
 
   // =====================
+  // CUSTOM EMOJI
+  // =====================
+  const EMOJI_BLIK = "<:blik:1499784231608389742>";
+  const EMOJI_PAYPAL = "<:paypal:1499784258091483236>";
+  const EMOJI_CRYPTO = "<:crypto:1499784635201224724>";
+  const EMOJI_LTC = "<:ltc:1499784285211726014>";
+
+  // =====================
   // PROWIZJE
   // =====================
   const rates = {
@@ -35,6 +43,14 @@ module.exports = (client) => {
     "CRYPTO_BLIK": 3.5,
     "CRYPTO_LTC": 3.5
   };
+
+  function emoji(method) {
+    if (method === "BLIK") return EMOJI_BLIK;
+    if (method === "PAYPAL") return EMOJI_PAYPAL;
+    if (method === "CRYPTO") return EMOJI_CRYPTO;
+    if (method === "LTC") return EMOJI_LTC;
+    return "💸";
+  }
 
   // =====================
   // PANEL
@@ -88,7 +104,6 @@ module.exports = (client) => {
   // =====================
   client.on(Events.InteractionCreate, async interaction => {
 
-    // KROK 1
     if (interaction.isStringSelectMenu()) {
 
       // typ
@@ -100,16 +115,32 @@ module.exports = (client) => {
           .setCustomId("calc_from")
           .setPlaceholder("📤 Z jakiej metody?")
           .addOptions([
-            { label: "BLIK", value: "BLIK" },
-            { label: "PAYPAL", value: "PAYPAL" },
-            { label: "LTC", value: "LTC" },
-            { label: "CRYPTO", value: "CRYPTO" }
+            {
+              label: "BLIK",
+              value: "BLIK",
+              emoji: { id: "1499784231608389742", name: "blik" }
+            },
+            {
+              label: "PAYPAL",
+              value: "PAYPAL",
+              emoji: { id: "1499784258091483236", name: "paypal" }
+            },
+            {
+              label: "LTC",
+              value: "LTC",
+              emoji: { id: "1499784285211726014", name: "ltc" }
+            },
+            {
+              label: "CRYPTO",
+              value: "CRYPTO",
+              emoji: { id: "1499784635201224724", name: "crypto" }
+            }
           ]);
 
         return interaction.reply({
           content: "📤 Wybierz metodę Z:",
           components: [new ActionRowBuilder().addComponents(menu)],
-          ephemeral: true
+          flags: 64
         });
       }
 
@@ -122,10 +153,26 @@ module.exports = (client) => {
           .setCustomId("calc_to")
           .setPlaceholder("📥 Na jaką metodę?")
           .addOptions([
-            { label: "BLIK", value: "BLIK" },
-            { label: "PAYPAL", value: "PAYPAL" },
-            { label: "LTC", value: "LTC" },
-            { label: "CRYPTO", value: "CRYPTO" }
+            {
+              label: "BLIK",
+              value: "BLIK",
+              emoji: { id: "1499784231608389742", name: "blik" }
+            },
+            {
+              label: "PAYPAL",
+              value: "PAYPAL",
+              emoji: { id: "1499784258091483236", name: "paypal" }
+            },
+            {
+              label: "LTC",
+              value: "LTC",
+              emoji: { id: "1499784285211726014", name: "ltc" }
+            },
+            {
+              label: "CRYPTO",
+              value: "CRYPTO",
+              emoji: { id: "1499784635201224724", name: "crypto" }
+            }
           ]);
 
         return interaction.update({
@@ -155,7 +202,9 @@ module.exports = (client) => {
       }
     }
 
+    // =====================
     // MODAL
+    // =====================
     if (interaction.isModalSubmit()) {
 
       if (!interaction.customId.startsWith("calc_modal_")) return;
@@ -169,7 +218,7 @@ module.exports = (client) => {
       if (!rates[key]) {
         return interaction.reply({
           content: "❌ Nie można wymienić tej metody.",
-          ephemeral: true
+          flags: 64
         });
       }
 
@@ -191,18 +240,18 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("🌟 StarX Exchange » WYNIK")
         .setDescription(
-`📤 Z: **${from}**
-📥 Na: **${to}**
+`${emoji(from)} **Z:** ${from}
+${emoji(to)} **Na:** ${to}
 
-💸 Prowizja: **${percent}%**
+💸 **Prowizja:** ${percent}%
 
-💰 Wynik: **${wynik.toFixed(2)} zł**`
+💰 **Wynik:** ${wynik.toFixed(2)} zł`
         )
         .setFooter({ text: "© 2026 StarX Exchange x Kalkulator" });
 
       await interaction.reply({
         embeds: [embed],
-        ephemeral: true
+        flags: 64
       });
     }
 
