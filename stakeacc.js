@@ -5,7 +5,11 @@ const {
   StringSelectMenuBuilder
 } = require("discord.js");
 
+// =====================
+// FILES
+// =====================
 const FILE = "./stakeData.json";
+const PANEL_FILE = "./panel.json";
 const CHANNEL_ID = "1499812157246669001";
 
 // =====================
@@ -20,101 +24,118 @@ function saveData(data) {
   fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
 }
 
-// =====================
-// PANEL CREATOR
-// =====================
-async function sendOrUpdatePanel(client) {
-  const channel = await client.channels.fetch(CHANNEL_ID);
+function savePanel(id) {
+  fs.writeFileSync(PANEL_FILE, JSON.stringify({ id }));
+}
 
-  const data = loadData();
-
-  let total = 0;
-  for (const v of Object.values(data)) {
-    total += v;
-  }
-
-  const embed = new EmbedBuilder()
-    .setColor("#2b2d31")
-    .setTitle("🥩 KONTO STAKE")
-    .setDescription(
-      `📦 **Dostępne konta: ${total}**\n\n` +
-      `Wybierz akcję poniżej`
-    );
-
-  const menu = new StringSelectMenuBuilder()
-    .setCustomId("stake_menu")
-    .setPlaceholder("📦 Wybierz akcję")
-    .addOptions([
-      {
-        label: "Sprawdź konto",
-        value: "check",
-        emoji: "📊"
-      },
-      {
-        label: "Cena konta",
-        value: "price",
-        emoji: "💰"
-      }
-    ]);
-
-  const row = new ActionRowBuilder().addComponents(menu);
-
-  const messages = await channel.messages.fetch({ limit: 10 });
-  const old = messages.find(m =>
-    m.author.id === client.user.id &&
-    m.components.length > 0
-  );
-
-  if (old) {
-    await old.edit({
-      embeds: [embed],
-      components: [row]
-    });
-  } else {
-    await channel.send({
-      embeds: [embed],
-      components: [row]
-    });
-  }
+function loadPanel() {
+  if (!fs.existsSync(PANEL_FILE)) return null;
+  return JSON.parse(fs.readFileSync(PANEL_FILE));
 }
 
 // =====================
-// MODULE
+// PANEL SYSTEM
+// =====================
+async function sendOrUpdatePanel(client) {
+  const channel = await client.channels.fetch(CHANNEL_ID);
+  const data = loadData();
+
+  const total = Object.values(data).reduce((a, b) => a + b, 0);
+
+  const embed = new EmbedBuilder()
+    .setColor("#111214")
+    .setTitle("🌟 STAKE ACCESS PANEL")
+    .setDescription(
+      `✅ **Wybierz konto z listy poniżej**\n\n` +
+      `🔒 Bezpieczny dostęp\n` +
+      `🚀 Instant delivery\n\n` +
+      `📦 **Dostępne konta: ${total}**`
+    )
+    .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand");
+
+  // =====================
+  // DROPDOWN ACCOUNTS
+  // =====================
+  const options = [];
+
+  for (let i = 1; i <= Math.min(total, 25); i++) {
+    options.push({
+      label: `Konto #${i}`,
+      value: `konto_${i}`,
+      emoji: "🥩"
+    });
+  }
+
+  if (options.length === 0) {
+    options.push({
+      label: "Brak kont",
+      value: "brak",
+      emoji: "❌"
+    });
+  }
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId("stake_select")
+    .setPlaceholder("🥩 Wybierz konto")
+    .addOptions(options);
+
+  const row = new ActionRowBuilder().addComponents(menu);
+
+  // =====================
+  // DELETE OLD PANEL
+  // =====================
+  const panelData = loadPanel();
+
+  if (panelData?.id) {
+    try {
+      const oldMsg = await channel.messages.fetch(panelData.id);
+      await oldMsg.delete();
+    } catch {}
+  }
+
+  // =====================
+  // SEND NEW PANEL
+  // =====================
+  const msg = await channel.send({
+    embeds: [embed],
+    components: [row]
+  });
+
+  savePanel(msg.id);
+}
+
+// =====================
+// MODULE EXPORT
 // =====================
 module.exports = (client) => {
 
-  // 📌 PANEL START
+  // 🔥 START PANEL
   client.once("ready", async () => {
     console.log("✅ stakeacc aktywny");
     await sendOrUpdatePanel(client);
   });
 
   // =====================
-  // INTERACTIONS MENU
+  // SELECT MENU
   // =====================
   client.on("interactionCreate", async interaction => {
 
-    // MENU
     if (interaction.isStringSelectMenu()) {
-      if (interaction.customId !== "stake_menu") return;
+      if (interaction.customId !== "stake_select") return;
 
-      const data = loadData();
-      let total = 0;
-      for (const v of Object.values(data)) total += v;
+      const value = interaction.values[0];
 
-      if (interaction.values[0] === "check") {
+      if (value === "brak") {
         return interaction.reply({
-          content: `📦 Aktualnie: ${total} kont`,
+          content: "❌ Brak dostępnych kont",
           ephemeral: true
         });
       }
 
-      if (interaction.values[0] === "price") {
-        return interaction.reply({
-          content: `💰 Cena konta: 40 ZŁ`,
-          ephemeral: true
-        });
-      }
+      return interaction.reply({
+        content: `🥩 Wybrałeś: **${value}**`,
+        ephemeral: true
+      });
     }
 
     // =====================
