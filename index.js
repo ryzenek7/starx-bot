@@ -115,7 +115,7 @@ client.on(Events.InteractionCreate, async interaction => {
     // owner only reset
     if (
       interaction.commandName === "reset" &&
-      interaction.user.id !== OWNER_ID
+!interaction.member.roles.cache.has("1499499185337012377")
     ) {
       return interaction.reply({
         content: "❌ Nie masz permisji.",
