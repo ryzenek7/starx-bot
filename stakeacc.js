@@ -35,7 +35,7 @@ module.exports = (client) => {
 
       const embed = new EmbedBuilder()
         .setColor("#2b59ff")
-        .setTitle("🌟 StarX Exchange » KONTO STAKE 🎰")
+        .setTitle("<:stake:1500238567564378142> StarX Exchange » KONTO STAKE")
         .setDescription(
           "📌 Wybierz opcję z menu poniżej.\n" +
           "⚡ Natychmiastowa realizacja.\n" +
