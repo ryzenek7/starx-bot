@@ -18,11 +18,11 @@ module.exports = (client) => {
       }
 
       const embed = new EmbedBuilder()
-        .setColor("#ff2b2b")
+        .setColor("#2b59ff")
         .setTitle("★ StarX Exchange » KONTO STAKE 🎰")
         .setDescription(
           "📌 Wybierz opcję z menu poniżej.\n\n" +
-          "📦 Dostępne sztuki: **0**"
+          "📦 Dostępne sztuki: **4**"
         )
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
@@ -60,7 +60,7 @@ module.exports = (client) => {
 
     if (interaction.values[0] === "cena") {
       await interaction.reply({
-        content: "💰 Cena konta Stake: **20 PLN**",
+        content: "💰 Cena konta Stake: **40 PLN**",
         ephemeral: true
       });
     }
