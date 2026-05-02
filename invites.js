@@ -1,4 +1,4 @@
-// invites.js STARX EXCHANGE V3 FINAL
+// invites.js STARX EXCHANGE V4 FINAL
 
 const {
   EmbedBuilder,
@@ -9,6 +9,9 @@ module.exports = (client) => {
 
   const inviteCache = new Map();
   const personalInvites = new Map();
+
+  // kanał zaproszeń
+  const LOG_CHANNEL_ID = "1500261480212205629";
 
   // ==========================
   // READY
@@ -66,6 +69,37 @@ module.exports = (client) => {
       const key = `invites_${guild.id}_${ownerId}`;
       client[key] = (client[key] || 0) + 1;
 
+      // =====================
+      // LOG KANAŁ
+      // =====================
+      const logChannel = await guild.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
+
+      if (logChannel) {
+        const inviter = await client.users.fetch(ownerId).catch(() => null);
+        const total = client[key] || 0;
+
+        const embed = new EmbedBuilder()
+          .setColor("#2b2d31")
+          .setTitle("🥷 StarX Exchange » NOWE ZAPROSZENIE")
+          .setDescription(
+`👤 **Nowy użytkownik:** ${member}
+
+📨 **Zaprosił:** ${inviter}
+
+📈 **Łącznie zaproszeń:** **${total}**
+
+🔗 Kod: \`${usedInvite.code}\``)
+          .setFooter({
+            text:
+`Komendy: /invites • /myinvite • /topinvites • /checkinvites`
+          })
+          .setTimestamp();
+
+        await logChannel.send({
+          embeds: [embed]
+        });
+      }
+
     } catch (err) {
       console.log("❌ Join Invite Error:", err);
     }
@@ -99,8 +133,7 @@ module.exports = (client) => {
 
 📨 Twój link:
 
-https://discord.gg/${invite.code}`
-          )
+https://discord.gg/${invite.code}`)
           .setFooter({
             text: "© 2026 StarX Exchange"
           });
@@ -119,20 +152,16 @@ https://discord.gg/${invite.code}`
         const amount =
           client[`invites_${interaction.guild.id}_${interaction.user.id}`] || 0;
 
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("📨 StarX Exchange » INVITES")
-          .setDescription(
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#2b2d31")
+              .setTitle("📨 StarX Exchange » INVITES")
+              .setDescription(
 `👤 ${interaction.user}
 
-Zaprosiłeś **${amount}** osób.`
-          )
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
-
-        return interaction.reply({
-          embeds: [embed],
+Zaprosiłeś **${amount}** osób.`)
+          ],
           flags: 64
         });
       }
@@ -147,20 +176,16 @@ Zaprosiłeś **${amount}** osób.`
         const amount =
           client[`invites_${interaction.guild.id}_${user.id}`] || 0;
 
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("📨 StarX Exchange » CHECK INVITES")
-          .setDescription(
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#2b2d31")
+              .setTitle("📨 StarX Exchange » CHECK INVITES")
+              .setDescription(
 `👤 ${user}
 
-Posiada **${amount}** zaproszeń.`
-          )
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
-
-        return interaction.reply({
-          embeds: [embed],
+Posiada **${amount}** zaproszeń.`)
+          ],
           flags: 64
         });
       }
@@ -191,16 +216,13 @@ Posiada **${amount}** zaproszeń.`
 
         if (!desc) desc = "Brak danych.";
 
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("🏆 StarX Exchange » TOP INVITES")
-          .setDescription(desc)
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
-
         return interaction.reply({
-          embeds: [embed]
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#2b2d31")
+              .setTitle("🏆 StarX Exchange » TOP INVITES")
+              .setDescription(desc)
+          ]
         });
       }
 
