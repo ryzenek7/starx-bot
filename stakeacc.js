@@ -1,4 +1,5 @@
 // stakeacc.js
+// WERSJA POD RAILWAY (bez stakeData.json)
 
 const {
   EmbedBuilder,
@@ -7,50 +8,15 @@ const {
   Events
 } = require("discord.js");
 
-const fs = require("fs");
-const path = require("path");
-
 module.exports = (client) => {
-  // =========================
-  // USTAWIENIA
-  // =========================
   const OWNER_ID = "1499499185337012377";
   const CHANNEL_ID = "1499812157246669001";
 
-  const dataPath = path.join(__dirname, "stakeData.json");
-
+  // =========================
+  // STOCK (pamięć runtime)
+  // =========================
   let stock = 4;
   let panelMessageId = null;
-
-  // =========================
-  // LOAD / SAVE
-  // =========================
-  function loadData() {
-    try {
-      if (fs.existsSync(dataPath)) {
-        const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-
-        stock = data.stock ?? 4;
-        panelMessageId = data.panelMessageId ?? null;
-      }
-    } catch (err) {
-      console.log("❌ Błąd odczytu stakeData.json");
-    }
-  }
-
-  function saveData() {
-    fs.writeFileSync(
-      dataPath,
-      JSON.stringify(
-        {
-          stock,
-          panelMessageId
-        },
-        null,
-        2
-      )
-    );
-  }
 
   // =========================
   // PANEL
@@ -71,13 +37,16 @@ module.exports = (client) => {
       const embed = new EmbedBuilder()
         .setColor("#2b59ff")
         .setTitle("🌟 StarX Exchange » KONTO STAKE 🎰")
-        .setDescription("📌 Wybierz opcję z menu poniżej.")
-        .setImage(
-          "https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand"
+        .setDescription(
+          "📌 Wybierz opcję z menu poniżej.\n" +
+          "⚡ Natychmiastowa realizacja.\n" +
+          "🔒 Pewny zakup."
         )
+        .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "© 2026 StarX Exchange x Stake"
-        });
+        })
+        .setTimestamp();
 
       const menu = new StringSelectMenuBuilder()
         .setCustomId("stake_menu")
@@ -85,14 +54,14 @@ module.exports = (client) => {
         .addOptions([
           {
             label: "Zobacz cenę",
-            description: "Sprawdź cenę konta",
             value: "cena",
+            description: "Sprawdź cenę konta",
             emoji: "💰"
           },
           {
             label: "Dostępne sztuki",
-            description: "Sprawdź stan magazynowy",
             value: "stock",
+            description: "Sprawdź aktualny stock",
             emoji: "📦"
           }
         ]);
@@ -105,11 +74,10 @@ module.exports = (client) => {
       });
 
       panelMessageId = msg.id;
-      saveData();
 
       console.log("✅ Stake panel uruchomiony");
     } catch (err) {
-      console.log("❌ Błąd panelu stake:", err);
+      console.log("❌ Błąd stake panelu:", err);
     }
   }
 
@@ -117,7 +85,6 @@ module.exports = (client) => {
   // READY
   // =========================
   client.once(Events.ClientReady, async () => {
-    loadData();
     await sendPanel();
   });
 
@@ -128,32 +95,28 @@ module.exports = (client) => {
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "stake_menu") return;
 
-    try {
-      if (interaction.values[0] === "cena") {
-        await interaction.reply({
-          content:
-            "🎮 **KONTO STAKE (2 POZIOM WERYFIKACJI):**\n" +
-            "- 🔓 Pełny dostęp (E-mail oraz Stake)\n" +
-            "- 🪪 Zweryfikowane dowodem osobistym\n" +
-            "- 🎯 Gotowe do wpłat i wypłat\n\n" +
-            "💸 **Cena: 40 ZŁ**",
-          flags: 64
-        });
-      }
+    if (interaction.values[0] === "cena") {
+      await interaction.reply({
+        content:
+          "🎮 **KONTO STAKE (2 POZIOM WERYFIKACJI):**\n" +
+          "- 🔓 Pełny dostęp (E-mail oraz Stake)\n" +
+          "- 🪪 Zweryfikowane dowodem osobistym\n" +
+          "- 🎯 Gotowe do wpłat i wypłat\n\n" +
+          "💸 **Cena: 40 ZŁ**",
+        flags: 64
+      });
+    }
 
-      if (interaction.values[0] === "stock") {
-        await interaction.reply({
-          content: `📦 **Dostępne sztuki: ${stock}**`,
-          flags: 64
-        });
-      }
-    } catch (err) {
-      console.log("❌ Błąd menu:", err);
+    if (interaction.values[0] === "stock") {
+      await interaction.reply({
+        content: `📦 **Dostępne sztuki: ${stock}**`,
+        flags: 64
+      });
     }
   });
 
   // =========================
-  // KOMENDY OWNERA
+  // OWNER COMMANDS
   // =========================
   client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot) return;
@@ -165,12 +128,9 @@ module.exports = (client) => {
     // .stakeadd 5
     if (cmd === ".stakeadd") {
       const amount = parseInt(args[1]);
-      if (isNaN(amount)) {
-        return message.reply("❌ Podaj ilość.");
-      }
+      if (isNaN(amount)) return message.reply("❌ Podaj liczbę.");
 
       stock += amount;
-      saveData();
       await sendPanel();
 
       return message.reply(`✅ Dodano ${amount}. Aktualnie: ${stock}`);
@@ -179,14 +139,11 @@ module.exports = (client) => {
     // .stakeremove 2
     if (cmd === ".stakeremove") {
       const amount = parseInt(args[1]);
-      if (isNaN(amount)) {
-        return message.reply("❌ Podaj ilość.");
-      }
+      if (isNaN(amount)) return message.reply("❌ Podaj liczbę.");
 
       stock -= amount;
       if (stock < 0) stock = 0;
 
-      saveData();
       await sendPanel();
 
       return message.reply(`✅ Usunięto ${amount}. Aktualnie: ${stock}`);
@@ -195,12 +152,9 @@ module.exports = (client) => {
     // .stakeset 10
     if (cmd === ".stakeset") {
       const amount = parseInt(args[1]);
-      if (isNaN(amount)) {
-        return message.reply("❌ Podaj ilość.");
-      }
+      if (isNaN(amount)) return message.reply("❌ Podaj liczbę.");
 
       stock = amount;
-      saveData();
       await sendPanel();
 
       return message.reply(`✅ Ustawiono stock na ${stock}`);
