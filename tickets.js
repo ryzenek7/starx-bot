@@ -7,7 +7,7 @@ const {
   PermissionsBitField,
   ButtonBuilder,
   ButtonStyle
-} = require('discord.js');
+} = require("discord.js");
 
 module.exports = (client) => {
 
@@ -23,23 +23,44 @@ module.exports = (client) => {
   client.once(Events.ClientReady, async () => {
     try {
       const channel = await client.channels.fetch(PANEL_CHANNEL_ID);
-
       if (!channel) return console.log("❌ Nie znaleziono kanału");
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
         .setTitle("🌟 StarX Exchange » TICKETY")
-        .setDescription("Wybierz kategorię ticketa")
+        .setDescription(
+          "🎫 Wybierz kategorię z menu poniżej.\n\n" +
+          "⚡ Szybka pomoc supportu.\n" +
+          "🔒 Bezpieczny kontakt."
+        )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-        .setFooter({ text: "© 2026 StarX Exchange x TICKET" });
+        .setFooter({ text: "© 2026 StarX Exchange x TICKETY" });
 
       const select = new StringSelectMenuBuilder()
         .setCustomId("ticket_select")
-        .setPlaceholder("Wybierz kategorię")
+        .setPlaceholder("🎫 Wybierz kategorię")
         .addOptions([
-          { label: "Wymiana / Zakup", value: "Wymiana / Zakup" },
-          { label: "Pomoc", value: "pomoc" },
-          { label: "Middleman", value: "mm" }
+          {
+            label: "Wymiana / Zakup",
+            value: "Wymiana / Zakup",
+            emoji: {
+              id: "1500243849535033577"
+            }
+          },
+          {
+            label: "Pomoc",
+            value: "pomoc",
+            emoji: {
+              id: "1500243961124618381"
+            }
+          },
+          {
+            label: "Middleman",
+            value: "mm",
+            emoji: {
+              id: "1500243884733894716"
+            }
+          }
         ]);
 
       const row = new ActionRowBuilder().addComponents(select);
@@ -49,7 +70,7 @@ module.exports = (client) => {
         components: [row]
       });
 
-      console.log("✅ Panel wysłany");
+      console.log("✅ Panel ticketów wysłany");
 
     } catch (err) {
       console.log("❌ Błąd panelu:", err);
@@ -65,7 +86,6 @@ module.exports = (client) => {
     // CREATE TICKET
     // ========================
     if (interaction.isStringSelectMenu()) {
-
       if (interaction.customId !== "ticket_select") return;
 
       try {
@@ -105,28 +125,32 @@ module.exports = (client) => {
 
         const row = new ActionRowBuilder().addComponents(closeButton);
 
-        // wiadomość z pingiem
         const msg = await channel.send({
-          content: `<@&${SUPPORT_ROLE_ID}> 👋 ${interaction.user}\nNowy ticket!\n📌 Kategoria: **${category}**`,
+          content:
+            `<@&${SUPPORT_ROLE_ID}> 👋 ${interaction.user}\n` +
+            `📌 Nowy ticket\n` +
+            `🎫 Kategoria: **${category}**`,
           components: [row],
           allowedMentions: {
             roles: [SUPPORT_ROLE_ID]
           }
         });
 
-        // po 1 sekundzie usuwa ping
         setTimeout(async () => {
           try {
             await msg.edit({
-              content: `👋 ${interaction.user}\nNowy ticket!\n📌 Kategoria: **${category}**`,
+              content:
+                `👋 ${interaction.user}\n` +
+                `📌 Nowy ticket\n` +
+                `🎫 Kategoria: **${category}**`,
               components: [row]
             });
-          } catch (err) {}
+          } catch {}
         }, 1000);
 
         await interaction.reply({
           content: `✅ Ticket utworzony: ${channel}`,
-          ephemeral: true
+          flags: 64
         });
 
       } catch (err) {
@@ -134,8 +158,8 @@ module.exports = (client) => {
 
         if (!interaction.replied) {
           await interaction.reply({
-            content: "❌ Nie udało się stworzyć ticketa",
-            ephemeral: true
+            content: "❌ Nie udało się stworzyć ticketa.",
+            flags: 64
           });
         }
       }
@@ -145,7 +169,6 @@ module.exports = (client) => {
     // CLOSE TICKET
     // ========================
     if (interaction.isButton()) {
-
       if (interaction.customId !== "close_ticket") return;
 
       try {
@@ -153,14 +176,14 @@ module.exports = (client) => {
 
         if (!member.roles.cache.has(SUPPORT_ROLE_ID)) {
           return interaction.reply({
-            content: "❌ Nie masz uprawnień support.",
-            ephemeral: true
+            content: "❌ Nie masz permisji support.",
+            flags: 64
           });
         }
 
         await interaction.reply({
           content: "🔒 Zamykam ticket za 3 sekundy...",
-          ephemeral: true
+          flags: 64
         });
 
         setTimeout(() => {
