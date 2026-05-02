@@ -39,6 +39,7 @@ require("./stakeacc")(client);
 require("./regulamin")(client);
 require("./verify")(client);
 require("./verifyping")(client);
+require("./propozycje")(client);
 
 // =====================
 // READY
