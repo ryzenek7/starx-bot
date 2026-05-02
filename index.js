@@ -108,7 +108,16 @@ client.once(Events.ClientReady, async () => {
 
       new SlashCommandBuilder()
         .setName("myinvite")
-        .setDescription("Wygeneruj swój link zaproszenia")
+        .setDescription("Wygeneruj swój link zaproszenia"),
+
+      new SlashCommandBuilder()
+        .setName("checkinvites")
+        .setDescription("Sprawdź ile zaproszeń ma użytkownik")
+        .addUserOption(option =>
+          option.setName("osoba")
+            .setDescription("Wybierz użytkownika")
+            .setRequired(true)
+        )
 
     ].map(cmd => cmd.toJSON());
 
@@ -133,9 +142,7 @@ client.on(Events.InteractionCreate, async interaction => {
   try {
     if (!interaction.isChatInputCommand()) return;
 
-    // =====================
     // RESET
-    // =====================
     if (interaction.commandName === "reset") {
 
       if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
