@@ -1,28 +1,20 @@
-// propozycje.js
-
-const {
-  EmbedBuilder,
-  Events
-} = require("discord.js");
+const { EmbedBuilder, Events } = require("discord.js");
 
 module.exports = (client) => {
-
-  // =========================
-  // CONFIG
-  // =========================
   const CHANNEL_ID = "1499573354712010872";
 
-  // =========================
-  // MESSAGE CREATE
-  // =========================
+  console.log("✅ propozycje.js załadowany");
+
   client.on(Events.MessageCreate, async (message) => {
     try {
+      console.log("NOWA WIADOMOŚĆ:", message.content);
+
       if (message.author.bot) return;
       if (!message.guild) return;
       if (message.channel.id !== CHANNEL_ID) return;
 
-      const suggestion = message.content.trim();
-      if (!suggestion) return;
+      const text = message.content.trim();
+      if (!text) return;
 
       await message.delete().catch(() => {});
 
@@ -31,37 +23,30 @@ module.exports = (client) => {
         .setTitle("🌟 StarX Exchange ✖ PROPOZYCJA")
         .setDescription(
           `👤 **Opublikował:** ${message.author}\n` +
-          `📝 **Treść Propozycji:** ${suggestion}\n` +
-          `📅 **Data Opublikowania:** <t:${Math.floor(Date.now() / 1000)}:F>`
+          `📝 **Treść Propozycji:** ${text}\n` +
+          `📅 **Data:** <t:${Math.floor(Date.now() / 1000)}:F>`
         )
-        .setThumbnail(
-          message.author.displayAvatarURL({
-            dynamic: true,
-            size: 1024
-          })
-        )
+        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
         .setFooter({
-          text: `© 2026 StarX Exchange x Propozycja • ${new Date().toLocaleString("pl-PL")}`
+          text: "© 2026 StarX Exchange"
         })
         .setTimestamp();
 
-      const sent = await message.channel.send({
+      const msg = await message.channel.send({
         embeds: [embed]
       });
 
-      await sent.react("👍");
-      await sent.react("👎");
+      await msg.react("👍");
+      await msg.react("👎");
 
-      await sent.startThread({
+      await msg.startThread({
         name: "Dyskusja na temat propozycji",
         autoArchiveDuration: 1440
       });
 
       console.log("✅ Propozycja wysłana");
-
     } catch (err) {
       console.log("❌ propozycje error:", err);
     }
   });
-
 };
