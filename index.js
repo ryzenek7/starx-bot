@@ -1,3 +1,5 @@
+// index.js FINAL FIXED
+
 const {
   Client,
   GatewayIntentBits,
@@ -12,6 +14,7 @@ const {
 // =====================
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
+const OWNER_ID = "1499499185337012377";
 
 // =====================
 // CLIENT
@@ -21,12 +24,12 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent // 🔥 TO DODANE
+    GatewayIntentBits.MessageContent
   ]
 });
 
 // =====================
-// MODUŁY (PRZED LOGIN)
+// MODUŁY
 // =====================
 require("./tickets")(client);
 require("./welcome")(client);
@@ -49,11 +52,47 @@ client.once(Events.ClientReady, async () => {
     console.log(`✅ Zalogowano jako ${client.user.tag}`);
 
     const commands = [
+      // RESET
       new SlashCommandBuilder()
         .setName("reset")
-        .setDescription("Restartuje bota")
-        .toJSON()
-    ];
+        .setDescription("Restartuje bota"),
+
+      // STAKE ADD
+      new SlashCommandBuilder()
+        .setName("stakeadd")
+        .setDescription("Dodaj stock")
+        .addIntegerOption(option =>
+          option.setName("ilosc")
+            .setDescription("Ilość")
+            .setRequired(true)
+        ),
+
+      // STAKE REMOVE
+      new SlashCommandBuilder()
+        .setName("stakeremove")
+        .setDescription("Usuń stock")
+        .addIntegerOption(option =>
+          option.setName("ilosc")
+            .setDescription("Ilość")
+            .setRequired(true)
+        ),
+
+      // STAKE SET
+      new SlashCommandBuilder()
+        .setName("stakeset")
+        .setDescription("Ustaw stock")
+        .addIntegerOption(option =>
+          option.setName("ilosc")
+            .setDescription("Ilość")
+            .setRequired(true)
+        ),
+
+      // PANEL
+      new SlashCommandBuilder()
+        .setName("stakepanel")
+        .setDescription("Odśwież panel")
+
+    ].map(cmd => cmd.toJSON());
 
     const rest = new REST({ version: "10" }).setToken(TOKEN);
 
@@ -62,10 +101,10 @@ client.once(Events.ClientReady, async () => {
       { body: commands }
     );
 
-    console.log("✅ /reset dodane");
+    console.log("✅ Wszystkie slash komendy dodane");
 
   } catch (err) {
-    console.log("❌ Błąd ready:", err);
+    console.log("❌ Ready error:", err);
   }
 });
 
@@ -76,22 +115,34 @@ client.on(Events.InteractionCreate, async interaction => {
   try {
     if (!interaction.isChatInputCommand()) return;
 
+    // OWNER ONLY
+    if (
+      ["reset"].includes(interaction.commandName) &&
+      interaction.user.id !== OWNER_ID
+    ) {
+      return interaction.reply({
+        content: "❌ Nie masz permisji.",
+        flags: 64
+      });
+    }
+
+    // RESET
     if (interaction.commandName === "reset") {
       await interaction.reply({
         content: "🔄 Restartuję bota...",
         flags: 64
       });
 
-      setTimeout(() => process.exit(0), 1000);
+      return setTimeout(() => process.exit(0), 1000);
     }
 
   } catch (err) {
-    console.log("❌ Błąd interaction:", err);
+    console.log("❌ Interaction error:", err);
   }
 });
 
 // =====================
-// ERROR HANDLERS
+// ERRORS
 // =====================
 process.on("unhandledRejection", err => {
   console.log("❌ Unhandled Rejection:", err);
