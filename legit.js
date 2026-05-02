@@ -8,14 +8,7 @@ const {
 
 module.exports = (client) => {
 
-  // =====================
-  // CONFIG
-  // =====================
   const CHANNEL_ID = "1499519884860854505";
-
-  // EMOJI
-  const YES_EMOJI = "<:tak:1499784353012514917>";
-  const NO_EMOJI = "<:nie:1499784378992295956>";
 
   let yesVotes = 1;
   let noVotes = 1;
@@ -24,7 +17,7 @@ module.exports = (client) => {
   const votedUsers = new Set();
 
   // =====================
-  // SEND PANEL
+  // PANEL
   // =====================
   async function sendPanel() {
     try {
@@ -35,11 +28,11 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
         .setDescription(
-`${YES_EMOJI} Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+`<a:1499784353012514917:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-${NO_EMOJI} Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+<a:1499784378992295956:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Oddanie głosu ${NO_EMOJI} bez dowodu i sensownego powodu może skutkować karą.`
+⚠️ Oddanie głosu <a:1499784378992295956:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
@@ -67,37 +60,30 @@ ${NO_EMOJI} Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
       legitMessageId = msg.id;
 
-      console.log("✅ Legit panel wysłany");
-
     } catch (err) {
-      console.log("❌ legit.js error:", err);
+      console.log(err);
     }
   }
 
-  // =====================
-  // READY
-  // =====================
   client.once(Events.ClientReady, async () => {
     await sendPanel();
   });
 
   // =====================
-  // BUTTONS
+  // BUTTONY
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isButton()) return;
     if (interaction.message.id !== legitMessageId) return;
 
-    const userId = interaction.user.id;
-
-    if (votedUsers.has(userId)) {
+    if (votedUsers.has(interaction.user.id)) {
       return interaction.reply({
         content: "❌ Już oddałeś głos.",
         flags: 64
       });
     }
 
-    votedUsers.add(userId);
+    votedUsers.add(interaction.user.id);
 
     if (interaction.customId === "legit_yes") yesVotes++;
     if (interaction.customId === "legit_no") noVotes++;
@@ -106,11 +92,11 @@ ${NO_EMOJI} Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
       .setColor("#2b2d31")
       .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
       .setDescription(
-`${YES_EMOJI} Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+`<:tak:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-${NO_EMOJI} Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+<:nie:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Oddanie głosu ${NO_EMOJI} bez dowodu i sensownego powodu może skutkować karą.`
+⚠️ Oddanie głosu <:nie:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
       )
       .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
       .setFooter({
