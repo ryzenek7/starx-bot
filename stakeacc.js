@@ -22,6 +22,8 @@ module.exports = (client) => {
         .setTitle("🌟 StarX Exchange » KONTO STAKE 🎰")
         .setDescription(
           "📌 Wybierz opcję z menu poniżej.\n\n" +
+          "📦 Dostępne sztuki: **4**"
+        )
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "© 2026 StarX Exchange x Stake"
@@ -59,7 +61,7 @@ module.exports = (client) => {
     }
   });
 
-  client.on(Events.InteractionCreate, async interaction => {
+  client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "stake_menu") return;
 
