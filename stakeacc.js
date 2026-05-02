@@ -13,7 +13,7 @@ const {
 module.exports = (client) => {
   const TOKEN = process.env.TOKEN;
   const CLIENT_ID = "1499478004265517396";
-  const OWNER_ID = "1499499185337012377";
+  const OWNER_ID = "1367768195167031403";
   const CHANNEL_ID = "1499812157246669001";
 
   let stock = 4;
