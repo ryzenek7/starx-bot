@@ -25,13 +25,16 @@ const client = new Client({
 });
 
 // =====================
-// MODUŁY (PRZED LOGIN)
+// MODUŁY
 // =====================
 require("./tickets")(client);
 require("./welcome")(client);
 require("./legit")(client);
 require("./opinie")(client);
 require("./kalkulator")(client);
+require("./obliczprowizje")(client);
+require("./cennik")(client);
+require("./stakeacc")(client);
 require("./verify")(client);
 require("./verifyping")(client);
 
