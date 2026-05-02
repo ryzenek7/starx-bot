@@ -44,6 +44,7 @@ require("./regulamin")(client);
 require("./verify")(client);
 require("./verifyping")(client);
 require("./propozycje")(client);
+require("./invites")(client);
 
 // =====================
 // READY
