@@ -1,108 +1,67 @@
-const {
-  Client,
-  GatewayIntentBits,
-  Events,
-  SlashCommandBuilder,
-  REST,
-  Routes
-} = require("discord.js");
-
+const { Client, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
 
-// =====================
-// CONFIG
-// =====================
-const TOKEN = process.env.TOKEN;
-const CLIENT_ID = "1499478004265517396";
-
-// =====================
-// CLIENT
-// =====================
 const client = new Client({
   intents: [
-    GatewayIntentBits.Guilds
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers
   ]
 });
 
-// =====================
-// 📦 MODUŁY (WSZYSTKIE POŁĄCZONE)
-// =====================
-require("./tickets")(client);
-require("./welcome")(client);
-require("./legit")(client);
-require("./opinie")(client);
-require("./kalkulator")(client);
-require("./verify")(client);
-require("./verifyping")(client);
-require("./obliczprowizje")(client);
-require("./stakeacc")(client);
-require("./cennik")(client);
+// ================= LOAD MODULES =================
 
-// =====================
-// READY
-// =====================
-client.once(Events.ClientReady, async () => {
-  console.log(`✅ Zalogowano jako ${client.user.tag}`);
+const cennik = require("./cennik");
+const kalkulator = require("./kalkulator");
+const legit = require("./legit");
+const obliczprowizje = require("./obliczprowizje");
+const opinie = require("./opinie");
+const tickets = require("./tickets");
+const verify = require("./verify");
+const verifyping = require("./verifyping");
+const welcome = require("./welcome");
+const stakeacc = require("./stakeacc");
 
-  const commands = [
-    new SlashCommandBuilder()
-      .setName("reset")
-      .setDescription("Restart bota"),
+// ================= READY =================
 
-    new SlashCommandBuilder()
-      .setName("stakeadd")
-      .setDescription("Dodaj stake")
-      .addIntegerOption(o =>
-        o.setName("ilosc")
-          .setDescription("Ilość")
-          .setRequired(true)
-      ),
+client.on("ready", () => {
+  console.log(`Zalogowano jako ${client.user.tag}`);
 
-    new SlashCommandBuilder()
-      .setName("stakeremove")
-      .setDescription("Usuń stake")
-      .addIntegerOption(o =>
-        o.setName("ilosc")
-          .setDescription("Ilość")
-          .setRequired(true)
-      ),
+  if (welcome.init) welcome.init(client);
+  if (verify.init) verify.init(client);
+  if (tickets.init) tickets.init(client);
+});
 
-    new SlashCommandBuilder()
-      .setName("stakecheck")
-      .setDescription("Sprawdź stake")
-  ].map(cmd => cmd.toJSON());
+// ================= COMMAND ROUTER =================
 
-  const rest = new REST({ version: "10" }).setToken(TOKEN);
+client.on("messageCreate", async message => {
+  if (message.author.bot) return;
+
+  const args = message.content.split(" ");
+  const cmd = args.shift().toLowerCase();
 
   try {
-    await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
-      { body: commands }
-    );
-
-    console.log("✅ Slash komendy zarejestrowane");
-  } catch (err) {
-    console.log("❌ Błąd rejestracji:", err);
+    if (cennik.run) cennik.run(message, args);
+    if (kalkulator.run) kalkulator.run(message, args, cmd);
+    if (legit.run) legit.run(message, args, cmd);
+    if (obliczprowizje.run) obliczprowizje.run(message, args, cmd);
+    if (opinie.run) opinie.run(message, args);
+  } catch (e) {
+    console.log("Error module:", e);
   }
 });
 
-// =====================
-// RESET (tu tylko reset)
-// =====================
-client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+// ================= INTERACTIONS =================
 
-  if (interaction.commandName === "reset") {
-    await interaction.reply({
-      content: "🔄 Restart bota...",
-      ephemeral: true
-    });
-
-    setTimeout(() => process.exit(0), 1000);
+client.on("interactionCreate", async interaction => {
+  try {
+    if (tickets.interaction) await tickets.interaction(interaction);
+    if (verify.interaction) await verify.interaction(interaction);
+    if (stakeacc.interaction) await stakeacc.interaction(interaction);
+  } catch (e) {
+    console.log("Interaction error:", e);
   }
 });
 
-// =====================
-// LOGIN
-// =====================
-client.login(TOKEN);
+client.login("YOUR_TOKEN");
