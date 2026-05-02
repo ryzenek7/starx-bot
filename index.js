@@ -4,8 +4,7 @@ const {
   Events,
   SlashCommandBuilder,
   REST,
-  Routes,
-  Collection
+  Routes
 } = require("discord.js");
 
 const fs = require("fs");
@@ -26,12 +25,21 @@ const client = new Client({
 });
 
 // =====================
-// MODULES
+// 📦 MODUŁY (WSZYSTKIE POŁĄCZONE)
 // =====================
+require("./tickets")(client);
+require("./welcome")(client);
+require("./legit")(client);
+require("./opinie")(client);
+require("./kalkulator")(client);
+require("./verify")(client);
+require("./verifyping")(client);
+require("./obliczprowizje")(client);
 require("./stakeacc")(client);
+require("./cennik")(client);
 
 // =====================
-// READY + REGISTER COMMANDS
+// READY
 // =====================
 client.once(Events.ClientReady, async () => {
   console.log(`✅ Zalogowano jako ${client.user.tag}`);
@@ -62,7 +70,7 @@ client.once(Events.ClientReady, async () => {
     new SlashCommandBuilder()
       .setName("stakecheck")
       .setDescription("Sprawdź stake")
-  ].map(c => c.toJSON());
+  ].map(cmd => cmd.toJSON());
 
   const rest = new REST({ version: "10" }).setToken(TOKEN);
 
@@ -79,14 +87,14 @@ client.once(Events.ClientReady, async () => {
 });
 
 // =====================
-// RESET COMMAND
+// RESET (tu tylko reset)
 // =====================
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "reset") {
     await interaction.reply({
-      content: "🔄 Restart...",
+      content: "🔄 Restart bota...",
       ephemeral: true
     });
 
