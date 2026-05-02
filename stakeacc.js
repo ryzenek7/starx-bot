@@ -1,87 +1,40 @@
-const { 
-  SlashCommandBuilder 
-} = require("discord.js");
-const fs = require("fs");
+module.exports = (client) => {
+  const fs = require("fs");
+  const file = "./stakeData.json";
 
-const DATA_FILE = "./stakeData.json";
+  client.on("interactionCreate", async interaction => {
+    if (!interaction.isChatInputCommand()) return;
 
-// 📂 wczytywanie danych
-function loadData() {
-  if (!fs.existsSync(DATA_FILE)) return {};
-  return JSON.parse(fs.readFileSync(DATA_FILE));
-}
+    let data = {};
+    if (fs.existsSync(file)) {
+      data = JSON.parse(fs.readFileSync(file));
+    }
 
-// 💾 zapisywanie danych
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
+    const userId = interaction.user.id;
+    if (!data[userId]) data[userId] = 0;
 
-module.exports = [
-  // ➕ /stakeadd
-  {
-    data: new SlashCommandBuilder()
-      .setName("stakeadd")
-      .setDescription("Dodaje stake")
-      .addIntegerOption(option =>
-        option.setName("ilosc")
-          .setDescription("Ilość do dodania")
-          .setRequired(true)
-      ),
-
-    async execute(interaction) {
+    if (interaction.commandName === "stakeadd") {
       const amount = interaction.options.getInteger("ilosc");
-      const userId = interaction.user.id;
-
-      const data = loadData();
-      if (!data[userId]) data[userId] = 0;
 
       data[userId] += amount;
-      saveData(data);
+      fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-      await interaction.reply(`✅ Dodano ${amount}\n💰 Masz teraz: ${data[userId]}`);
+      return interaction.reply(`✅ Dodano ${amount}\n💰 Masz: ${data[userId]}`);
     }
-  },
 
-  // ➖ /stakeremove
-  {
-    data: new SlashCommandBuilder()
-      .setName("stakeremove")
-      .setDescription("Usuwa stake")
-      .addIntegerOption(option =>
-        option.setName("ilosc")
-          .setDescription("Ilość do usunięcia")
-          .setRequired(true)
-      ),
-
-    async execute(interaction) {
+    if (interaction.commandName === "stakeremove") {
       const amount = interaction.options.getInteger("ilosc");
-      const userId = interaction.user.id;
-
-      const data = loadData();
-      if (!data[userId]) data[userId] = 0;
 
       data[userId] -= amount;
       if (data[userId] < 0) data[userId] = 0;
 
-      saveData(data);
+      fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
-      await interaction.reply(`❌ Usunięto ${amount}\n💰 Masz teraz: ${data[userId]}`);
+      return interaction.reply(`❌ Usunięto ${amount}\n💰 Masz: ${data[userId]}`);
     }
-  },
 
-  // 📊 /stakecheck
-  {
-    data: new SlashCommandBuilder()
-      .setName("stakecheck")
-      .setDescription("Sprawdza ilość stake"),
-
-    async execute(interaction) {
-      const userId = interaction.user.id;
-
-      const data = loadData();
-      if (!data[userId]) data[userId] = 0;
-
-      await interaction.reply(`💰 Twój stan: ${data[userId]}`);
+    if (interaction.commandName === "stakecheck") {
+      return interaction.reply(`💰 Twój stan: ${data[userId]}`);
     }
-  }
-];
+  });
+};
