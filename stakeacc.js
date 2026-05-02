@@ -12,7 +12,7 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = (client) => {
-  const OWNER_ID = "TWOJE_ID_DISCORDA";
+  const OWNER_ID = "1499499185337012377";
   const CHANNEL_ID = "1499812157246669001";
 
   const dataPath = path.join(__dirname, "stakeData.json");
