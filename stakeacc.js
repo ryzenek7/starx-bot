@@ -130,7 +130,7 @@ module.exports = (client) => {
 
       if (!allowed.includes(interaction.commandName)) return;
 
-      if (interaction.user.id !== OWNER_ID) {
+if (!interaction.member.roles.cache.has("1499499185337012377")) {
         return interaction.reply({
           content: "❌ Nie masz permisji.",
           flags: 64
