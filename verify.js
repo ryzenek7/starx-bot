@@ -10,16 +10,10 @@ module.exports = (client) => {
     const VERIFY_CHANNEL_ID = "1499725942313058344";
     const VERIFY_URL = "https://vaultcord.win/starxexchange";
 
-    // EMOTKI
-    const EMOJI_VERIFY = "<:tak:1499784353012514917>";
-    const EMOJI_LOCK = "🔒";
-    const EMOJI_ROCKET = "🚀";
-    const EMOJI_STAR = "🌟";
+    // MUSI BYĆ PRAWDZIWA NAZWA EMOTKI
+    const EMOJI_VERIFY = "<:yes:1499784353012514917>";
 
-    // =========================
-    // PANEL
-    // =========================
-    async function sendPanel() {
+    client.once(Events.ClientReady, async () => {
         try {
             const channel = await client.channels.fetch(VERIFY_CHANNEL_ID);
             if (!channel) return;
@@ -30,13 +24,13 @@ module.exports = (client) => {
                     name: "StarX Exchange × Bot",
                     iconURL: client.user.displayAvatarURL()
                 })
-                .setTitle(`${EMOJI_STAR} StarX Exchange » WERYFIKACJA`)
+                .setTitle("🌟 StarX Exchange » WERYFIKACJA")
                 .setDescription(
 `${EMOJI_VERIFY} **Witaj**, wybierz opcję poniżej aby przejść weryfikację.
 
-${EMOJI_LOCK} Bezpieczne logowanie Discord OAuth2
+🔒 Bezpieczne logowanie Discord OAuth2
 
-${EMOJI_ROCKET} Uzyskaj pełny dostęp do serwera.`
+🚀 Uzyskaj pełny dostęp do serwera.`
                 )
                 .setImage("https://i.imgur.com/0h2yrK7_d.webp?maxwidth=760&fidelity=grand")
                 .setFooter({
@@ -62,40 +56,23 @@ ${EMOJI_ROCKET} Uzyskaj pełny dostęp do serwera.`
                 components: [row]
             });
 
-            console.log("✅ Verify panel wysłany");
-
         } catch (err) {
-            console.log("❌ Verify error:", err);
+            console.log(err);
         }
-    }
-
-    // READY
-    client.once(Events.ClientReady, async () => {
-        await sendPanel();
     });
 
-    // =========================
-    // MENU
-    // =========================
-    client.on(Events.InteractionCreate, async (interaction) => {
+    client.on(Events.InteractionCreate, async interaction => {
 
         if (!interaction.isStringSelectMenu()) return;
         if (interaction.customId !== "verify_select") return;
 
-        try {
-            if (interaction.values[0] === "verify") {
-                await interaction.reply({
-                    content:
-`${EMOJI_LOCK} Kliknij poniżej aby się zweryfikować:
-
-${VERIFY_URL}`,
-                    flags: 64
-                });
-            }
-
-        } catch (err) {
-            console.log("❌ Verify interaction error:", err);
+        if (interaction.values[0] === "verify") {
+            await interaction.reply({
+                content: `🔒 Kliknij aby się zweryfikować:\n${VERIFY_URL}`,
+                flags: 64
+            });
         }
+
     });
 
 };
