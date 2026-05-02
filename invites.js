@@ -1,4 +1,4 @@
-// invites.js STARX EXCHANGE V4 FINAL
+// invites.js STARX EXCHANGE V5 FINAL + DISCOUNT ROLES
 
 const {
   EmbedBuilder,
@@ -10,8 +10,13 @@ module.exports = (client) => {
   const inviteCache = new Map();
   const personalInvites = new Map();
 
-  // kanał zaproszeń
+  // ==========================
+  // CONFIG
+  // ==========================
   const LOG_CHANNEL_ID = "1500261480212205629";
+
+  const ROLE_5 = "1500270028635771032";   // -5%
+  const ROLE_10 = "1500270005646786670";  // -10%
 
   // ==========================
   // READY
@@ -69,6 +74,36 @@ module.exports = (client) => {
       const key = `invites_${guild.id}_${ownerId}`;
       client[key] = (client[key] || 0) + 1;
 
+      const total = client[key];
+
+      // =====================
+      // AUTO RANGI
+      // =====================
+      const inviterMember = await guild.members.fetch(ownerId).catch(() => null);
+
+      if (inviterMember) {
+
+        // 20 zaproszeń = -10%
+        if (total >= 20) {
+
+          if (!inviterMember.roles.cache.has(ROLE_10)) {
+            await inviterMember.roles.add(ROLE_10).catch(() => {});
+          }
+
+          if (inviterMember.roles.cache.has(ROLE_5)) {
+            await inviterMember.roles.remove(ROLE_5).catch(() => {});
+          }
+        }
+
+        // 10 zaproszeń = -5%
+        else if (total >= 10) {
+
+          if (!inviterMember.roles.cache.has(ROLE_5)) {
+            await inviterMember.roles.add(ROLE_5).catch(() => {});
+          }
+        }
+      }
+
       // =====================
       // LOG KANAŁ
       // =====================
@@ -76,7 +111,6 @@ module.exports = (client) => {
 
       if (logChannel) {
         const inviter = await client.users.fetch(ownerId).catch(() => null);
-        const total = client[key] || 0;
 
         const embed = new EmbedBuilder()
           .setColor("#2b2d31")
@@ -88,10 +122,13 @@ module.exports = (client) => {
 
 📈 **Łącznie zaproszeń:** **${total}**
 
+🎁 **Nagrody:**
+10 osób = <@&${ROLE_5}>
+20 osób = <@&${ROLE_10}>
+
 🔗 Kod: \`${usedInvite.code}\``)
           .setFooter({
-            text:
-`Komendy: /invites • /myinvite • /topinvites • /checkinvites`
+            text: "Komendy: /invites • /myinvite • /topinvites • /checkinvites"
           })
           .setTimestamp();
 
