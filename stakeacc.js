@@ -13,6 +13,7 @@ module.exports = (client) => {
     const userId = interaction.user.id;
     if (!data[userId]) data[userId] = 0;
 
+    // ➕ ADD
     if (interaction.commandName === "stakeadd") {
       const amount = interaction.options.getInteger("ilosc");
 
@@ -22,6 +23,7 @@ module.exports = (client) => {
       return interaction.reply(`✅ Dodano ${amount}\n💰 Masz: ${data[userId]}`);
     }
 
+    // ➖ REMOVE
     if (interaction.commandName === "stakeremove") {
       const amount = interaction.options.getInteger("ilosc");
 
@@ -33,6 +35,7 @@ module.exports = (client) => {
       return interaction.reply(`❌ Usunięto ${amount}\n💰 Masz: ${data[userId]}`);
     }
 
+    // 📊 CHECK
     if (interaction.commandName === "stakecheck") {
       return interaction.reply(`💰 Twój stan: ${data[userId]}`);
     }
