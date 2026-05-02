@@ -1,4 +1,4 @@
-// index.js FINAL FIXED + INVITES
+// index.js STARX EXCHANGE FINAL PREMIUM
 
 const {
   Client,
@@ -15,6 +15,7 @@ const {
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
 const GUILD_ID = "1499481942394146946";
+const OWNER_ROLE_ID = "1499499185337012377";
 
 // =====================
 // CLIENT
@@ -32,10 +33,10 @@ const client = new Client({
 // =====================
 // START
 // =====================
-console.log("🚀 Startuję bota...");
+console.log("🚀 Uruchamianie StarX Exchange Bot...");
 
 // =====================
-// MODUŁY
+// MODULES
 // =====================
 require("./tickets")(client);
 require("./welcome")(client);
@@ -70,7 +71,7 @@ client.once(Events.ClientReady, async () => {
         .setDescription("Dodaj stock")
         .addIntegerOption(option =>
           option.setName("ilosc")
-            .setDescription("Ilość")
+            .setDescription("Podaj ilość")
             .setRequired(true)
         ),
 
@@ -79,7 +80,7 @@ client.once(Events.ClientReady, async () => {
         .setDescription("Usuń stock")
         .addIntegerOption(option =>
           option.setName("ilosc")
-            .setDescription("Ilość")
+            .setDescription("Podaj ilość")
             .setRequired(true)
         ),
 
@@ -88,13 +89,13 @@ client.once(Events.ClientReady, async () => {
         .setDescription("Ustaw stock")
         .addIntegerOption(option =>
           option.setName("ilosc")
-            .setDescription("Ilość")
+            .setDescription("Podaj ilość")
             .setRequired(true)
         ),
 
       new SlashCommandBuilder()
         .setName("stakepanel")
-        .setDescription("Odśwież panel"),
+        .setDescription("Odśwież panel stock"),
 
       // INVITES
       new SlashCommandBuilder()
@@ -103,7 +104,11 @@ client.once(Events.ClientReady, async () => {
 
       new SlashCommandBuilder()
         .setName("topinvites")
-        .setDescription("Ranking zaproszeń")
+        .setDescription("Ranking zaproszeń"),
+
+      new SlashCommandBuilder()
+        .setName("myinvite")
+        .setDescription("Wygeneruj swój link zaproszenia")
 
     ].map(cmd => cmd.toJSON());
 
@@ -114,7 +119,7 @@ client.once(Events.ClientReady, async () => {
       { body: commands }
     );
 
-    console.log("✅ Komendy slash zarejestrowane");
+    console.log("✅ Komendy slash zostały dodane");
 
   } catch (err) {
     console.log("❌ Ready error:", err);
@@ -122,16 +127,18 @@ client.once(Events.ClientReady, async () => {
 });
 
 // =====================
-// GLOBAL INTERACTIONS
+// GLOBAL COMMANDS
 // =====================
 client.on(Events.InteractionCreate, async interaction => {
   try {
     if (!interaction.isChatInputCommand()) return;
 
+    // =====================
     // RESET
+    // =====================
     if (interaction.commandName === "reset") {
 
-      if (!interaction.member.roles.cache.has("1499499185337012377")) {
+      if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
         return interaction.reply({
           content: "❌ Nie masz permisji.",
           flags: 64
@@ -155,11 +162,11 @@ client.on(Events.InteractionCreate, async interaction => {
 // ERRORS
 // =====================
 process.on("unhandledRejection", err => {
-  console.log("❌ Unhandled Rejection:", err);
+  console.log("❌ UnhandledRejection:", err);
 });
 
 process.on("uncaughtException", err => {
-  console.log("❌ Uncaught Exception:", err);
+  console.log("❌ UncaughtException:", err);
 });
 
 // =====================
