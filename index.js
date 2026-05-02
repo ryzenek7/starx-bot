@@ -7,8 +7,6 @@ const {
   Routes
 } = require("discord.js");
 
-const fs = require("fs");
-
 // =====================
 // CONFIG
 // =====================
@@ -25,6 +23,20 @@ const client = new Client({
     GatewayIntentBits.GuildMessages
   ]
 });
+
+// =====================
+// MODUŁY
+// =====================
+require("./tickets")(client);
+require("./welcome")(client);
+require("./legit")(client);
+require("./opinie")(client);
+require("./kalkulator")(client);
+require("./verify")(client);
+require("./verifyping")(client);
+require("./obliczprowizje")(client);
+require("./stakeacc")(client); // 🔥 TU DZIAŁA STAKE
+require("./cennik")(client);
 
 // =====================
 // READY (rejestracja komend)
@@ -89,20 +101,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (!interaction.isChatInputCommand()) return;
 
-    const file = "./stakeData.json";
-
-    let data = {};
-    if (fs.existsSync(file)) {
-      data = JSON.parse(fs.readFileSync(file));
-    }
-
-    const userId = interaction.user.id;
-
-    if (!data[userId]) data[userId] = 0;
-
-    // =====================
-    // RESET
-    // =====================
+    // 🔄 RESET (tylko tutaj)
     if (interaction.commandName === "reset") {
       await interaction.reply({
         content: "🔄 Restartuję bota...",
@@ -112,38 +111,7 @@ client.on(Events.InteractionCreate, async interaction => {
       setTimeout(() => process.exit(0), 1000);
     }
 
-    // =====================
-    // STAKE ADD
-    // =====================
-    if (interaction.commandName === "stakeadd") {
-      const amount = interaction.options.getInteger("ilosc");
-
-      data[userId] += amount;
-      fs.writeFileSync(file, JSON.stringify(data, null, 2));
-
-      return interaction.reply(`✅ Dodano ${amount}\n💰 Masz: ${data[userId]}`);
-    }
-
-    // =====================
-    // STAKE REMOVE
-    // =====================
-    if (interaction.commandName === "stakeremove") {
-      const amount = interaction.options.getInteger("ilosc");
-
-      data[userId] -= amount;
-      if (data[userId] < 0) data[userId] = 0;
-
-      fs.writeFileSync(file, JSON.stringify(data, null, 2));
-
-      return interaction.reply(`❌ Usunięto ${amount}\n💰 Masz: ${data[userId]}`);
-    }
-
-    // =====================
-    // STAKE CHECK
-    // =====================
-    if (interaction.commandName === "stakecheck") {
-      return interaction.reply(`💰 Twój stan: ${data[userId]}`);
-    }
+    // ❗ RESZTA komend (stake itd.) jest w modułach
 
   } catch (err) {
     console.log("❌ Błąd interaction:", err);
