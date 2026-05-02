@@ -20,6 +20,28 @@ function saveData(data) {
 // =====================
 module.exports = (client) => {
 
+  // =====================
+  // 📩 PANEL NA KANAŁ
+  // =====================
+  client.once("ready", async () => {
+    try {
+      const channel = await client.channels.fetch(CHANNEL_ID);
+
+      if (!channel) return console.log("❌ Nie znaleziono kanału stake!");
+
+      await channel.send({
+        content: "🥩 **KONTO STAKE PANEL AKTYWNY**\nUżyj komend:\n`/stakeadd`\n`/stakeremove`\n`/stakecheck`"
+      });
+
+      console.log("✅ Panel stake wysłany na kanał");
+    } catch (err) {
+      console.log("❌ Błąd wysyłania panelu:", err);
+    }
+  });
+
+  // =====================
+  // 💰 STAKE SYSTEM
+  // =====================
   client.on("interactionCreate", async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
@@ -56,5 +78,5 @@ module.exports = (client) => {
     }
   });
 
-  console.log("✅ stakeacc.js załadowany");
+  console.log("✅ stakeacc aktywny");
 };
