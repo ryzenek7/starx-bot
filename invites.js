@@ -1,4 +1,4 @@
-// invites.js PREMIUM STARX EXCHANGE
+// invites.js STARX EXCHANGE PREMIUM V2
 
 const {
   EmbedBuilder,
@@ -7,13 +7,12 @@ const {
 
 module.exports = (client) => {
 
-  const ALLOWED_ROLE_ID = "1499521304146083954"; // użytkownik
   const inviteCache = new Map();
-  const inviteStats = new Map();
+  const personalInvites = new Map(); // code => ownerId
 
-  // ===============================
+  // ==========================
   // READY
-  // ===============================
+  // ==========================
   client.once(Events.ClientReady, async () => {
     try {
       for (const guild of client.guilds.cache.values()) {
@@ -25,16 +24,16 @@ module.exports = (client) => {
         );
       }
 
-      console.log("✅ StarX Invite System loaded");
+      console.log("✅ Invite System V2 Loaded");
 
     } catch (err) {
       console.log("❌ Invite Ready Error:", err);
     }
   });
 
-  // ===============================
+  // ==========================
   // JOIN TRACKER
-  // ===============================
+  // ==========================
   client.on(Events.GuildMemberAdd, async member => {
     try {
       const guild = member.guild;
@@ -53,156 +52,129 @@ module.exports = (client) => {
       );
 
       if (!usedInvite) return;
-      if (!usedInvite.inviter) return;
 
-      const inviterId = usedInvite.inviter.id;
+      let ownerId = null;
 
-      const key = `${guild.id}_${inviterId}`;
-      const current = inviteStats.get(key) || 0;
+      // link usera
+      if (personalInvites.has(usedInvite.code)) {
+        ownerId = personalInvites.get(usedInvite.code);
+      }
 
-      inviteStats.set(key, current + 1);
+      // zwykły invite
+      else if (usedInvite.inviter) {
+        ownerId = usedInvite.inviter.id;
+      }
 
-      console.log(
-        `📨 ${member.user.tag} joined via ${usedInvite.inviter.tag}`
-      );
+      if (!ownerId) return;
+
+      const key = `invites_${guild.id}_${ownerId}`;
+      client[key] = (client[key] || 0) + 1;
 
     } catch (err) {
-      console.log("❌ Join Invite Error:", err);
+      console.log("❌ Join Error:", err);
     }
   });
 
-  // ===============================
-  // INTERACTIONS
-  // ===============================
+  // ==========================
+  // COMMANDS
+  // ==========================
   client.on(Events.InteractionCreate, async interaction => {
     try {
       if (!interaction.isChatInputCommand()) return;
 
-      if (
-        interaction.commandName !== "invites" &&
-        interaction.commandName !== "topinvites" &&
-        interaction.commandName !== "myinvite"
-      ) return;
+      // ======================
+      // /myinvite
+      // ======================
+      if (interaction.commandName === "myinvite") {
 
-      if (!interaction.member.roles.cache.has(ALLOWED_ROLE_ID)) {
-        return interaction.reply({
-          content: "❌ Nie masz permisji.",
-          flags: 64
+        const invite = await interaction.channel.createInvite({
+          maxAge: 0,
+          maxUses: 0,
+          unique: true
         });
-      }
 
-      // ===================================
-      // /invites
-      // ===================================
-      if (interaction.commandName === "invites") {
+        personalInvites.set(invite.code, interaction.user.id);
 
-        const key =
-          `${interaction.guild.id}_${interaction.user.id}`;
-
-        const amount = inviteStats.get(key) || 0;
-
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("🌟 StarX Exchange » TWOJE INVITES")
-          .setDescription(
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#2b2d31")
+              .setTitle("🔗 StarX Exchange » TWÓJ LINK")
+              .setDescription(
 `👤 ${interaction.user}
 
-📨 Zaprosiłeś **${amount}** osób na serwer.`
-          )
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
+📨 Twój link zaproszenia:
 
-        return interaction.reply({
-          embeds: [embed],
+https://discord.gg/${invite.code}`
+              )
+              .setFooter({
+                text: "© 2026 StarX Exchange"
+              })
+          ],
           flags: 64
         });
       }
 
-      // ===================================
+      // ======================
+      // /invites
+      // ======================
+      if (interaction.commandName === "invites") {
+
+        const amount =
+          client[`invites_${interaction.guild.id}_${interaction.user.id}`] || 0;
+
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#2b2d31")
+              .setTitle("📨 StarX Exchange » INVITES")
+              .setDescription(
+`👤 ${interaction.user}
+
+Zaprosiłeś **${amount}** osób.`
+              )
+              .setFooter({
+                text: "© 2026 StarX Exchange"
+              })
+          ],
+          flags: 64
+        });
+      }
+
+      // ======================
       // /topinvites
-      // ===================================
+      // ======================
       if (interaction.commandName === "topinvites") {
 
-        const members = interaction.guild.members.cache.map(m => {
-          return {
-            user: m.user,
-            amount:
-              inviteStats.get(
-                `${interaction.guild.id}_${m.id}`
-              ) || 0
-          };
-        });
+        const members = interaction.guild.members.cache.map(m => ({
+          user: m.user,
+          invites:
+            client[`invites_${interaction.guild.id}_${m.id}`] || 0
+        }));
 
         const sorted = members
-          .sort((a, b) => b.amount - a.amount)
+          .filter(x => x.invites > 0)
+          .sort((a, b) => b.invites - a.invites)
           .slice(0, 10);
 
         let desc = "";
 
-        sorted.forEach((u, i) => {
-          if (u.amount <= 0) return;
-
-          desc += `**${i + 1}.** ${u.user} — **${u.amount}** osób\n`;
+        sorted.forEach((x, i) => {
+          desc += `**${i + 1}.** ${x.user} — **${x.invites} osób**\n`;
         });
 
         if (!desc) desc = "Brak danych.";
 
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("🏆 StarX Exchange » TOP INVITES")
-          .setDescription(desc)
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
-
         return interaction.reply({
-          embeds: [embed]
-        });
-      }
-
-      // ===================================
-      // /myinvite
-      // ===================================
-      if (interaction.commandName === "myinvite") {
-
-        const channel =
-          interaction.guild.systemChannel ||
-          interaction.guild.channels.cache
-            .filter(c => c.isTextBased())
-            .first();
-
-        if (!channel) {
-          return interaction.reply({
-            content: "❌ Nie znaleziono kanału.",
-            flags: 64
-          });
-        }
-
-        const invite = await channel.createInvite({
-          maxAge: 0,
-          maxUses: 0,
-          unique: true,
-          reason: `Invite for ${interaction.user.tag}`
-        });
-
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("🔗 StarX Exchange » TWÓJ LINK")
-          .setDescription(
-`👤 ${interaction.user}
-
-📨 Twój prywatny link:
-
-https://discord.gg/${invite.code}`
-          )
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
-
-        return interaction.reply({
-          embeds: [embed],
-          flags: 64
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#2b2d31")
+              .setTitle("🏆 StarX Exchange » TOP INVITES")
+              .setDescription(desc)
+              .setFooter({
+                text: "© 2026 StarX Exchange"
+              })
+          ]
         });
       }
 
