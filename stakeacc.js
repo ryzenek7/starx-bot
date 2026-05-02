@@ -34,9 +34,16 @@ module.exports = (client) => {
         .setPlaceholder("📦 Wybierz opcję")
         .addOptions([
           {
-            label: "Zobacz cenę konta",
+            label: "Zobacz cenę",
+            description: "Sprawdź cenę konta Stake",
             value: "cena",
             emoji: "💰"
+          },
+          {
+            label: "Dostępne sztuki",
+            description: "Aktualny stan magazynowy",
+            value: "stock",
+            emoji: "📦"
           }
         ]);
 
@@ -66,6 +73,13 @@ module.exports = (client) => {
           "- 🪪 Zweryfikowane dowodem osobistym\n" +
           "- 🎯 Gotowe do wpłat i wypłat\n\n" +
           "💸 **Cena: 40 ZŁ**",
+        ephemeral: true
+      });
+    }
+
+    if (interaction.values[0] === "stock") {
+      await interaction.reply({
+        content: "📦 **Dostępne sztuki: 4**",
         ephemeral: true
       });
     }
