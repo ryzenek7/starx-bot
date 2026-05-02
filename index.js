@@ -15,7 +15,6 @@ const {
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
 const GUILD_ID = "1499481942394146946";
-const OWNER_ID = "1367768195167031403";
 
 // =====================
 // CLIENT
@@ -54,10 +53,17 @@ client.once(Events.ClientReady, async () => {
     console.log(`✅ Zalogowano jako ${client.user.tag}`);
 
     const commands = [
+
+      // =====================
+      // ADMIN
+      // =====================
       new SlashCommandBuilder()
         .setName("reset")
         .setDescription("Restartuje bota"),
 
+      // =====================
+      // STAKE
+      // =====================
       new SlashCommandBuilder()
         .setName("stakeadd")
         .setDescription("Dodaj stock")
@@ -87,13 +93,23 @@ client.once(Events.ClientReady, async () => {
 
       new SlashCommandBuilder()
         .setName("stakepanel")
-        .setDescription("Odśwież panel")
+        .setDescription("Odśwież panel"),
+
+      // =====================
+      // INVITES
+      // =====================
+      new SlashCommandBuilder()
+        .setName("invites")
+        .setDescription("Sprawdź swoje zaproszenia"),
+
+      new SlashCommandBuilder()
+        .setName("topinvites")
+        .setDescription("Topka zaproszeń serwera")
 
     ].map(cmd => cmd.toJSON());
 
     const rest = new REST({ version: "10" }).setToken(TOKEN);
 
-    // 🔥 NATYCHMIASTOWE KOMENDY NA SERWERZE
     await rest.put(
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
       { body: commands }
@@ -113,10 +129,10 @@ client.on(Events.InteractionCreate, async interaction => {
   try {
     if (!interaction.isChatInputCommand()) return;
 
-    // owner only reset
+    // RESET PERMISJA
     if (
       interaction.commandName === "reset" &&
-!interaction.member.roles.cache.has("1499499185337012377")
+      !interaction.member.roles.cache.has("1499499185337012377")
     ) {
       return interaction.reply({
         content: "❌ Nie masz permisji.",
@@ -124,7 +140,7 @@ client.on(Events.InteractionCreate, async interaction => {
       });
     }
 
-    // reset
+    // RESET
     if (interaction.commandName === "reset") {
       await interaction.reply({
         content: "🔄 Restartuję bota...",
