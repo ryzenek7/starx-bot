@@ -60,7 +60,12 @@ module.exports = (client) => {
 
     if (interaction.values[0] === "cena") {
       await interaction.reply({
-        content: "💰 Cena konta Stake: **40 PLN**",
+        content: "🎮 **KONTO STAKE (2 POZIOM WERYFIKACJI):**
+- 🔓 Pełny dostęp (E-mail oraz Stake)
+- 🪪 Zweryfikowane dowodem osobistym 
+- 🎯 Gotowe do wpłat i wypłat
+
+💸 **Cena: 40 ZŁ**",
         ephemeral: true
       });
     }
