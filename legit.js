@@ -23,7 +23,7 @@ module.exports = (client) => {
   let legitMessageId = null;
 
   // =====================
-  // FUNKCJA PANELU
+  // PANEL
   // =====================
   async function sendPanel() {
     try {
@@ -34,11 +34,11 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
         .setDescription(
-`✅ Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+`<:yes:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-❌ Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+<:no:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Oddanie głosu ❌ bez dowodu i sensownego powodu może skutkować karą.`
+⚠️ Oddanie głosu <:no:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
@@ -79,7 +79,7 @@ module.exports = (client) => {
   });
 
   // =====================
-  // BUTTON INTERACTION
+  // BUTTONY
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isButton()) return;
@@ -103,11 +103,11 @@ module.exports = (client) => {
       .setColor("#2b2d31")
       .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
       .setDescription(
-`✅ Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+`<:yes:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-❌ Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+<:no:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Oddanie głosu ❌ bez dowodu i sensownego powodu może skutkować karą.`
+⚠️ Oddanie głosu <:no:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
       )
       .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
       .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
