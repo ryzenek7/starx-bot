@@ -115,6 +115,19 @@ client.once(Events.ClientReady, async () => {
       // OWNER ONLY
       new SlashCommandBuilder()
         .setName("checkinvites")
+      new SlashCommandBuilder()
+  .setName("testinvite")
+  .setDescription("Dodaj testowe zaproszenia użytkownikowi")
+  .addUserOption(option =>
+    option.setName("osoba")
+      .setDescription("Wybierz użytkownika")
+      .setRequired(true)
+  )
+  .addIntegerOption(option =>
+    option.setName("ilosc")
+      .setDescription("Ile dodać zaproszeń")
+      .setRequired(true)
+  ),
         .setDescription("Sprawdź ile zaproszeń ma użytkownik")
         .addUserOption(option =>
           option.setName("osoba")
