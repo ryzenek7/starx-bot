@@ -1,14 +1,29 @@
+const fs = require("fs");
+
+const FILE = "./stakeData.json";
+const CHANNEL_ID = "1499812157246669001";
+
+// =====================
+// HELPERS
+// =====================
+function loadData() {
+  if (!fs.existsSync(FILE)) return {};
+  return JSON.parse(fs.readFileSync(FILE));
+}
+
+function saveData(data) {
+  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
+}
+
+// =====================
+// MODULE
+// =====================
 module.exports = (client) => {
-  const fs = require("fs");
-  const file = "./stakeData.json";
 
   client.on("interactionCreate", async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
-    let data = {};
-    if (fs.existsSync(file)) {
-      data = JSON.parse(fs.readFileSync(file));
-    }
+    let data = loadData();
 
     const userId = interaction.user.id;
     if (!data[userId]) data[userId] = 0;
@@ -18,7 +33,7 @@ module.exports = (client) => {
       const amount = interaction.options.getInteger("ilosc");
 
       data[userId] += amount;
-      fs.writeFileSync(file, JSON.stringify(data, null, 2));
+      saveData(data);
 
       return interaction.reply(`✅ Dodano ${amount}\n💰 Masz: ${data[userId]}`);
     }
@@ -30,14 +45,16 @@ module.exports = (client) => {
       data[userId] -= amount;
       if (data[userId] < 0) data[userId] = 0;
 
-      fs.writeFileSync(file, JSON.stringify(data, null, 2));
+      saveData(data);
 
       return interaction.reply(`❌ Usunięto ${amount}\n💰 Masz: ${data[userId]}`);
     }
 
     // 📊 CHECK
     if (interaction.commandName === "stakecheck") {
-      return interaction.reply(`💰 Twój stan: ${data[userId]}`);
+      return interaction.reply(`💰 Twój stake: ${data[userId]}`);
     }
   });
+
+  console.log("✅ stakeacc.js załadowany");
 };
