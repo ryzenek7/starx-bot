@@ -9,6 +9,14 @@ module.exports = async (client) => {
   const CHANNEL_ID = "1499513009188376767";
 
   // ==========================
+  // CUSTOM EMOJI
+  // ==========================
+  const EMOJI_BLIK = "<:blik:1499784231608389742>";
+  const EMOJI_PAYPAL = "<:paypal:1499784258091483236>";
+  const EMOJI_CRYPTO = "<:crypto:1499784635201224724>";
+  const EMOJI_LTC = "<:ltc:1499784285211726014>";
+
+  // ==========================
   // FUNKCJA WYSYŁANIA PANELU
   // ==========================
   async function sendPanel() {
@@ -29,10 +37,26 @@ module.exports = async (client) => {
         .setCustomId("show_rates")
         .setPlaceholder("💰 Wybierz metodę")
         .addOptions([
-          { label: "BLIK", value: "BLIK", emoji: "💳" },
-          { label: "PAYPAL", value: "PAYPAL", emoji: "💙" },
-          { label: "CRYPTO", value: "CRYPTO", emoji: "🪙" },
-          { label: "LTC", value: "LTC", emoji: "💠" }
+          {
+            label: "BLIK",
+            value: "BLIK",
+            emoji: { id: "1499784231608389742", name: "blik" }
+          },
+          {
+            label: "PAYPAL",
+            value: "PAYPAL",
+            emoji: { id: "1499784258091483236", name: "paypal" }
+          },
+          {
+            label: "CRYPTO",
+            value: "CRYPTO",
+            emoji: { id: "1499784635201224724", name: "crypto" }
+          },
+          {
+            label: "LTC",
+            value: "LTC",
+            emoji: { id: "1499784285211726014", name: "ltc" }
+          }
         ]);
 
       const row = new ActionRowBuilder().addComponents(menu);
@@ -72,9 +96,9 @@ module.exports = async (client) => {
 
     if (type === "BLIK") {
       desc = `
-💳︲BLIK ➜ 💙︲PAYPAL × **8.0%**
-💳︲BLIK ➜ 🪙︲CRYPTO × **8.0%**
-💳︲BLIK ➜ 💠︲LTC × **8.0%**
+${EMOJI_BLIK} ➜ ${EMOJI_PAYPAL} × **8.0%**
+${EMOJI_BLIK} ➜ ${EMOJI_CRYPTO} × **8.0%**
+${EMOJI_BLIK} ➜ ${EMOJI_LTC} × **8.0%**
 
 ⚠️ Minimalna prowizja: **2 PLN**
 `;
@@ -82,9 +106,9 @@ module.exports = async (client) => {
 
     if (type === "PAYPAL") {
       desc = `
-💙︲PAYPAL ➜ 💳︲BLIK × **7.0%**
-💙︲PAYPAL ➜ 🪙︲CRYPTO × **7.0%**
-💙︲PAYPAL ➜ 💠︲LTC × **7.5%**
+${EMOJI_PAYPAL} ➜ ${EMOJI_BLIK} × **7.0%**
+${EMOJI_PAYPAL} ➜ ${EMOJI_CRYPTO} × **7.0%**
+${EMOJI_PAYPAL} ➜ ${EMOJI_LTC} × **7.5%**
 
 ⚠️ Minimalna prowizja: **2 PLN**
 `;
@@ -92,9 +116,9 @@ module.exports = async (client) => {
 
     if (type === "CRYPTO") {
       desc = `
-🪙︲CRYPTO ➜ 💳︲BLIK × **3.5%**
-🪙︲CRYPTO ➜ 💙︲PAYPAL × **3.5%**
-🪙︲CRYPTO ➜ 💠︲LTC × **3.5%**
+${EMOJI_CRYPTO} ➜ ${EMOJI_BLIK} × **3.5%**
+${EMOJI_CRYPTO} ➜ ${EMOJI_PAYPAL} × **3.5%**
+${EMOJI_CRYPTO} ➜ ${EMOJI_LTC} × **3.5%**
 
 ⚠️ Minimalna prowizja: **2 PLN**
 `;
@@ -102,9 +126,9 @@ module.exports = async (client) => {
 
     if (type === "LTC") {
       desc = `
-💠︲LTC ➜ 💳︲BLIK × **3.5%**
-💠︲LTC ➜ 💙︲PAYPAL × **4.0%**
-💠︲LTC ➜ 🪙︲CRYPTO × **3.5%**
+${EMOJI_LTC} ➜ ${EMOJI_BLIK} × **3.5%**
+${EMOJI_LTC} ➜ ${EMOJI_PAYPAL} × **4.0%**
+${EMOJI_LTC} ➜ ${EMOJI_CRYPTO} × **3.5%**
 
 ⚠️ Minimalna prowizja: **2 PLN**
 `;
@@ -118,7 +142,7 @@ module.exports = async (client) => {
 
     await interaction.reply({
       embeds: [embed],
-      ephemeral: true
+      flags: 64
     });
   });
 };
