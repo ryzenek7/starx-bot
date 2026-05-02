@@ -1,67 +1,101 @@
-const { Client, GatewayIntentBits } = require("discord.js");
-const fs = require("fs");
+const {
+  Client,
+  GatewayIntentBits,
+  Events,
+  SlashCommandBuilder,
+  REST,
+  Routes
+} = require("discord.js");
 
+// =====================
+// CONFIG
+// =====================
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = "1499478004265517396";
+
+// =====================
+// CLIENT
+// =====================
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages
   ]
 });
 
-// ================= LOAD MODULES =================
+// =====================
+// MODUŁY (PRZED LOGIN)
+// =====================
+require("./tickets")(client);
+require("./welcome")(client);
+require("./legit")(client);
+require("./opinie")(client);
+require("./kalkulator")(client);
+require("./verify")(client);
+require("./verifyping")(client);
 
-const cennik = require("./cennik");
-const kalkulator = require("./kalkulator");
-const legit = require("./legit");
-const obliczprowizje = require("./obliczprowizje");
-const opinie = require("./opinie");
-const tickets = require("./tickets");
-const verify = require("./verify");
-const verifyping = require("./verifyping");
-const welcome = require("./welcome");
-const stakeacc = require("./stakeacc");
-
-// ================= READY =================
-
-client.on("ready", () => {
-  console.log(`Zalogowano jako ${client.user.tag}`);
-
-  if (welcome.init) welcome.init(client);
-  if (verify.init) verify.init(client);
-  if (tickets.init) tickets.init(client);
-});
-
-// ================= COMMAND ROUTER =================
-
-client.on("messageCreate", async message => {
-  if (message.author.bot) return;
-
-  const args = message.content.split(" ");
-  const cmd = args.shift().toLowerCase();
-
+// =====================
+// READY
+// =====================
+client.once(Events.ClientReady, async () => {
   try {
-    if (cennik.run) cennik.run(message, args);
-    if (kalkulator.run) kalkulator.run(message, args, cmd);
-    if (legit.run) legit.run(message, args, cmd);
-    if (obliczprowizje.run) obliczprowizje.run(message, args, cmd);
-    if (opinie.run) opinie.run(message, args);
-  } catch (e) {
-    console.log("Error module:", e);
+    console.log(`✅ Zalogowano jako ${client.user.tag}`);
+
+    const commands = [
+      new SlashCommandBuilder()
+        .setName("reset")
+        .setDescription("Restartuje bota")
+        .toJSON()
+    ];
+
+    const rest = new REST({ version: "10" }).setToken(TOKEN);
+
+    await rest.put(
+      Routes.applicationCommands(CLIENT_ID),
+      { body: commands }
+    );
+
+    console.log("✅ /reset dodane");
+
+  } catch (err) {
+    console.log("❌ Błąd ready:", err);
   }
 });
 
-// ================= INTERACTIONS =================
-
-client.on("interactionCreate", async interaction => {
+// =====================
+// INTERACTIONS
+// =====================
+client.on(Events.InteractionCreate, async interaction => {
   try {
-    if (tickets.interaction) await tickets.interaction(interaction);
-    if (verify.interaction) await verify.interaction(interaction);
-    if (stakeacc.interaction) await stakeacc.interaction(interaction);
-  } catch (e) {
-    console.log("Interaction error:", e);
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === "reset") {
+      await interaction.reply({
+        content: "🔄 Restartuję bota...",
+        ephemeral: true
+      });
+
+      setTimeout(() => process.exit(0), 1000);
+    }
+
+  } catch (err) {
+    console.log("❌ Błąd interaction:", err);
   }
 });
 
-client.login("YOUR_TOKEN");
+// =====================
+// ERROR HANDLERS
+// =====================
+process.on("unhandledRejection", err => {
+  console.log("❌ Unhandled Rejection:", err);
+});
+
+process.on("uncaughtException", err => {
+  console.log("❌ Uncaught Exception:", err);
+});
+
+// =====================
+// LOGIN
+// =====================
+client.login(TOKEN);
