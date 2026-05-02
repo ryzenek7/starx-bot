@@ -70,9 +70,9 @@ module.exports = (client) => {
         .setColor("#5865F2")
         .setTitle("💎 StarX Exchange » KONTA PREMIUM")
         .setDescription(
-          "🎵 **Spotify Premium Lifetime** — `30 zł`\n\n" +
-          "▶️ **YouTube Premium** — `15 zł`\n\n" +
-          "🎬 **Netflix Lifetime Account** — `30 zł`"
+          "🎵 **Spotify Premium Lifetime** — `x zł`\n\n" +
+          "▶️ **YouTube Premium** — `x zł`\n\n" +
+          "🎬 **Netflix Lifetime Account** — `x zł`"
         )
         .setFooter({ text: "StarX Exchange • Najniższe prowizje" });
 
