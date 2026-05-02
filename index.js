@@ -1,4 +1,4 @@
-// index.js STARX EXCHANGE FINAL PREMIUM
+// index.js STARX EXCHANGE FINAL PREMIUM + OWNER CHECKINVITES
 
 const {
   Client,
@@ -15,6 +15,8 @@ const {
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
 const GUILD_ID = "1499481942394146946";
+
+// rola właściciel / admin
 const OWNER_ROLE_ID = "1499499185337012377";
 
 // =====================
@@ -110,6 +112,7 @@ client.once(Events.ClientReady, async () => {
         .setName("myinvite")
         .setDescription("Wygeneruj swój link zaproszenia"),
 
+      // OWNER ONLY
       new SlashCommandBuilder()
         .setName("checkinvites")
         .setDescription("Sprawdź ile zaproszeń ma użytkownik")
@@ -142,7 +145,9 @@ client.on(Events.InteractionCreate, async interaction => {
   try {
     if (!interaction.isChatInputCommand()) return;
 
+    // =====================
     // RESET
+    // =====================
     if (interaction.commandName === "reset") {
 
       if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
@@ -158,6 +163,22 @@ client.on(Events.InteractionCreate, async interaction => {
       });
 
       return setTimeout(() => process.exit(0), 1000);
+    }
+
+    // =====================
+    // CHECKINVITES ONLY OWNER
+    // =====================
+    if (interaction.commandName === "checkinvites") {
+
+      if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
+        return interaction.reply({
+          content: "❌ Tylko właściciel może użyć tej komendy.",
+          flags: 64
+        });
+      }
+
+      // invites.js obsłuży wynik
+      return;
     }
 
   } catch (err) {
