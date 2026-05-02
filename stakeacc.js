@@ -1,4 +1,4 @@
-// stakeacc.js
+// stakeacc.js FINAL PREMIUM V3
 
 const {
   EmbedBuilder,
@@ -11,16 +11,19 @@ const {
 } = require("discord.js");
 
 module.exports = (client) => {
+  // ===============================
+  // CONFIG
+  // ===============================
   const TOKEN = process.env.TOKEN;
   const CLIENT_ID = "1499478004265517396";
-  const OWNER_ID = "1367768195167031403";
+  const OWNER_ID = "1499499185337012377";
   const CHANNEL_ID = "1499812157246669001";
 
   let stock = 4;
   let panelMessageId = null;
 
   // ===============================
-  // REGISTER SLASH COMMANDS
+  // REGISTER COMMANDS
   // ===============================
   async function registerCommands() {
     const commands = [
@@ -63,7 +66,7 @@ module.exports = (client) => {
       { body: commands }
     );
 
-    console.log("✅ Slash komendy Stake dodane");
+    console.log("✅ Stake slash commands dodane");
   }
 
   // ===============================
@@ -74,10 +77,11 @@ module.exports = (client) => {
       const channel = await client.channels.fetch(CHANNEL_ID);
       if (!channel) return;
 
+      // usuń stary panel
       if (panelMessageId) {
         try {
-          const oldMsg = await channel.messages.fetch(panelMessageId);
-          if (oldMsg) await oldMsg.delete();
+          const old = await channel.messages.fetch(panelMessageId);
+          if (old) await old.delete();
         } catch {}
       }
 
@@ -85,16 +89,14 @@ module.exports = (client) => {
         .setColor("#2b59ff")
         .setTitle("🌟 StarX Exchange » KONTO STAKE 🎰")
         .setDescription(
-          "⚡ Natychmiastowa realizacja\n" +
-          "🔒 Full Access Account\n" +
-          "🎯 Zweryfikowane konto\n\n" +
-          "📦 Wybierz opcję z menu poniżej"
+          "📌 Wybierz opcję z menu poniżej.\n" +
+          "⚡ Natychmiastowa realizacja.\n" +
+          "🔒 Pewny zakup."
         )
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
-          text: "© 2026 StarX Exchange"
-        })
-        .setTimestamp();
+          text: "© 2026 StarX Exchange x Stake"
+        });
 
       const menu = new StringSelectMenuBuilder()
         .setCustomId("stake_menu")
@@ -102,11 +104,13 @@ module.exports = (client) => {
         .addOptions([
           {
             label: "Zobacz cenę",
+            description: "Sprawdź cenę konta",
             value: "price",
-            emoji: "💸"
+            emoji: "💰"
           },
           {
             label: "Dostępne sztuki",
+            description: "Sprawdź aktualny stock",
             value: "stock",
             emoji: "📦"
           }
@@ -120,6 +124,8 @@ module.exports = (client) => {
       });
 
       panelMessageId = msg.id;
+
+      console.log("✅ Stake panel wysłany");
 
     } catch (err) {
       console.log("❌ stake panel error:", err);
@@ -135,7 +141,7 @@ module.exports = (client) => {
   });
 
   // ===============================
-  // MENU + SLASH
+  // INTERACTIONS
   // ===============================
   client.on(Events.InteractionCreate, async (interaction) => {
     try {
@@ -143,6 +149,7 @@ module.exports = (client) => {
       if (interaction.isStringSelectMenu()) {
         if (interaction.customId !== "stake_menu") return;
 
+        // cena
         if (interaction.values[0] === "price") {
           return interaction.reply({
             content:
@@ -155,6 +162,7 @@ module.exports = (client) => {
           });
         }
 
+        // stock
         if (interaction.values[0] === "stock") {
           return interaction.reply({
             content: `📦 **Dostępne sztuki: ${stock}**`,
@@ -166,11 +174,15 @@ module.exports = (client) => {
       // ================= SLASH
       if (!interaction.isChatInputCommand()) return;
 
-      if (interaction.user.id !== OWNER_ID) {
-        return interaction.reply({
-          content: "❌ Nie masz permisji.",
-          flags: 64
-        });
+      if (
+        ["stakeadd", "stakeremove", "stakeset", "stakepanel"].includes(interaction.commandName)
+      ) {
+        if (interaction.user.id !== OWNER_ID) {
+          return interaction.reply({
+            content: "❌ Nie masz permisji.",
+            flags: 64
+          });
+        }
       }
 
       // /stakeadd
