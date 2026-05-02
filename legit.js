@@ -4,14 +4,15 @@ const {
   ButtonBuilder,
   ButtonStyle,
   Events
-} = require('discord.js');
+} = require("discord.js");
 
 module.exports = (client) => {
 
   // =====================
   // USTAWIENIA
   // =====================
-  const CHANNEL_ID = "1499519884860854505"; // kanał legit
+  const CHANNEL_ID = "1499519884860854505";
+
   const START_YES = 1;
   const START_NO = 1;
 
@@ -22,38 +23,38 @@ module.exports = (client) => {
   let legitMessageId = null;
 
   // =====================
-  // READY
+  // FUNKCJA PANELU
   // =====================
-  client.once(Events.ClientReady, async () => {
+  async function sendPanel() {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
       if (!channel) return console.log("❌ Nie znaleziono kanału legit.");
 
       const embed = new EmbedBuilder()
-        .setColor('#2b2d31')
-        .setTitle('🌟 StarX Exchange » CZY JESTEŚMY LEGIT')
+        .setColor("#2b2d31")
+        .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
         .setDescription(
-`✅ Jeśli uważasz, że **TAK**, zaznacz przycisk ✅
+`✅ Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-❌ Jeśli uważasz, że **NIE**, zaznacz przycisk ❌
+❌ Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Zaznaczenie ❌ bez dowodu oraz sensownego powodu bedzie skutkowało karą.`
+⚠️ Oddanie głosu ❌ bez dowodu i sensownego powodu może skutkować karą.`
         )
-        .setImage('https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand')
-        .setFooter({ text: '© 2026 StarX Exchange x Legit Check' });
+        .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
+        .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-          .setCustomId('legit_yes')
+          .setCustomId("legit_yes")
           .setLabel(`${yesVotes}`)
-          .setEmoji('✔️')
-          .setStyle(ButtonStyle.Success),
+          .setEmoji("1499784353012514917")
+          .setStyle(ButtonStyle.Secondary),
 
         new ButtonBuilder()
-          .setCustomId('legit_no')
+          .setCustomId("legit_no")
           .setLabel(`${noVotes}`)
-          .setEmoji('✖️')
-          .setStyle(ButtonStyle.Danger)
+          .setEmoji("1499784378992295956")
+          .setStyle(ButtonStyle.Secondary)
       );
 
       const msg = await channel.send({
@@ -68,12 +69,19 @@ module.exports = (client) => {
     } catch (err) {
       console.log("❌ Błąd legit.js:", err);
     }
+  }
+
+  // =====================
+  // READY
+  // =====================
+  client.once(Events.ClientReady, async () => {
+    await sendPanel();
   });
 
   // =====================
   // BUTTON INTERACTION
   // =====================
-  client.on(Events.InteractionCreate, async interaction => {
+  client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isButton()) return;
     if (interaction.message.id !== legitMessageId) return;
 
@@ -82,40 +90,40 @@ module.exports = (client) => {
     if (votedUsers.has(userId)) {
       return interaction.reply({
         content: "❌ Już oddałeś głos.",
-        ephemeral: true
+        flags: 64
       });
     }
 
     votedUsers.add(userId);
 
-    if (interaction.customId === 'legit_yes') yesVotes++;
-    if (interaction.customId === 'legit_no') noVotes++;
+    if (interaction.customId === "legit_yes") yesVotes++;
+    if (interaction.customId === "legit_no") noVotes++;
 
     const embed = new EmbedBuilder()
-      .setColor('#2b2d31')
-      .setTitle('🌟 StarX Exchange » CZY JESTEŚMY LEGIT')
+      .setColor("#2b2d31")
+      .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
       .setDescription(
-`☑️ Jeśli uważasz, że **TAK**, zaznacz przycisk ✅
+`✅ Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
 
-❌ Jeśli uważasz, że **NIE**, zaznacz przycisk ❌
+❌ Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
 
-⚠️ Zaznaczenie ❌ bez dowodu skutkuje karą.`
+⚠️ Oddanie głosu ❌ bez dowodu i sensownego powodu może skutkować karą.`
       )
-      .setImage('https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand')
-      .setFooter({ text: '© 2026 StarX Exchange x Legit Check' });
+      .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
+      .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId('legit_yes')
+        .setCustomId("legit_yes")
         .setLabel(`${yesVotes}`)
-        .setEmoji('✅')
-        .setStyle(ButtonStyle.Success),
+        .setEmoji("1499784353012514917")
+        .setStyle(ButtonStyle.Secondary),
 
       new ButtonBuilder()
-        .setCustomId('legit_no')
+        .setCustomId("legit_no")
         .setLabel(`${noVotes}`)
-        .setEmoji('❌')
-        .setStyle(ButtonStyle.Danger)
+        .setEmoji("1499784378992295956")
+        .setStyle(ButtonStyle.Secondary)
     );
 
     await interaction.update({
