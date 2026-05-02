@@ -24,7 +24,7 @@ module.exports = (client) => {
           "📌 Wybierz opcję z menu poniżej.\n\n" +
           "📦 Dostępne sztuki: **0**"
         )
-        .setImage("https://i.imgur.com/y8KQK0w.png")
+        .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "© 2026 StarX Exchange x Stake"
         });
