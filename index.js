@@ -1,4 +1,4 @@
-// index.js STARX EXCHANGE FINAL PREMIUM + OWNER CHECKINVITES
+// index.js STARX EXCHANGE FINAL PREMIUM + OWNER CHECKINVITES + TESTINVITE
 
 const {
   Client,
@@ -16,7 +16,7 @@ const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
 const GUILD_ID = "1499481942394146946";
 
-// rola właściciel / admin
+// rola owner/admin
 const OWNER_ROLE_ID = "1499499185337012377";
 
 // =====================
@@ -63,7 +63,9 @@ client.once(Events.ClientReady, async () => {
 
     const commands = [
 
+      // =====================
       // ADMIN
+      // =====================
       new SlashCommandBuilder()
         .setName("reset")
         .setDescription("Restartuje bota"),
@@ -99,7 +101,9 @@ client.once(Events.ClientReady, async () => {
         .setName("stakepanel")
         .setDescription("Odśwież panel stock"),
 
+      // =====================
       // INVITES
+      // =====================
       new SlashCommandBuilder()
         .setName("invites")
         .setDescription("Sprawdź ile osób zaprosiłeś"),
@@ -112,26 +116,26 @@ client.once(Events.ClientReady, async () => {
         .setName("myinvite")
         .setDescription("Wygeneruj swój link zaproszenia"),
 
-      // OWNER ONLY
       new SlashCommandBuilder()
         .setName("checkinvites")
-      new SlashCommandBuilder()
-  .setName("testinvite")
-  .setDescription("Dodaj testowe zaproszenia użytkownikowi")
-  .addUserOption(option =>
-    option.setName("osoba")
-      .setDescription("Wybierz użytkownika")
-      .setRequired(true)
-  )
-  .addIntegerOption(option =>
-    option.setName("ilosc")
-      .setDescription("Ile dodać zaproszeń")
-      .setRequired(true)
-  ),
         .setDescription("Sprawdź ile zaproszeń ma użytkownik")
         .addUserOption(option =>
           option.setName("osoba")
             .setDescription("Wybierz użytkownika")
+            .setRequired(true)
+        ),
+
+      new SlashCommandBuilder()
+        .setName("testinvite")
+        .setDescription("Dodaj testowe zaproszenia użytkownikowi")
+        .addUserOption(option =>
+          option.setName("osoba")
+            .setDescription("Wybierz użytkownika")
+            .setRequired(true)
+        )
+        .addIntegerOption(option =>
+          option.setName("ilosc")
+            .setDescription("Ile dodać zaproszeń")
             .setRequired(true)
         )
 
@@ -179,10 +183,12 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // =====================
-    // CHECKINVITES ONLY OWNER
+    // OWNER ONLY COMMANDS
     // =====================
-    if (interaction.commandName === "checkinvites") {
-
+    if (
+      interaction.commandName === "checkinvites" ||
+      interaction.commandName === "testinvite"
+    ) {
       if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
         return interaction.reply({
           content: "❌ Tylko właściciel może użyć tej komendy.",
@@ -190,7 +196,7 @@ client.on(Events.InteractionCreate, async interaction => {
         });
       }
 
-      // invites.js obsłuży wynik
+      // dalszą obsługę robi invites.js
       return;
     }
 
