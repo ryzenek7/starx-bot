@@ -1,4 +1,4 @@
-// index.js FINAL FIXED
+// index.js FINAL INSTANT COMMANDS (guild version)
 
 const {
   Client,
@@ -14,6 +14,7 @@ const {
 // =====================
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
+const GUILD_ID = "1499481942394146946";
 const OWNER_ID = "1499499185337012377";
 
 // =====================
@@ -52,12 +53,10 @@ client.once(Events.ClientReady, async () => {
     console.log(`✅ Zalogowano jako ${client.user.tag}`);
 
     const commands = [
-      // RESET
       new SlashCommandBuilder()
         .setName("reset")
         .setDescription("Restartuje bota"),
 
-      // STAKE ADD
       new SlashCommandBuilder()
         .setName("stakeadd")
         .setDescription("Dodaj stock")
@@ -67,7 +66,6 @@ client.once(Events.ClientReady, async () => {
             .setRequired(true)
         ),
 
-      // STAKE REMOVE
       new SlashCommandBuilder()
         .setName("stakeremove")
         .setDescription("Usuń stock")
@@ -77,7 +75,6 @@ client.once(Events.ClientReady, async () => {
             .setRequired(true)
         ),
 
-      // STAKE SET
       new SlashCommandBuilder()
         .setName("stakeset")
         .setDescription("Ustaw stock")
@@ -87,7 +84,6 @@ client.once(Events.ClientReady, async () => {
             .setRequired(true)
         ),
 
-      // PANEL
       new SlashCommandBuilder()
         .setName("stakepanel")
         .setDescription("Odśwież panel")
@@ -96,12 +92,13 @@ client.once(Events.ClientReady, async () => {
 
     const rest = new REST({ version: "10" }).setToken(TOKEN);
 
+    // 🔥 NATYCHMIASTOWE KOMENDY NA SERWERZE
     await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
       { body: commands }
     );
 
-    console.log("✅ Wszystkie slash komendy dodane");
+    console.log("✅ Slash commands dodane instant");
 
   } catch (err) {
     console.log("❌ Ready error:", err);
@@ -115,9 +112,9 @@ client.on(Events.InteractionCreate, async interaction => {
   try {
     if (!interaction.isChatInputCommand()) return;
 
-    // OWNER ONLY
+    // owner only reset
     if (
-      ["reset"].includes(interaction.commandName) &&
+      interaction.commandName === "reset" &&
       interaction.user.id !== OWNER_ID
     ) {
       return interaction.reply({
@@ -126,7 +123,7 @@ client.on(Events.InteractionCreate, async interaction => {
       });
     }
 
-    // RESET
+    // reset
     if (interaction.commandName === "reset") {
       await interaction.reply({
         content: "🔄 Restartuję bota...",
