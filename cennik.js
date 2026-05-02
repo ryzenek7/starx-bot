@@ -12,6 +12,11 @@ module.exports = (client) => {
   // ========================
   const CHANNEL_ID = "1499902366843932763";
 
+  // CUSTOM EMOJI
+  const EMOJI_SPOTIFY = "<:Spotify:1500238701718933627>";
+  const EMOJI_NETFLIX = "<:Netflix:1500238788306403398>";
+  const EMOJI_YT = "<:ytpremium:1500239415937859605>";
+
   // ========================
   // READY
   // ========================
@@ -65,23 +70,21 @@ module.exports = (client) => {
 
     try {
 
-      // odpowiedź użytkownikowi
       const embed = new EmbedBuilder()
         .setColor("#5865F2")
         .setTitle("💎 StarX Exchange » KONTA PREMIUM")
         .setDescription(
-          "🎵 **Spotify Premium Lifetime** — `x zł`\n\n" +
-          "▶️ **YouTube Premium** — `x zł`\n\n" +
-          "🎬 **Netflix Lifetime Account** — `x zł`"
+          `${EMOJI_SPOTIFY} **Spotify Premium Lifetime** — \`x zł\`\n\n` +
+          `${EMOJI_YT} **YouTube Premium** — \`x zł\`\n\n` +
+          `${EMOJI_NETFLIX} **Netflix Lifetime Account** — \`x zł\``
         )
         .setFooter({ text: "StarX Exchange • Najniższe prowizje" });
 
       await interaction.reply({
         embeds: [embed],
-        ephemeral: true
+        flags: 64
       });
 
-      // reset menu (bez zaznaczenia)
       const menu = new StringSelectMenuBuilder()
         .setCustomId("starx_cennik")
         .setPlaceholder("Wybierz interesujący cię produkt..")
