@@ -7,13 +7,22 @@ const {
 
 module.exports = (client) => {
 
+    // =========================
+    // CONFIG
+    // =========================
     const VERIFY_CHANNEL_ID = "1499725942313058344";
     const VERIFY_URL = "https://vaultcord.win/starxexchange";
 
-    // MUSI BYĆ PRAWDZIWA NAZWA EMOTKI
-    const EMOJI_VERIFY = "<:yes:1499784353012514917>";
+    // EMOJI
+    const YES = "<a:YES:1499784353012514917>";
+    const LOCK = "🔒";
+    const ROCKET = "🚀";
+    const TROPHY = "🏆";
 
-    client.once(Events.ClientReady, async () => {
+    // =========================
+    // PANEL
+    // =========================
+    async function sendPanel() {
         try {
             const channel = await client.channels.fetch(VERIFY_CHANNEL_ID);
             if (!channel) return;
@@ -26,11 +35,11 @@ module.exports = (client) => {
                 })
                 .setTitle("🌟 StarX Exchange » WERYFIKACJA")
                 .setDescription(
-`${EMOJI_VERIFY} **Witaj**, wybierz opcję poniżej aby przejść weryfikację.
+`${YES} **Witaj**, wybierz opcję poniżej aby przejść weryfikację.
 
-🔒 Bezpieczne logowanie Discord OAuth2
+${LOCK} Bezpieczne logowanie Discord OAuth2
 
-🚀 Uzyskaj pełny dostęp do serwera.`
+${ROCKET} Uzyskaj pełny dostęp do serwera.`
                 )
                 .setImage("https://i.imgur.com/0h2yrK7_d.webp?maxwidth=760&fidelity=grand")
                 .setFooter({
@@ -39,7 +48,7 @@ module.exports = (client) => {
 
             const menu = new StringSelectMenuBuilder()
                 .setCustomId("verify_select")
-                .setPlaceholder("🏆 Wybierz metodę weryfikacji")
+                .setPlaceholder(`${TROPHY} Wybierz metodę weryfikacji`)
                 .addOptions([
                     {
                         label: "Zweryfikuj konto",
@@ -56,23 +65,42 @@ module.exports = (client) => {
                 components: [row]
             });
 
+            console.log("✅ Verify panel wysłany");
+
         } catch (err) {
-            console.log(err);
+            console.log("❌ Verify panel error:", err);
         }
+    }
+
+    // =========================
+    // READY
+    // =========================
+    client.once(Events.ClientReady, async () => {
+        await sendPanel();
     });
 
-    client.on(Events.InteractionCreate, async interaction => {
+    // =========================
+    // MENU
+    // =========================
+    client.on(Events.InteractionCreate, async (interaction) => {
 
         if (!interaction.isStringSelectMenu()) return;
         if (interaction.customId !== "verify_select") return;
 
-        if (interaction.values[0] === "verify") {
-            await interaction.reply({
-                content: `🔒 Kliknij aby się zweryfikować:\n${VERIFY_URL}`,
-                flags: 64
-            });
-        }
+        try {
+            if (interaction.values[0] === "verify") {
+                await interaction.reply({
+                    content:
+`${LOCK} Kliknij poniżej aby się zweryfikować:
 
+${VERIFY_URL}`,
+                    flags: 64
+                });
+            }
+
+        } catch (err) {
+            console.log("❌ Verify interaction error:", err);
+        }
     });
 
 };
