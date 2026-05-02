@@ -22,7 +22,6 @@ module.exports = (client) => {
         .setTitle("🌟 StarX Exchange » KONTO STAKE 🎰")
         .setDescription(
           "📌 Wybierz opcję z menu poniżej.\n\n" +
-          "📦 Dostępne sztuki: **4**"
         )
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
