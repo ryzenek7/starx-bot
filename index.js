@@ -1,150 +1,168 @@
-// invites.js FINAL PREMIUM
+// index.js FINAL FIXED + INVITES
 
 const {
-  EmbedBuilder,
-  Events
+  Client,
+  GatewayIntentBits,
+  Events,
+  SlashCommandBuilder,
+  REST,
+  Routes
 } = require("discord.js");
 
-module.exports = (client) => {
+// =====================
+// CONFIG
+// =====================
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = "1499478004265517396";
+const GUILD_ID = "1499481942394146946";
 
-  const ALLOWED_ROLE_ID = "1499521304146083954"; // rola użytkownik
-  const inviteCache = new Map();
+// =====================
+// CLIENT
+// =====================
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildInvites,
+    GatewayIntentBits.MessageContent
+  ]
+});
 
-  // =====================
-  // READY
-  // =====================
-  client.once(Events.ClientReady, async () => {
-    try {
-      for (const guild of client.guilds.cache.values()) {
-        const invites = await guild.invites.fetch();
-        inviteCache.set(
-          guild.id,
-          new Map(invites.map(inv => [inv.code, inv.uses]))
-        );
-      }
+// =====================
+// START
+// =====================
+console.log("🚀 Startuję bota...");
 
-      console.log("✅ Invite system załadowany");
-    } catch (err) {
-      console.log("❌ Invite Ready Error:", err);
-    }
-  });
+// =====================
+// MODUŁY
+// =====================
+require("./tickets")(client);
+require("./welcome")(client);
+require("./legit")(client);
+require("./opinie")(client);
+require("./kalkulator")(client);
+require("./obliczprowizje")(client);
+require("./cennik")(client);
+require("./stakeacc")(client);
+require("./regulamin")(client);
+require("./verify")(client);
+require("./verifyping")(client);
+require("./propozycje")(client);
+require("./invites")(client);
 
-  // =====================
-  // JOIN TRACKER
-  // =====================
-  client.on(Events.GuildMemberAdd, async member => {
-    try {
-      const guild = member.guild;
+// =====================
+// READY
+// =====================
+client.once(Events.ClientReady, async () => {
+  try {
+    console.log(`✅ Zalogowano jako ${client.user.tag}`);
 
-      const oldInvites = inviteCache.get(guild.id) || new Map();
-      const newInvites = await guild.invites.fetch();
+    const commands = [
 
-      const usedInvite = newInvites.find(inv => {
-        const oldUses = oldInvites.get(inv.code) || 0;
-        return inv.uses > oldUses;
-      });
+      // ADMIN
+      new SlashCommandBuilder()
+        .setName("reset")
+        .setDescription("Restartuje bota"),
 
-      inviteCache.set(
-        guild.id,
-        new Map(newInvites.map(inv => [inv.code, inv.uses]))
-      );
+      new SlashCommandBuilder()
+        .setName("stakeadd")
+        .setDescription("Dodaj stock")
+        .addIntegerOption(option =>
+          option.setName("ilosc")
+            .setDescription("Ilość")
+            .setRequired(true)
+        ),
 
-      if (!usedInvite) return;
+      new SlashCommandBuilder()
+        .setName("stakeremove")
+        .setDescription("Usuń stock")
+        .addIntegerOption(option =>
+          option.setName("ilosc")
+            .setDescription("Ilość")
+            .setRequired(true)
+        ),
 
-      const inviter = usedInvite.inviter;
-      if (!inviter) return;
+      new SlashCommandBuilder()
+        .setName("stakeset")
+        .setDescription("Ustaw stock")
+        .addIntegerOption(option =>
+          option.setName("ilosc")
+            .setDescription("Ilość")
+            .setRequired(true)
+        ),
 
-      const key = `invites_${guild.id}_${inviter.id}`;
-      const current = client[key] || 0;
+      new SlashCommandBuilder()
+        .setName("stakepanel")
+        .setDescription("Odśwież panel"),
 
-      client[key] = current + 1;
+      // INVITES
+      new SlashCommandBuilder()
+        .setName("invites")
+        .setDescription("Sprawdź ile osób zaprosiłeś"),
 
-    } catch (err) {
-      console.log("❌ Join Invite Error:", err);
-    }
-  });
+      new SlashCommandBuilder()
+        .setName("topinvites")
+        .setDescription("Ranking zaproszeń")
 
-  // =====================
-  // COMMANDS
-  // =====================
-  client.on(Events.InteractionCreate, async interaction => {
-    try {
-      if (!interaction.isChatInputCommand()) return;
+    ].map(cmd => cmd.toJSON());
 
-      if (
-        interaction.commandName !== "invites" &&
-        interaction.commandName !== "topinvites"
-      ) return;
+    const rest = new REST({ version: "10" }).setToken(TOKEN);
 
-      if (!interaction.member.roles.cache.has(ALLOWED_ROLE_ID)) {
+    await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      { body: commands }
+    );
+
+    console.log("✅ Komendy slash zarejestrowane");
+
+  } catch (err) {
+    console.log("❌ Ready error:", err);
+  }
+});
+
+// =====================
+// GLOBAL INTERACTIONS
+// =====================
+client.on(Events.InteractionCreate, async interaction => {
+  try {
+    if (!interaction.isChatInputCommand()) return;
+
+    // RESET
+    if (interaction.commandName === "reset") {
+
+      if (!interaction.member.roles.cache.has("1499499185337012377")) {
         return interaction.reply({
           content: "❌ Nie masz permisji.",
           flags: 64
         });
       }
 
-      // /invites
-      if (interaction.commandName === "invites") {
-        const amount =
-          client[`invites_${interaction.guild.id}_${interaction.user.id}`] || 0;
+      await interaction.reply({
+        content: "🔄 Restartuję bota...",
+        flags: 64
+      });
 
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("🌟 StarX Exchange » INVITES")
-          .setDescription(
-`👤 ${interaction.user}
-
-📨 Zaprosiłeś **${amount}** osób.`
-          )
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
-
-        return interaction.reply({
-          embeds: [embed],
-          flags: 64
-        });
-      }
-
-      // /topinvites
-      if (interaction.commandName === "topinvites") {
-
-        const members = interaction.guild.members.cache.map(m => {
-          return {
-            user: m.user,
-            invites:
-              client[`invites_${interaction.guild.id}_${m.id}`] || 0
-          };
-        });
-
-        const sorted = members
-          .sort((a, b) => b.invites - a.invites)
-          .slice(0, 10);
-
-        let desc = "";
-
-        sorted.forEach((u, i) => {
-          desc += `**${i + 1}.** ${u.user} — **${u.invites}** zaproszeń\n`;
-        });
-
-        if (!desc) desc = "Brak danych.";
-
-        const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("🏆 StarX Exchange » TOP INVITES")
-          .setDescription(desc)
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
-
-        return interaction.reply({
-          embeds: [embed]
-        });
-      }
-
-    } catch (err) {
-      console.log("❌ Invite Command Error:", err);
+      return setTimeout(() => process.exit(0), 1000);
     }
-  });
 
-};
+  } catch (err) {
+    console.log("❌ Interaction error:", err);
+  }
+});
+
+// =====================
+// ERRORS
+// =====================
+process.on("unhandledRejection", err => {
+  console.log("❌ Unhandled Rejection:", err);
+});
+
+process.on("uncaughtException", err => {
+  console.log("❌ Uncaught Exception:", err);
+});
+
+// =====================
+// LOGIN
+// =====================
+client.login(TOKEN);
