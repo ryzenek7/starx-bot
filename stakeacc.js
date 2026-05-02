@@ -8,6 +8,8 @@ const {
 } = require("discord.js");
 
 module.exports = (client) => {
+  let stock = 4;
+
   client.once(Events.ClientReady, async () => {
     try {
       const channel = await client.channels.fetch("1499812157246669001");
@@ -20,10 +22,7 @@ module.exports = (client) => {
       const embed = new EmbedBuilder()
         .setColor("#2b59ff")
         .setTitle("🌟 StarX Exchange » KONTO STAKE 🎰")
-        .setDescription(
-          "📌 Wybierz opcję z menu poniżej.\n\n" +
-          "📦 Dostępne sztuki: **4**"
-        )
+        .setDescription("📌 Wybierz opcję z menu poniżej.")
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "© 2026 StarX Exchange x Stake"
@@ -41,7 +40,7 @@ module.exports = (client) => {
           },
           {
             label: "Dostępne sztuki",
-            description: "Aktualny stan magazynowy",
+            description: "Sprawdź aktualny stan",
             value: "stock",
             emoji: "📦"
           }
@@ -79,7 +78,7 @@ module.exports = (client) => {
 
     if (interaction.values[0] === "stock") {
       await interaction.reply({
-        content: "📦 **Dostępne sztuki: 4**",
+        content: `📦 **Dostępne sztuki: ${stock}**`,
         ephemeral: true
       });
     }
