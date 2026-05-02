@@ -20,7 +20,8 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent // 🔥 TO DODANE
   ]
 });
 
@@ -77,7 +78,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "reset") {
       await interaction.reply({
         content: "🔄 Restartuję bota...",
-        ephemeral: true
+        flags: 64
       });
 
       setTimeout(() => process.exit(0), 1000);
