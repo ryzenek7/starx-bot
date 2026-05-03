@@ -47,7 +47,7 @@ module.exports = (client) => {
   async function updateRewardRoles(member, total) {
     if (!member) return;
 
-    // 20+ = -10%
+    // 20+ = -10% i usuwa -5%
     if (total >= 20) {
       await member.roles.add(ROLE_10).catch(() => {});
       await member.roles.remove(ROLE_5).catch(() => {});
@@ -61,7 +61,7 @@ module.exports = (client) => {
       return;
     }
 
-    // poniżej 10 = usuń obie
+    // mniej niż 10 = usuń obie
     await member.roles.remove(ROLE_5).catch(() => {});
     await member.roles.remove(ROLE_10).catch(() => {});
   }
@@ -130,7 +130,7 @@ module.exports = (client) => {
 
 🎁 **Nagrody:**
 10 osób = <@&${ROLE_5}>
-20 osób = <@&${ROLE_10}>
+20 osób = <@&${ROLE_10}> (usuwa -5%)
 
 🔗 Kod: \`${usedInvite.code}\``
           )
@@ -271,13 +271,11 @@ Posiada **${amount}** zaproszeń.`
       }
 
       // ======================
-      // /testinvite (OWNER ONLY)
+      // /testinvite OWNER ONLY
       // ======================
       if (interaction.commandName === "testinvite") {
 
-        if (
-          !interaction.member.roles.cache.has(OWNER_ROLE_ID)
-        ) {
+        if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
           return interaction.reply({
             content: "❌ Nie masz permisji.",
             flags: 64
