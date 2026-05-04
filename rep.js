@@ -22,7 +22,7 @@ module.exports = (client) => {
 
 📌 **PRZYKŁAD:**
 \`\`\`
-+rep @jarek.svx Purchased Skrill 50PLN [BLIK]
++rep @jarek.svx Purchased Konto Stake 40PLN [BLIK]
 \`\`\`
 
 © 2026 StarX Exchange`
