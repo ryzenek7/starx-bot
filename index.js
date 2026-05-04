@@ -53,6 +53,7 @@ require("./verify")(client);
 require("./verifyping")(client);
 require("./propozycje")(client);
 require("./invites")(client);
+require("./rep")(client);
 
 // =====================
 // READY
