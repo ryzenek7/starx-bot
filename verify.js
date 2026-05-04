@@ -2,7 +2,10 @@ const {
     EmbedBuilder,
     ActionRowBuilder,
     StringSelectMenuBuilder,
-    Events
+    Events,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -11,65 +14,63 @@ module.exports = (client) => {
     // CONFIG
     // =========================
     const VERIFY_CHANNEL_ID = "1499725942313058344";
-    const VERIFY_URL = "https://vaultcord.win/starxexchange";
+    const VERIFIED_ROLE_ID = "1499521304146083954";
 
-    // EMOJI
-    const YES = "<a:YES:1499784353012514917>";
-    const LOCK = "🔒";
-    const ROCKET = "🚀";
-    const TROPHY = "🏆";
+    // przechowywanie odpowiedzi
+    const challenges = new Map();
+
+    // =========================
+    // GENEROWANIE DZIAŁANIA
+    // =========================
+    function generateMath() {
+        let a = Math.floor(Math.random() * 51); // 0-50
+        let b = Math.floor(Math.random() * 51);
+
+        const isAdd = Math.random() > 0.5;
+
+        if (isAdd) {
+            return {
+                question: `${a} + ${b}`,
+                answer: a + b
+            };
+        } else {
+            // żeby nie było ujemnych
+            if (b > a) [a, b] = [b, a];
+
+            return {
+                question: `${a} - ${b}`,
+                answer: a - b
+            };
+        }
+    }
 
     // =========================
     // PANEL
     // =========================
     async function sendPanel() {
-        try {
-            const channel = await client.channels.fetch(VERIFY_CHANNEL_ID);
-            if (!channel) return;
+        const channel = await client.channels.fetch(VERIFY_CHANNEL_ID);
 
-            const embed = new EmbedBuilder()
-                .setColor("#2b2d31")
-                .setAuthor({
-                    name: "StarX Exchange × Bot",
-                    iconURL: client.user.displayAvatarURL()
-                })
-                .setTitle("🌟 StarX Exchange » WERYFIKACJA")
-                .setDescription(
-`${YES} **Witaj**, wybierz opcję poniżej aby przejść weryfikację.
+        const embed = new EmbedBuilder()
+            .setColor("#2b2d31")
+            .setTitle("🌟 Weryfikacja")
+            .setDescription("Kliknij poniżej i rozwiąż proste działanie matematyczne.");
 
-${LOCK} Bezpieczne logowanie Discord OAuth2
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId("verify_select")
+            .setPlaceholder("Wybierz opcję")
+            .addOptions([
+                {
+                    label: "Zweryfikuj się",
+                    value: "math"
+                }
+            ]);
 
-${ROCKET} Uzyskaj pełny dostęp do serwera.`
-                )
-                .setImage("https://i.imgur.com/0h2yrK7_d.webp?maxwidth=760&fidelity=grand")
-                .setFooter({
-                    text: "© 2026 StarX Exchange × Verify"
-                });
+        const row = new ActionRowBuilder().addComponents(menu);
 
-            const menu = new StringSelectMenuBuilder()
-                .setCustomId("verify_select")
-                .setPlaceholder(`${TROPHY} Wybierz metodę weryfikacji`)
-                .addOptions([
-                    {
-                        label: "Zweryfikuj konto",
-                        description: "Przejdź autoryzację Discord",
-                        value: "verify",
-                        emoji: "1499784353012514917"
-                    }
-                ]);
-
-            const row = new ActionRowBuilder().addComponents(menu);
-
-            await channel.send({
-                embeds: [embed],
-                components: [row]
-            });
-
-            console.log("✅ Verify panel wysłany");
-
-        } catch (err) {
-            console.log("❌ Verify panel error:", err);
-        }
+        await channel.send({
+            embeds: [embed],
+            components: [row]
+        });
     }
 
     // =========================
@@ -80,27 +81,61 @@ ${ROCKET} Uzyskaj pełny dostęp do serwera.`
     });
 
     // =========================
-    // MENU
+    // INTERAKCJE
     // =========================
     client.on(Events.InteractionCreate, async (interaction) => {
 
-        if (!interaction.isStringSelectMenu()) return;
-        if (interaction.customId !== "verify_select") return;
+        // SELECT MENU
+        if (interaction.isStringSelectMenu()) {
+            if (interaction.customId !== "verify_select") return;
 
-        try {
-            if (interaction.values[0] === "verify") {
+            const math = generateMath();
+
+            challenges.set(interaction.user.id, math.answer);
+
+            const modal = new ModalBuilder()
+                .setCustomId("math_modal")
+                .setTitle("Weryfikacja");
+
+            const input = new TextInputBuilder()
+                .setCustomId("math_answer")
+                .setLabel(`Ile to: ${math.question}?`)
+                .setStyle(TextInputStyle.Short)
+                .setRequired(true);
+
+            const row = new ActionRowBuilder().addComponents(input);
+            modal.addComponents(row);
+
+            await interaction.showModal(modal);
+        }
+
+        // MODAL SUBMIT
+        if (interaction.isModalSubmit()) {
+            if (interaction.customId !== "math_modal") return;
+
+            const userAnswer = interaction.fields.getTextInputValue("math_answer");
+            const correctAnswer = challenges.get(interaction.user.id);
+
+            if (Number(userAnswer) === correctAnswer) {
+
+                challenges.delete(interaction.user.id);
+
+                const member = await interaction.guild.members.fetch(interaction.user.id);
+                await member.roles.add(VERIFIED_ROLE_ID);
+
                 await interaction.reply({
-                    content:
-`${LOCK} Kliknij poniżej aby się zweryfikować:
+                    content: "✅ Zweryfikowano poprawnie!",
+                    ephemeral: true
+                });
 
-${VERIFY_URL}`,
-                    flags: 64
+            } else {
+                await interaction.reply({
+                    content: "❌ Błędna odpowiedź! Spróbuj ponownie.",
+                    ephemeral: true
                 });
             }
-
-        } catch (err) {
-            console.log("❌ Verify interaction error:", err);
         }
+
     });
 
 };
