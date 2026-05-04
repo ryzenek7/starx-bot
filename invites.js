@@ -130,7 +130,7 @@ module.exports = (client) => {
 
 🎁 **Nagrody:**
 10 osób = <@&${ROLE_5}>
-20 osób = <@&${ROLE_10}> (usuwa -5%)
+20 osób = <@&${ROLE_10}> 
 
 🔗 Kod: \`${usedInvite.code}\``
           )
