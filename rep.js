@@ -2,8 +2,16 @@ const { EmbedBuilder, Events } = require("discord.js");
 
 module.exports = (client) => {
 
-  const CHANNEL_ID = "1500893110048133253";
-  let panelMessageId = null;
+  // =========================
+  // CONFIG
+  // =========================
+  const CHANNEL_ID = "1500893110048133253"; // kanał rep
+  const TARGET_ROLE_ID = "1499572498604363918";
+
+  const LEGIT_CHANNEL_ID = "1499519884860854505";
+  const OPINIE_CHANNEL_ID = "1499519935657935049";
+
+  let panelMessage = null;
 
   // =========================
   // PANEL
@@ -29,8 +37,12 @@ module.exports = (client) => {
       )
       .setFooter({ text: "StarX Exchange" });
 
-    const msg = await channel.send({ embeds: [embed] });
-    panelMessageId = msg.id;
+    // usuń stary panel
+    if (panelMessage) {
+      await panelMessage.delete().catch(() => {});
+    }
+
+    panelMessage = await channel.send({ embeds: [embed] });
   }
 
   // =========================
@@ -40,9 +52,6 @@ module.exports = (client) => {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
       if (!channel) return console.log("❌ Nie znaleziono kanału rep");
-
-      const messages = await channel.messages.fetch({ limit: 50 });
-      await channel.bulkDelete(messages, true).catch(() => {});
 
       await sendPanel(channel);
 
@@ -54,26 +63,67 @@ module.exports = (client) => {
   });
 
   // =========================
-  // BLOKADA + RESET
+  // NOWE WIADOMOŚCI
   // =========================
   client.on(Events.MessageCreate, async (message) => {
     try {
       if (message.channel.id !== CHANNEL_ID) return;
       if (message.author.bot) return;
 
-      await message.delete().catch(() => {});
-
-      const channel = message.channel;
-
-      if (panelMessageId) {
-        const oldMsg = await channel.messages.fetch(panelMessageId).catch(() => null);
-        if (oldMsg) await oldMsg.delete().catch(() => {});
-      }
-
-      await sendPanel(channel);
+      // NIE usuwamy wiadomości usera
+      await sendPanel(message.channel);
 
     } catch (err) {
       console.log("❌ Rep Message error:", err);
+    }
+  });
+
+  // =========================
+  // RANGA → PING (auto delete)
+  // =========================
+  client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
+    try {
+
+      const hadRole = oldMember.roles.cache.has(TARGET_ROLE_ID);
+      const hasRole = newMember.roles.cache.has(TARGET_ROLE_ID);
+
+      if (!hadRole && hasRole) {
+
+        const channel = await newMember.guild.channels.fetch(CHANNEL_ID).catch(() => null);
+        if (!channel) return;
+
+        const embed = new EmbedBuilder()
+          .setColor("#57F287")
+          .setTitle("🎉 StarX Exchange » NOWY LEGIT")
+          .setDescription(
+`👤 ${newMember}
+
+otrzymał rangę legit ✅
+
+📌 Zostaw opinię:
+👉 <#${OPINIE_CHANNEL_ID}>
+
+📨 Dodaj legit check:
+👉 <#${LEGIT_CHANNEL_ID}>`
+          )
+          .setFooter({
+            text: "StarX Exchange • System reputacji"
+          })
+          .setTimestamp();
+
+        const msg = await channel.send({
+          content: `${newMember}`, // ping
+          embeds: [embed]
+        });
+
+        // usuń po 1 sekundzie
+        setTimeout(() => {
+          msg.delete().catch(() => {});
+        }, 1000);
+      }
+
+    } catch (err) {
+      console.log("❌ Role Ping Error:", err);
     }
   });
 
