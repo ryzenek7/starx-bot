@@ -22,6 +22,11 @@ module.exports = (client) => {
   const EMOJI_DISNEY = "<:disney:1501686870025699449>";
   const EMOJI_MONEY = "<a:money:1501685438103031920>";
 
+  // TWOJE CUSTOM
+  const EMOJI_PIN = "<:pin:1501697389050986546>";
+  const EMOJI_ZAP = "<:zap:1501697151737139350>";
+  const EMOJI_LOCK = "<:lock:1501697222901895258>";
+
   // ========================
   // PANEL
   // ========================
@@ -34,9 +39,11 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("💰 StarX Exchange » CENNIK")
         .setDescription(
-`📦 Wybierz kategorię z menu poniżej.
+`${EMOJI_PIN} Wybierz kategorię z menu poniżej.
 
-⚡ Szybko • 🔒 Bezpiecznie • 💰 Tanio`
+${EMOJI_ZAP} Szybka realizacja  
+${EMOJI_LOCK} Bezpieczne transakcje  
+${EMOJI_MONEY} Najlepsze ceny`
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({ text: "© 2026 StarX Exchange" });
