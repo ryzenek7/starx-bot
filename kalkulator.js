@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 
 module.exports = async (client) => {
+
   const CHANNEL_ID = "1499513009188376767";
 
   // ==========================
@@ -16,21 +17,29 @@ module.exports = async (client) => {
   const EMOJI_CRYPTO = "<:crypto:1499784635201224724>";
   const EMOJI_LTC = "<:ltc:1499784285211726014>";
 
+  // ANIMOWANE
+  const EMOJI_MONEY = "<a:cash:1501685438103031920>";
+  const EMOJI_BOX = "<:box:1500243849535033577>";
+
   // ==========================
-  // FUNKCJA WYSYŁANIA PANELU
+  // PANEL
   // ==========================
   async function sendPanel() {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
 
       if (!channel) {
-        return console.log("❌ Nie znaleziono kanału #prowizje");
+        return console.log("❌ Nie znaleziono kanału prowizje");
       }
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
         .setTitle("🌟 StarX Exchange » PROWIZJE")
-        .setDescription("💸 Wybierz metodę płatności z menu poniżej.")
+        .setDescription(
+`${EMOJI_MONEY} Wybierz metodę płatności z menu poniżej.
+
+${EMOJI_BOX} Szybkie i przejrzyste prowizje.`
+        )
         .setFooter({ text: "© 2026 StarX Exchange x Prowizje" });
 
       const menu = new StringSelectMenuBuilder()
@@ -66,10 +75,10 @@ module.exports = async (client) => {
         components: [row]
       });
 
-      console.log("✅ Panel prowizji wysłany na #prowizje");
+      console.log("✅ Panel prowizji wysłany");
+
     } catch (error) {
-      console.log("❌ Błąd wysyłania panelu:");
-      console.log(error);
+      console.log("❌ Błąd panelu:", error);
     }
   }
 
@@ -79,15 +88,14 @@ module.exports = async (client) => {
   if (client.isReady()) {
     sendPanel();
   } else {
-    client.once(Events.ClientReady, async () => {
-      sendPanel();
-    });
+    client.once(Events.ClientReady, sendPanel);
   }
 
   // ==========================
-  // MENU INTERACTION
+  // MENU
   // ==========================
   client.on(Events.InteractionCreate, async (interaction) => {
+
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "show_rates") return;
 
@@ -100,7 +108,7 @@ ${EMOJI_BLIK} ➜ ${EMOJI_PAYPAL} × **8.0%**
 ${EMOJI_BLIK} ➜ ${EMOJI_CRYPTO} × **8.0%**
 ${EMOJI_BLIK} ➜ ${EMOJI_LTC} × **8.0%**
 
-⚠️ Minimalna prowizja: **2 PLN**
+${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
 `;
     }
 
@@ -110,7 +118,7 @@ ${EMOJI_PAYPAL} ➜ ${EMOJI_BLIK} × **7.0%**
 ${EMOJI_PAYPAL} ➜ ${EMOJI_CRYPTO} × **7.0%**
 ${EMOJI_PAYPAL} ➜ ${EMOJI_LTC} × **7.5%**
 
-⚠️ Minimalna prowizja: **2 PLN**
+${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
 `;
     }
 
@@ -120,7 +128,7 @@ ${EMOJI_CRYPTO} ➜ ${EMOJI_BLIK} × **3.5%**
 ${EMOJI_CRYPTO} ➜ ${EMOJI_PAYPAL} × **3.5%**
 ${EMOJI_CRYPTO} ➜ ${EMOJI_LTC} × **3.5%**
 
-⚠️ Minimalna prowizja: **2 PLN**
+${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
 `;
     }
 
@@ -130,19 +138,21 @@ ${EMOJI_LTC} ➜ ${EMOJI_BLIK} × **3.5%**
 ${EMOJI_LTC} ➜ ${EMOJI_PAYPAL} × **4.0%**
 ${EMOJI_LTC} ➜ ${EMOJI_CRYPTO} × **3.5%**
 
-⚠️ Minimalna prowizja: **2 PLN**
+${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
 `;
     }
 
     const embed = new EmbedBuilder()
       .setColor("#2b2d31")
-      .setTitle(`🌟 ${type} » PROWIZJE`)
+      .setTitle(`🌟 StarX Exchange » ${type}`)
       .setDescription(desc)
-      .setFooter({ text: "StarX Exchange © 2026" });
+      .setFooter({ text: "© 2026 StarX Exchange" });
 
     await interaction.reply({
       embeds: [embed],
       flags: 64
     });
+
   });
+
 };
