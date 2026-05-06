@@ -7,19 +7,20 @@ const {
 
 module.exports = (client) => {
 
-  // ========================
-  // CONFIG
-  // ========================
   const CHANNEL_ID = "1499902366843932763";
 
-  // CUSTOM EMOJI
+  // EMOJI
   const EMOJI_SPOTIFY = "<:Spotify:1500238701718933627>";
   const EMOJI_NETFLIX = "<:Netflix:1500238788306403398>";
   const EMOJI_YT = "<:ytpremium:1500239415937859605>";
   const EMOJI_HBO = "<:HBOmax:1500239251143524464>";
+  const EMOJI_NITRO = "<:nitro:1501684762601848963>";
+  const EMOJI_CRUNCHY = "<:crunchyroll:1501686424158605463>";
+  const EMOJI_DISNEY = "<:disney:1501686870025699449>";
+  const EMOJI_MONEY = "<:money:1501685438103031920>";
 
   // ========================
-  // READY
+  // PANEL
   // ========================
   client.once(Events.ClientReady, async () => {
     try {
@@ -30,20 +31,27 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle("💰 StarX Exchange » CENNIK")
         .setDescription(
-          "➤ Wybierz kategorię z menu poniżej, aby zobaczyć aktualne ceny kont.\n\n" +
-          "⚠️ Cennik ma charakter informacyjny i może ulec zmianie."
+`➤ Wybierz kategorię z menu poniżej, aby zobaczyć ceny produktów.
+
+🔥 Najlepsze ceny • Gwarancja • Szybka realizacja
+
+⚠️ Cennik może ulec zmianie.`
         )
-        .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({ text: "© 2026 StarX Exchange" });
 
       const menu = new StringSelectMenuBuilder()
         .setCustomId("starx_cennik")
-        .setPlaceholder("Wybierz interesujący cię produkt..")
+        .setPlaceholder("📦 Wybierz kategorię...")
         .addOptions([
           {
-            label: "KONTA PREMIUM",
-            value: "konta",
-            emoji: "💎"
+            label: "NITRO",
+            value: "nitro",
+            emoji: "1501684762601848963"
+          },
+          {
+            label: "STREAMING",
+            value: "streaming",
+            emoji: "🎬"
           }
         ]);
 
@@ -54,10 +62,8 @@ module.exports = (client) => {
         components: [row]
       });
 
-      console.log("✅ Cennik wysłany");
-
     } catch (err) {
-      console.log("❌ Błąd:", err);
+      console.log("❌ Cennik error:", err);
     }
   });
 
@@ -71,41 +77,63 @@ module.exports = (client) => {
 
     try {
 
-      const embed = new EmbedBuilder()
-        .setColor("#5865F2")
-        .setTitle("💎 StarX Exchange » KONTA PREMIUM")
-        .setDescription(
-          `${EMOJI_SPOTIFY} **Spotify Premium Lifetime** — \`x zł\`\n\n` +
-          `${EMOJI_YT} **YouTube Premium** — \`x zł\`\n\n` +
-          `${EMOJI_NETFLIX} **Netflix Lifetime Account** — \`x zł\`\n\n` +
-          `${EMOJI_HBO} **HBO MAX Premium** — \`x zł\``
-        )
-        .setFooter({ text: "StarX Exchange • Najniższe prowizje" });
+      // =====================
+      // NITRO
+      // =====================
+      if (interaction.values[0] === "nitro") {
 
-      await interaction.reply({
-        embeds: [embed],
-        flags: 64
-      });
+        const embed = new EmbedBuilder()
+          .setColor("#5865F2")
+          .setTitle(`${EMOJI_NITRO} StarX Exchange » NITRO`)
+          .setDescription(
+`${EMOJI_NITRO} **Nitro Boost (28 dni • Full Warranty)**  
+${EMOJI_MONEY} \`20zł\`
 
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId("starx_cennik")
-        .setPlaceholder("Wybierz interesujący cię produkt..")
-        .addOptions([
-          {
-            label: "KONTA PREMIUM",
-            value: "konta",
-            emoji: "💎"
-          }
-        ]);
+${EMOJI_SPOTIFY} **Spotify Premium LIFETIME [KEY]**  
+${EMOJI_MONEY} \`26zł\``
+          )
+          .setFooter({ text: "StarX Exchange • Najniższe ceny" });
 
-      const row = new ActionRowBuilder().addComponents(menu);
+        return interaction.reply({
+          embeds: [embed],
+          flags: 64
+        });
+      }
 
-      await interaction.message.edit({
-        components: [row]
-      });
+      // =====================
+      // STREAMING
+      // =====================
+      if (interaction.values[0] === "streaming") {
+
+        const embed = new EmbedBuilder()
+          .setColor("#2b2d31")
+          .setTitle("🎬 StarX Exchange » STREAMING")
+          .setDescription(
+`${EMOJI_NETFLIX} **Netflix Lifetime**  
+${EMOJI_MONEY} \`20zł\`
+
+${EMOJI_HBO} **Max (HBO) Lifetime**  
+${EMOJI_MONEY} \`10zł\`
+
+${EMOJI_DISNEY} **Disney+ Lifetime**  
+${EMOJI_MONEY} \`10zł\`
+
+${EMOJI_CRUNCHY} **Crunchyroll Fan Lifetime**  
+${EMOJI_MONEY} \`10zł\`
+
+${EMOJI_YT} **YouTube Premium**  
+${EMOJI_MONEY} \`x zł\``
+          )
+          .setFooter({ text: "StarX Exchange • Najniższe ceny" });
+
+        return interaction.reply({
+          embeds: [embed],
+          flags: 64
+        });
+      }
 
     } catch (err) {
-      console.log("❌ Błąd menu:", err);
+      console.log("❌ Menu error:", err);
     }
 
   });
