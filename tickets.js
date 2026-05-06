@@ -17,6 +17,9 @@ module.exports = (client) => {
   const PANEL_CHANNEL_ID = "1499512781861556314";
   const SUPPORT_ROLE_ID = "1499507487647338656";
 
+  // 🎫 CUSTOM EMOJI
+  const EMOJI_TICKET = "<:ticket:1501697124734206032>";
+
   // ========================
   // PANEL READY
   // ========================
@@ -27,11 +30,11 @@ module.exports = (client) => {
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
-        .setTitle("🌟 StarX Exchange » TICKETY")
+        .setTitle(`${EMOJI_TICKET} StarX Exchange » TICKETY`)
         .setDescription(
-          "🎫 Wybierz kategorię z menu poniżej.\n\n" +
-          "⚡ Szybka pomoc supportu.\n" +
-          "🔒 Bezpieczny kontakt."
+          `${EMOJI_TICKET} Wybierz kategorię z menu poniżej.\n\n` +
+          "⚡ Szybka pomoc supportu\n" +
+          "🔒 Bezpieczny kontakt"
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({ text: "© 2026 StarX Exchange x TICKETY" });
@@ -43,23 +46,17 @@ module.exports = (client) => {
           {
             label: "Wymiana / Zakup",
             value: "Wymiana / Zakup",
-            emoji: {
-              id: "1500243849535033577"
-            }
+            emoji: { id: "1500243849535033577" }
           },
           {
             label: "Pomoc",
             value: "pomoc",
-            emoji: {
-              id: "1500243961124618381"
-            }
+            emoji: { id: "1500243961124618381" }
           },
           {
             label: "Middleman",
             value: "mm",
-            emoji: {
-              id: "1500243884733894716"
-            }
+            emoji: { id: "1500243884733894716" }
           }
         ]);
 
@@ -129,20 +126,21 @@ module.exports = (client) => {
           content:
             `<@&${SUPPORT_ROLE_ID}> 👋 ${interaction.user}\n` +
             `📌 Nowy ticket\n` +
-            `🎫 Kategoria: **${category}**`,
+            `${EMOJI_TICKET} Kategoria: **${category}**`,
           components: [row],
           allowedMentions: {
             roles: [SUPPORT_ROLE_ID]
           }
         });
 
+        // usuń ping po 1s
         setTimeout(async () => {
           try {
             await msg.edit({
               content:
                 `👋 ${interaction.user}\n` +
                 `📌 Nowy ticket\n` +
-                `🎫 Kategoria: **${category}**`,
+                `${EMOJI_TICKET} Kategoria: **${category}**`,
               components: [row]
             });
           } catch {}
