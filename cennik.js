@@ -7,9 +7,14 @@ const {
 
 module.exports = (client) => {
 
+  // ========================
+  // CONFIG
+  // ========================
   const CHANNEL_ID = "1499902366843932763";
 
+  // ========================
   // EMOJI
+  // ========================
   const EMOJI_SPOTIFY = "<:Spotify:1500238701718933627>";
   const EMOJI_NETFLIX = "<:Netflix:1500238788306403398>";
   const EMOJI_YT = "<:ytpremium:1500239415937859605>";
@@ -17,26 +22,29 @@ module.exports = (client) => {
   const EMOJI_NITRO = "<:nitro:1501684762601848963>";
   const EMOJI_CRUNCHY = "<:crunchyroll:1501686424158605463>";
   const EMOJI_DISNEY = "<:disney:1501686870025699449>";
-  const EMOJI_MONEY = "<:money:1501685438103031920>";
+
+  // 🔥 FIX — ANIMOWANA EMOTKA
+  const EMOJI_MONEY = "<a:money:1501685438103031920>";
 
   // ========================
-  // PANEL
+  // PANEL STARTOWY
   // ========================
   client.once(Events.ClientReady, async () => {
     try {
       const channel = await client.channels.fetch(CHANNEL_ID);
-      if (!channel) return;
+      if (!channel) return console.log("❌ Nie znaleziono kanału");
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
         .setTitle("💰 StarX Exchange » CENNIK")
         .setDescription(
-`➤ Wybierz kategorię z menu poniżej, aby zobaczyć ceny produktów.
+`➤ Wybierz kategorię z menu poniżej, aby zobaczyć aktualne ceny kont.
 
-🔥 Najlepsze ceny • Gwarancja • Szybka realizacja
+⚡ Szybka realizacja • 🔒 Gwarancja • 💰 Najlepsze ceny
 
 ⚠️ Cennik może ulec zmianie.`
         )
+        .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({ text: "© 2026 StarX Exchange" });
 
       const menu = new StringSelectMenuBuilder()
@@ -61,6 +69,8 @@ module.exports = (client) => {
         embeds: [embed],
         components: [row]
       });
+
+      console.log("✅ Cennik wysłany");
 
     } catch (err) {
       console.log("❌ Cennik error:", err);
