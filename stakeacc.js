@@ -1,5 +1,3 @@
-// stakeacc.js FINAL WORKING (pod nowy index.js)
-
 const {
   EmbedBuilder,
   ActionRowBuilder,
@@ -8,14 +6,25 @@ const {
 } = require("discord.js");
 
 module.exports = (client) => {
+
   // ===============================
   // CONFIG
   // ===============================
-  const OWNER_ID = "1367768195167031403";
   const CHANNEL_ID = "1499812157246669001";
+  const ADMIN_ROLE = "1499499185337012377";
 
   let stock = 4;
   let panelMessageId = null;
+
+  // ===============================
+  // EMOJI
+  // ===============================
+  const EMOJI_STAKE = "<:stake:1500238567564378142>";
+  const EMOJI_MONEY = "<a:money:1501685438103031920>";
+  const EMOJI_BOX = "<:box:1500243849535033577>";
+  const EMOJI_PIN = "<:pin:1501697389050986546>";
+  const EMOJI_ZAP = "<:zap:1501697151737139350>";
+  const EMOJI_LOCK = "<:lock:1501697222901895258>";
 
   // ===============================
   // PANEL
@@ -35,11 +44,13 @@ module.exports = (client) => {
 
       const embed = new EmbedBuilder()
         .setColor("#2b59ff")
-        .setTitle("<:stake:1500238567564378142> StarX Exchange » KONTO STAKE")
+        .setTitle(`${EMOJI_STAKE} StarX Exchange » KONTO STAKE`)
         .setDescription(
-          "📌 Wybierz opcję z menu poniżej.\n" +
-          "⚡ Natychmiastowa realizacja.\n" +
-          "🔒 Pewny zakup."
+`${EMOJI_PIN} Wybierz opcję z menu poniżej.
+
+${EMOJI_ZAP} Natychmiastowa realizacja  
+${EMOJI_LOCK} Bezpieczny zakup  
+${EMOJI_BOX} Aktualny stock: **${stock} sztuk**`
         )
         .setImage("https://i.imgur.com/IkCEHh1_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
@@ -52,15 +63,13 @@ module.exports = (client) => {
         .addOptions([
           {
             label: "Zobacz cenę",
-            description: "Sprawdź cenę konta",
             value: "price",
-            emoji: "💰"
+            emoji: { id: "1501685438103031920", name: "money" }
           },
           {
             label: "Dostępne sztuki",
-            description: "Sprawdź aktualny stock",
             value: "stock",
-            emoji: "📦"
+            emoji: { id: "1500243849535033577", name: "box" }
           }
         ]);
 
@@ -92,6 +101,7 @@ module.exports = (client) => {
   // ===============================
   client.on(Events.InteractionCreate, async (interaction) => {
     try {
+
       // ================= MENU
       if (interaction.isStringSelectMenu()) {
         if (interaction.customId !== "stake_menu") return;
@@ -100,11 +110,13 @@ module.exports = (client) => {
         if (interaction.values[0] === "price") {
           return interaction.reply({
             content:
-              "🎮 **KONTO STAKE (2 POZIOM WERYFIKACJI):**\n" +
-              "- 🔓 Pełny dostęp (E-mail oraz Stake)\n" +
-              "- 🪪 Zweryfikowane dowodem osobistym\n" +
-              "- 🎯 Gotowe do wpłat i wypłat\n\n" +
-              "💸 **Cena: 40 ZŁ**",
+`${EMOJI_STAKE} **KONTO STAKE (2 POZIOM WERYFIKACJI)**
+
+🔓 Pełny dostęp (mail + konto)  
+🪪 Zweryfikowane dokumentem  
+🎯 Gotowe do wpłat i wypłat  
+
+${EMOJI_MONEY} **Cena: 40 zł**`,
             flags: 64
           });
         }
@@ -112,7 +124,7 @@ module.exports = (client) => {
         // stock
         if (interaction.values[0] === "stock") {
           return interaction.reply({
-            content: `📦 **Dostępne sztuki: ${stock}**`,
+            content: `${EMOJI_BOX} **Dostępne sztuki: ${stock}**`,
             flags: 64
           });
         }
@@ -130,14 +142,15 @@ module.exports = (client) => {
 
       if (!allowed.includes(interaction.commandName)) return;
 
-if (!interaction.member.roles.cache.has("1499499185337012377")) {
+      if (!interaction.member.roles.cache.has(ADMIN_ROLE)) {
         return interaction.reply({
           content: "❌ Nie masz permisji.",
           flags: 64
         });
       }
 
-      // /stakeadd
+      // ================= COMMANDS
+
       if (interaction.commandName === "stakeadd") {
         const amount = interaction.options.getInteger("ilosc");
 
@@ -150,7 +163,6 @@ if (!interaction.member.roles.cache.has("1499499185337012377")) {
         });
       }
 
-      // /stakeremove
       if (interaction.commandName === "stakeremove") {
         const amount = interaction.options.getInteger("ilosc");
 
@@ -165,7 +177,6 @@ if (!interaction.member.roles.cache.has("1499499185337012377")) {
         });
       }
 
-      // /stakeset
       if (interaction.commandName === "stakeset") {
         const amount = interaction.options.getInteger("ilosc");
 
@@ -178,7 +189,6 @@ if (!interaction.member.roles.cache.has("1499499185337012377")) {
         });
       }
 
-      // /stakepanel
       if (interaction.commandName === "stakepanel") {
         await sendPanel();
 
