@@ -17,8 +17,13 @@ module.exports = (client) => {
   const PANEL_CHANNEL_ID = "1499512781861556314";
   const SUPPORT_ROLE_ID = "1499507487647338656";
 
-  // 🎫 CUSTOM EMOJI
+  // ========================
+  // CUSTOM EMOJI
+  // ========================
   const EMOJI_TICKET = "<:ticket:1501697124734206032>";
+  const EMOJI_PIN = "<:pin:1501697389050986546>";
+  const EMOJI_ZAP = "<:zap:1501697151737139350>";
+  const EMOJI_LOCK = "<:lock:1501697222901895258>";
 
   // ========================
   // PANEL READY
@@ -32,9 +37,9 @@ module.exports = (client) => {
         .setColor("#2b2d31")
         .setTitle(`${EMOJI_TICKET} StarX Exchange » TICKETY`)
         .setDescription(
-          `${EMOJI_TICKET} Wybierz kategorię z menu poniżej.\n\n` +
-          "⚡ Szybka pomoc supportu\n" +
-          "🔒 Bezpieczny kontakt"
+          `${EMOJI_PIN} Wybierz kategorię z menu poniżej.\n\n` +
+          `${EMOJI_ZAP} Szybka pomoc supportu\n` +
+          `${EMOJI_LOCK} Bezpieczny kontakt`
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({ text: "© 2026 StarX Exchange x TICKETY" });
@@ -117,7 +122,7 @@ module.exports = (client) => {
 
         const closeButton = new ButtonBuilder()
           .setCustomId("close_ticket")
-          .setLabel("🔒 Zamknij ticket")
+          .setLabel(`${EMOJI_LOCK} Zamknij ticket`)
           .setStyle(ButtonStyle.Danger);
 
         const row = new ActionRowBuilder().addComponents(closeButton);
@@ -125,7 +130,7 @@ module.exports = (client) => {
         const msg = await channel.send({
           content:
             `<@&${SUPPORT_ROLE_ID}> 👋 ${interaction.user}\n` +
-            `📌 Nowy ticket\n` +
+            `${EMOJI_PIN} Nowy ticket\n` +
             `${EMOJI_TICKET} Kategoria: **${category}**`,
           components: [row],
           allowedMentions: {
@@ -139,7 +144,7 @@ module.exports = (client) => {
             await msg.edit({
               content:
                 `👋 ${interaction.user}\n` +
-                `📌 Nowy ticket\n` +
+                `${EMOJI_PIN} Nowy ticket\n` +
                 `${EMOJI_TICKET} Kategoria: **${category}**`,
               components: [row]
             });
@@ -180,7 +185,7 @@ module.exports = (client) => {
         }
 
         await interaction.reply({
-          content: "🔒 Zamykam ticket za 3 sekundy...",
+          content: `${EMOJI_LOCK} Zamykam ticket za 3 sekundy...`,
           flags: 64
         });
 
