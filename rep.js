@@ -98,7 +98,7 @@ module.exports = (client) => {
           .setDescription(
 `👤 ${newMember}
 
-otrzymał rangę legit ✅
+otrzymał klient ✅
 
 📌 Zostaw opinię:
 👉 <#${OPINIE_CHANNEL_ID}>
