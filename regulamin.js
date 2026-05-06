@@ -1,8 +1,5 @@
 // regulamin.js
-const {
-  EmbedBuilder,
-  Events
-} = require("discord.js");
+const { EmbedBuilder, Events } = require("discord.js");
 
 module.exports = (client) => {
 
@@ -14,32 +11,70 @@ module.exports = (client) => {
       if (!channel) return console.log("❌ Nie znaleziono kanału regulamin.");
 
       const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
-        .setTitle("📜 StarX Exchange » REGULAMIN")
+        .setColor("#5865F2")
+        .setTitle("<:regulamin:1501693215328440370> StarX Exchange • Regulamin")
         .setDescription(`
-1️⃣ Korzystanie z serwera oznacza akceptację regulaminu.  
-2️⃣ Każdy użytkownik działa na własną odpowiedzialność.  
-3️⃣ Administracja nie odpowiada za transakcje między użytkownikami.  
-4️⃣ Wszystkie wymiany i sprzedaże odbywają się dobrowolnie.  
-5️⃣ Zakaz sprzedaży i wymiany przedmiotów nielegalnych.  
-6️⃣ Każda oferta musi być czytelna i zawierać szczegóły transakcji.  
-7️⃣ Zabrania się fałszywych ofert oraz wprowadzania w błąd.  
-8️⃣ Zalecane jest korzystanie z middlemana (MM) przy większych transakcjach.  
-9️⃣ Administracja nie przechowuje ani nie zarządza środkami użytkowników.  
-🔟 Wszystkie transakcje kryptowalutowe są ostateczne i nieodwracalne.  
-1️⃣1️⃣ Użytkownik jest zobowiązany do sprawdzenia danych przed wysyłką środków.  
-1️⃣2️⃣ Zakaz podszywania się pod innych użytkowników lub administrację.  
-1️⃣3️⃣ Zakaz prób obejścia zabezpieczeń serwera lub systemu MM.  
-1️⃣4️⃣ Administracja ma prawo usuwać użytkowników naruszających zasady.  
-1️⃣5️⃣ Wszelkie spory rozstrzyga administracja serwera.
+━━━━━━━━━━━━━━━━━━━━━━━  
+**POSTANOWIENIA OGÓLNE**
+
+1. Korzystanie z serwera oznacza pełną akceptację regulaminu.  
+2. Każdy użytkownik działa na własną odpowiedzialność.  
+3. Administracja nie jest stroną żadnej transakcji.  
+
+━━━━━━━━━━━━━━━━━━━━━━━  
+**TRANSAKCJE I WYMIANY**
+
+4. Wszystkie transakcje są dobrowolne między użytkownikami.  
+5. Administracja nie ponosi odpowiedzialności za straty.  
+6. Zaleca się korzystanie z usług middlemana (MM).  
+7. Użytkownik ma obowiązek sprawdzić dane przed wysyłką środków.  
+8. Transakcje kryptowalutowe są nieodwracalne.  
+
+━━━━━━━━━━━━━━━━━━━━━━━  
+**OFERTY I OGŁOSZENIA**
+
+9. Każda oferta musi być czytelna i zawierać szczegóły.  
+10. Zakaz publikowania fałszywych ofert.  
+11. Zakaz sprzedaży treści nielegalnych.  
+12. Zakaz spamowania i powielania ogłoszeń.  
+
+━━━━━━━━━━━━━━━━━━━━━━━  
+**BEZPIECZEŃSTWO**
+
+13. Zakaz wszelkich prób oszustwa (scam).  
+14. Zakaz podszywania się pod użytkowników lub administrację.  
+15. Zakaz obchodzenia systemów zabezpieczeń oraz MM.  
+16. Podejrzane działania należy zgłaszać administracji.  
+
+━━━━━━━━━━━━━━━━━━━━━━━  
+**ZACHOWANIE NA SERWERZE**
+
+17. Zakaz obrażania i toksycznego zachowania.  
+18. Zakaz reklam bez zgody administracji.  
+19. Zakaz publikowania treści NSFW.  
+
+━━━━━━━━━━━━━━━━━━━━━━━  
+**SPORY I DECYZJE**
+
+20. W przypadku sporów wymagane są dowody (screeny, logi).  
+21. Decyzja administracji jest ostateczna.  
+22. Naruszenie zasad skutkuje karą (mute / kick / ban).  
+
+━━━━━━━━━━━━━━━━━━━━━━━  
+**POSTANOWIENIA KOŃCOWE**
+
+23. Regulamin może ulec zmianie w dowolnym momencie.  
+24. Nieznajomość regulaminu nie zwalnia z jego przestrzegania.  
+
+━━━━━━━━━━━━━━━━━━━━━━━  
+<:uwaga:1501693444030992395> **Zachowaj ostrożność — unikaj podejrzanych transakcji.**
         `)
         .setFooter({
-          text: "© 2026 StarX Exchange x Regulamin"
-        });
+          text: "© 2026 StarX Exchange"
+        })
+        .setTimestamp();
 
-      await channel.send({
-        embeds: [embed]
-      });
+      await channel.send({ embeds: [embed] });
 
       console.log("✅ Regulamin wysłany");
 
@@ -53,5 +88,4 @@ module.exports = (client) => {
   } else {
     client.once(Events.ClientReady, sendPanel);
   }
-
 };
