@@ -23,6 +23,10 @@ module.exports = (client) => {
   const EMOJI_CRYPTO = "<:crypto:1499784635201224724>";
   const EMOJI_LTC = "<:ltc:1499784285211726014>";
 
+  // ANIMOWANE
+  const EMOJI_MONEY = "<a:money:1501685438103031920>";
+  const EMOJI_BOX = "<:box:1500243849535033577>";
+
   // =====================
   // PROWIZJE
   // =====================
@@ -62,9 +66,9 @@ module.exports = (client) => {
       .setColor("#2b2d31")
       .setTitle("🌟 StarX Exchange » OBLICZ PROWIZJĘ")
       .setDescription(
-`💸 Oblicz ile dostaniesz lub ile musisz wpłacić.
+`${EMOJI_MONEY} Oblicz ile dostaniesz lub ile musisz wpłacić.
 
-📦 Kliknij menu poniżej.`
+${EMOJI_BOX} Kliknij menu poniżej.`
       )
       .setFooter({ text: "© 2026 StarX Exchange x Kalkulator" });
 
@@ -245,7 +249,7 @@ ${emoji(to)} **Na:** ${to}
 
 💸 **Prowizja:** ${percent}%
 
-💰 **Wynik:** ${wynik.toFixed(2)} zł`
+${EMOJI_MONEY} **Wynik:** ${wynik.toFixed(2)} zł`
         )
         .setFooter({ text: "© 2026 StarX Exchange x Kalkulator" });
 
