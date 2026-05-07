@@ -22,17 +22,28 @@ module.exports = (client) => {
   const EMOJI_DISNEY = "<:disney:1501686870025699449>";
   const EMOJI_MONEY = "<a:money:1501685438103031920>";
 
-  // TWOJE CUSTOM
   const EMOJI_PIN = "<:pin:1501697389050986546>";
   const EMOJI_ZAP = "<:zap:1501697151737139350>";
   const EMOJI_LOCK = "<:lock:1501697222901895258>";
+
+  // nowe emoji
+  const EMOJI_PRIME = "<:primevideo:1502001410311716984>";
+  const EMOJI_CHATGPT = "<:chatgpt:1502001751019094097>";
+  const EMOJI_CAPCUT = "<:capcut:1502002116405887039>";
+
+  const EMOJI_NORD = "<:nordvpn:1501999409343369400>";
+  const EMOJI_MULLVAD = "<:mullvad:1501999834159255712>";
+  const EMOJI_TUNNEL = "<:tunnelbear:1502000450009042984>";
 
   // ========================
   // PANEL
   // ========================
   client.once(Events.ClientReady, async () => {
+
     try {
+
       const channel = await client.channels.fetch(CHANNEL_ID);
+
       if (!channel) return;
 
       const embed = new EmbedBuilder()
@@ -46,7 +57,9 @@ ${EMOJI_LOCK} Bezpieczne transakcje
 ${EMOJI_MONEY} Najlepsze ceny`
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-        .setFooter({ text: "© 2026 StarX Exchange" });
+        .setFooter({
+          text: "© 2026 StarX Exchange"
+        });
 
       const menu = new StringSelectMenuBuilder()
         .setCustomId("starx_cennik")
@@ -55,12 +68,26 @@ ${EMOJI_MONEY} Najlepsze ceny`
           {
             label: "NITRO",
             value: "nitro",
-            emoji: { id: "1501684762601848963", name: "nitro" }
+            emoji: {
+              id: "1501684762601848963",
+              name: "nitro"
+            }
           },
           {
             label: "STREAMING",
             value: "streaming",
-            emoji: { id: "1500238788306403398", name: "Netflix" }
+            emoji: {
+              id: "1500238788306403398",
+              name: "Netflix"
+            }
+          },
+          {
+            label: "VPN",
+            value: "vpn",
+            emoji: {
+              id: "1501999409343369400",
+              name: "nordvpn"
+            }
           }
         ]);
 
@@ -100,7 +127,9 @@ ${EMOJI_MONEY} Najlepsze ceny`
 `${EMOJI_NITRO} **Nitro Boost (28 dni • Full Warranty)**  
 ${EMOJI_MONEY} \`20 zł\``
           )
-          .setFooter({ text: "StarX Exchange • Najlepsze ceny" });
+          .setFooter({
+            text: "StarX Exchange • Najlepsze ceny"
+          });
 
         return interaction.reply({
           embeds: [embed],
@@ -118,7 +147,22 @@ ${EMOJI_MONEY} \`20 zł\``
           .setTitle(`${EMOJI_NETFLIX} StarX Exchange » STREAMING`)
           .setDescription(
 `${EMOJI_SPOTIFY} **Spotify Premium LIFETIME [KEY]**  
-${EMOJI_MONEY} \`26 zł\`
+${EMOJI_MONEY} \`30 zł\`
+
+${EMOJI_SPOTIFY} **Spotify Premium [LIFETIME] FA**  
+${EMOJI_MONEY} \`20 zł\`
+
+${EMOJI_YT} **YT Premium FA [LIFETIME]**  
+${EMOJI_MONEY} \`20 zł\`
+
+${EMOJI_PRIME} **Prime Video FA [LIFETIME]**  
+${EMOJI_MONEY} \`30 zł\`
+
+${EMOJI_CHATGPT} **ChatGPT Plus FA [LIFETIME]**  
+${EMOJI_MONEY} \`50 zł\`
+
+${EMOJI_CAPCUT} **CapCut Pro FA [LIFETIME]**  
+${EMOJI_MONEY} \`20 zł\`
 
 ${EMOJI_NETFLIX} **Netflix Lifetime**  
 ${EMOJI_MONEY} \`20 zł\`
@@ -130,12 +174,39 @@ ${EMOJI_DISNEY} **Disney+ Lifetime**
 ${EMOJI_MONEY} \`10 zł\`
 
 ${EMOJI_CRUNCHY} **Crunchyroll Fan Lifetime**  
-${EMOJI_MONEY} \`10 zł\`
-
-${EMOJI_YT} **YouTube Premium**  
-${EMOJI_MONEY} \`x zł\``
+${EMOJI_MONEY} \`10 zł\``
           )
-          .setFooter({ text: "StarX Exchange • Najniższe ceny" });
+          .setFooter({
+            text: "StarX Exchange • Najniższe ceny"
+          });
+
+        return interaction.reply({
+          embeds: [embed],
+          flags: 64
+        });
+      }
+
+      // =====================
+      // VPN
+      // =====================
+      if (interaction.values[0] === "vpn") {
+
+        const embed = new EmbedBuilder()
+          .setColor("#0099ff")
+          .setTitle(`${EMOJI_NORD} StarX Exchange » VPN`)
+          .setDescription(
+`${EMOJI_NORD} **NordVPN (Private) [LIFETIME]**  
+${EMOJI_MONEY} \`15 zł\`
+
+${EMOJI_MULLVAD} **Mullvad VPN [LIFETIME]**  
+${EMOJI_MONEY} \`40 zł\`
+
+${EMOJI_TUNNEL} **Tunnel Bear [VPN]**  
+${EMOJI_MONEY} \`20 zł\``
+          )
+          .setFooter({
+            text: "StarX Exchange • VPN Store"
+          });
 
         return interaction.reply({
           embeds: [embed],
@@ -144,9 +215,8 @@ ${EMOJI_MONEY} \`x zł\``
       }
 
     } catch (err) {
+
       console.log("❌ Menu error:", err);
     }
-
   });
-
 };
