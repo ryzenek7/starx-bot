@@ -1,12 +1,13 @@
 const {
     Events,
-    EmbedBuilder
+    EmbedBuilder,
+    PermissionsBitField
 } = require("discord.js");
 
 module.exports = (client) => {
 
     // =========================================
-    // CUSTOM EMOJIS
+    // EMOJI
     // =========================================
     const EMOJI = {
         pin: "<:pin:1501697389050986546>",
@@ -24,55 +25,76 @@ module.exports = (client) => {
 
         if (interaction.commandName !== "przejmij") return;
 
+        // =====================================
+        // LOADING
+        // =====================================
+        await interaction.deferReply();
+
         try {
 
             // =====================================
             // USER
             // =====================================
-            const customer = interaction.options.getUser("uzytkownik");
+            const customer =
+                interaction.options.getUser("uzytkownik");
 
             // =====================================
-            // HIDE ALL ROLES
+            // CURRENT CHANNEL
             // =====================================
-            const roles = interaction.guild.roles.cache;
+            const channel = interaction.channel;
 
-            for (const role of roles.values()) {
+            // =====================================
+            // HIDE CHANNEL FOR @everyone
+            // =====================================
+            await channel.permissionOverwrites.edit(
+                interaction.guild.id,
+                {
+                    ViewChannel: false
+                }
+            );
+
+            // =====================================
+            // REMOVE ALL ROLES ACCESS
+            // =====================================
+            interaction.guild.roles.cache.forEach(async role => {
 
                 // pomiń everyone
-                if (role.id === interaction.guild.id) continue;
+                if (role.id === interaction.guild.id) return;
 
-                // ukryj ticket dla wszystkich ról
-                await interaction.channel.permissionOverwrites.edit(
+                await channel.permissionOverwrites.edit(
                     role.id,
                     {
                         ViewChannel: false
                     }
                 ).catch(() => {});
-            }
+            });
 
             // =====================================
             // CUSTOMER ACCESS
             // =====================================
-            await interaction.channel.permissionOverwrites.edit(
+            await channel.permissionOverwrites.edit(
                 customer.id,
                 {
                     ViewChannel: true,
                     SendMessages: true,
                     ReadMessageHistory: true,
-                    AttachFiles: true
+                    AttachFiles: true,
+                    EmbedLinks: true
                 }
             );
 
             // =====================================
             // PERSON TAKING TICKET
             // =====================================
-            await interaction.channel.permissionOverwrites.edit(
+            await channel.permissionOverwrites.edit(
                 interaction.user.id,
                 {
                     ViewChannel: true,
                     SendMessages: true,
                     ReadMessageHistory: true,
-                    AttachFiles: true
+                    AttachFiles: true,
+                    EmbedLinks: true,
+                    ManageChannels: true
                 }
             );
 
@@ -83,21 +105,23 @@ module.exports = (client) => {
 
                 .setColor("#2b2d31")
 
-                .setTitle(`${EMOJI.lock} StarX Exchange » Ticket Przejęty`)
+                .setTitle(
+                    `${EMOJI.lock} StarX Exchange » Ticket Przejęty`
+                )
 
                 .setDescription(
                     [
                         `> ${EMOJI.pin} Ticket został przejęty przez ${interaction.user}`,
-                        `> ${EMOJI.zap} Obsługiwany klient: ${customer}`,
+                        `> ${EMOJI.zap} Klient: ${customer}`,
                         "",
-                        `${EMOJI.money} Tylko przejmujący oraz klient widzą teraz ticket`
+                        `${EMOJI.money} Ticket widzi tylko klient oraz osoba przejmująca`
                     ].join("\n")
                 )
 
                 .setThumbnail(interaction.guild.iconURL())
 
                 .setFooter({
-                    text: "StarX Exchange • Ticket System"
+                    text: "StarX Exchange • Premium Ticket System"
                 })
 
                 .setTimestamp();
@@ -105,7 +129,7 @@ module.exports = (client) => {
             // =====================================
             // SEND
             // =====================================
-            await interaction.reply({
+            await interaction.editReply({
                 embeds: [embed]
             });
 
@@ -113,12 +137,11 @@ module.exports = (client) => {
 
             console.log("❌ Przejmij error:", err);
 
-            if (!interaction.replied) {
+            if (interaction.deferred || interaction.replied) {
 
-                await interaction.reply({
-                    content: "❌ Wystąpił błąd.",
-                    flags: 64
-                });
+                await interaction.editReply({
+                    content: "❌ Wystąpił błąd podczas przejmowania ticketu."
+                }).catch(() => {});
             }
         }
     });
