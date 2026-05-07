@@ -11,6 +11,10 @@ module.exports = (client) => {
     // =========================================
     const STAFF_ROLE_ID = "1500930428993933373";
 
+    // ROLA DOSTĘPU DO PRZEJĘTEGO TICKETA
+    const TICKET_ACCESS_ROLE_ID = "1502020178026696744";
+
+    // ROLE ADMINISTRACJI
     const ADMIN_ROLES = [
         "1499499185337012377", // owner
         "1499507487647338656", // support
@@ -28,7 +32,7 @@ module.exports = (client) => {
     };
 
     // =========================================
-    // INTERACTIONS
+    // INTERACTION CREATE
     // =========================================
     client.on(Events.InteractionCreate, async interaction => {
 
@@ -39,9 +43,7 @@ module.exports = (client) => {
         // =====================================
         if (interaction.commandName === "przejmij") {
 
-            // ================================
             // ROLE CHECK
-            // ================================
             if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
 
                 return interaction.reply({
@@ -59,47 +61,54 @@ module.exports = (client) => {
 
                 const channel = interaction.channel;
 
-                // ================================
-                // RESET WSZYSTKICH PERMISJI
-                // ================================
-                await channel.permissionOverwrites.set([
+                const guild = interaction.guild;
 
-                    // everyone hidden
-                    {
-                        id: interaction.guild.id,
-                        deny: [
-                            PermissionsBitField.Flags.ViewChannel
-                        ]
-                    },
+                const customerMember =
+                    await guild.members.fetch(customer.id);
 
-                    // klient
-                    {
-                        id: customer.id,
-                        allow: [
-                            PermissionsBitField.Flags.ViewChannel,
-                            PermissionsBitField.Flags.SendMessages,
-                            PermissionsBitField.Flags.ReadMessageHistory,
-                            PermissionsBitField.Flags.AttachFiles
-                        ]
-                    },
+                const staffMember =
+                    await guild.members.fetch(interaction.user.id);
 
-                    // osoba przejmująca
+                // =====================================
+                // DAJ ROLE ACCESS
+                // =====================================
+                await customerMember.roles.add(
+                    TICKET_ACCESS_ROLE_ID
+                ).catch(() => {});
+
+                await staffMember.roles.add(
+                    TICKET_ACCESS_ROLE_ID
+                ).catch(() => {});
+
+                // =====================================
+                // UKRYJ ADMINISTRACJI
+                // =====================================
+                for (const roleId of ADMIN_ROLES) {
+
+                    await channel.permissionOverwrites.edit(
+                        roleId,
+                        {
+                            ViewChannel: false
+                        }
+                    ).catch(() => {});
+                }
+
+                // =====================================
+                // ACCESS ROLE
+                // =====================================
+                await channel.permissionOverwrites.edit(
+                    TICKET_ACCESS_ROLE_ID,
                     {
-                        id: interaction.user.id,
-                        allow: [
-                            PermissionsBitField.Flags.ViewChannel,
-                            PermissionsBitField.Flags.SendMessages,
-                            PermissionsBitField.Flags.ReadMessageHistory,
-                            PermissionsBitField.Flags.AttachFiles,
-                            PermissionsBitField.Flags.ManageChannels
-                        ]
+                        ViewChannel: true,
+                        SendMessages: true,
+                        ReadMessageHistory: true,
+                        AttachFiles: true
                     }
+                );
 
-                ]);
-
-                // ================================
+                // =====================================
                 // EMBED
-                // ================================
+                // =====================================
                 const embed = new EmbedBuilder()
 
                     .setColor("#2b2d31")
@@ -117,7 +126,7 @@ module.exports = (client) => {
                         ].join("\n")
                     )
 
-                    .setThumbnail(interaction.guild.iconURL())
+                    .setThumbnail(guild.iconURL())
 
                     .setFooter({
                         text: "StarX Exchange • Premium Ticket System"
@@ -133,12 +142,9 @@ module.exports = (client) => {
 
                 console.log("❌ Przejmij error:", err);
 
-                if (interaction.deferred || interaction.replied) {
-
-                    await interaction.editReply({
-                        content: "❌ Wystąpił błąd."
-                    }).catch(() => {});
-                }
+                await interaction.editReply({
+                    content: "❌ Wystąpił błąd."
+                }).catch(() => {});
             }
         }
 
@@ -147,9 +153,7 @@ module.exports = (client) => {
         // =====================================
         if (interaction.commandName === "odprzyjmij") {
 
-            // ================================
             // ROLE CHECK
-            // ================================
             if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
 
                 return interaction.reply({
@@ -164,62 +168,57 @@ module.exports = (client) => {
 
                 const channel = interaction.channel;
 
-                // ================================
-                // NOWE PERMISJE
-                // ================================
-                const overwrites = [
+                const guild = interaction.guild;
 
-                    // everyone hidden
-                    {
-                        id: interaction.guild.id,
-                        deny: [
-                            PermissionsBitField.Flags.ViewChannel
-                        ]
-                    }
-                ];
-
-                // ================================
-                // ADMIN ROLES ACCESS
-                // ================================
+                // =====================================
+                // PRZYWRÓĆ ADMINISTRACJI DOSTĘP
+                // =====================================
                 for (const roleId of ADMIN_ROLES) {
 
-                    overwrites.push({
-                        id: roleId,
-                        allow: [
-                            PermissionsBitField.Flags.ViewChannel,
-                            PermissionsBitField.Flags.SendMessages,
-                            PermissionsBitField.Flags.ReadMessageHistory,
-                            PermissionsBitField.Flags.AttachFiles
-                        ]
-                    });
+                    await channel.permissionOverwrites.edit(
+                        roleId,
+                        {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true
+                        }
+                    ).catch(() => {});
                 }
 
-                // ================================
-                // ZOSTAW KLIENTA
-                // ================================
-                channel.permissionOverwrites.cache.forEach(overwrite => {
+                // =====================================
+                // ZABIERZ ACCESS ROLE
+                // =====================================
+                const accessRole =
+                    guild.roles.cache.get(
+                        TICKET_ACCESS_ROLE_ID
+                    );
 
-                    if (
-                        overwrite.type === 1 &&
-                        overwrite.id !== interaction.guild.id
-                    ) {
+                if (accessRole) {
 
-                        overwrites.push({
-                            id: overwrite.id,
-                            allow: [
-                                PermissionsBitField.Flags.ViewChannel,
-                                PermissionsBitField.Flags.SendMessages,
-                                PermissionsBitField.Flags.ReadMessageHistory
-                            ]
-                        });
+                    const members =
+                        accessRole.members;
+
+                    for (const member of members.values()) {
+
+                        await member.roles.remove(
+                            TICKET_ACCESS_ROLE_ID
+                        ).catch(() => {});
                     }
-                });
+                }
 
-                await channel.permissionOverwrites.set(overwrites);
+                // =====================================
+                // UKRYJ ACCESS ROLE
+                // =====================================
+                await channel.permissionOverwrites.edit(
+                    TICKET_ACCESS_ROLE_ID,
+                    {
+                        ViewChannel: false
+                    }
+                );
 
-                // ================================
+                // =====================================
                 // EMBED
-                // ================================
+                // =====================================
                 const embed = new EmbedBuilder()
 
                     .setColor("#57F287")
@@ -236,7 +235,7 @@ module.exports = (client) => {
                         ].join("\n")
                     )
 
-                    .setThumbnail(interaction.guild.iconURL())
+                    .setThumbnail(guild.iconURL())
 
                     .setFooter({
                         text: "StarX Exchange • Premium Ticket System"
@@ -252,12 +251,9 @@ module.exports = (client) => {
 
                 console.log("❌ Odprzyjmij error:", err);
 
-                if (interaction.deferred || interaction.replied) {
-
-                    await interaction.editReply({
-                        content: "❌ Wystąpił błąd."
-                    }).catch(() => {});
-                }
+                await interaction.editReply({
+                    content: "❌ Wystąpił błąd."
+                }).catch(() => {});
             }
         }
     });
