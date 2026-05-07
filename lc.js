@@ -14,6 +14,9 @@ module.exports = (client) => {
     // =========================================
     const LEGIT_CHANNEL_ID = "1499519884860854505";
 
+    // STAFF ROLE
+    const STAFF_ROLE_ID = "1500930428993933373";
+
     // =========================================
     // CUSTOM EMOJIS
     // =========================================
@@ -36,25 +39,36 @@ module.exports = (client) => {
 
             if (interaction.commandName !== "lc") return;
 
+            // =====================================
+            // ROLE CHECK
+            // =====================================
+            if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+
+                return interaction.reply({
+                    content: "❌ Nie masz permisji do tej komendy.",
+                    flags: 64
+                });
+            }
+
             try {
 
-                // ===============================
+                // =====================================
                 // MODAL
-                // ===============================
+                // =====================================
                 const modal = new ModalBuilder()
 
                     .setCustomId("lc_modal")
 
                     .setTitle("StarX Exchange • Legit Check");
 
-                // ===============================
+                // =====================================
                 // INPUT
-                // ===============================
+                // =====================================
                 const input = new TextInputBuilder()
 
                     .setCustomId("lc_text")
 
-                    .setLabel("Wpisz wzór legit check")
+                    .setLabel("Wpisz legit check")
 
                     .setPlaceholder(
                         "+rep @user Exchanged BLIK -> LTC 30 PLN"
@@ -89,20 +103,22 @@ module.exports = (client) => {
                 const text =
                     interaction.fields.getTextInputValue("lc_text");
 
-                // ===============================
+                // =====================================
                 // EMBED
-                // ===============================
+                // =====================================
                 const embed = new EmbedBuilder()
 
                     .setColor("#2b2d31")
 
-                    .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                    .setTitle(
+                        `${EMOJI.money} StarX Exchange » Legit Check`
+                    )
 
                     .setDescription(
                         [
                             `> ${EMOJI.pin} Wystaw legit check po zakończonej transakcji`,
                             "",
-                            `## ${EMOJI.zap} Wzór`,
+                            `## ${EMOJI.zap} Legit Check`,
                             "```",
                             text,
                             "```",
@@ -125,12 +141,20 @@ module.exports = (client) => {
             } catch (err) {
 
                 console.log("❌ LC submit error:", err);
+
+                if (!interaction.replied) {
+
+                    await interaction.reply({
+                        content: "❌ Wystąpił błąd.",
+                        flags: 64
+                    });
+                }
             }
         }
     });
 
     // =========================================
-    // AUTO CLOSE AFTER MESSAGE
+    // AUTO CLOSE AFTER LEGIT CHECK
     // =========================================
     client.on(Events.MessageCreate, async message => {
 
@@ -138,21 +162,26 @@ module.exports = (client) => {
 
             if (message.author.bot) return;
 
-            // tylko legit-check
+            // tylko legit-check kanał
             if (message.channel.id !== LEGIT_CHANNEL_ID) return;
 
             const guild = message.guild;
 
-            // znajdź ticket
+            // =====================================
+            // FIND TICKET
+            // =====================================
             const ticketChannel = guild.channels.cache.find(c =>
-                c.name.includes(message.author.username.toLowerCase())
+
+                c.name
+                    .toLowerCase()
+                    .includes(message.author.username.toLowerCase())
             );
 
             if (!ticketChannel) return;
 
-            // ===============================
-            // CLOSING EMBED
-            // ===============================
+            // =====================================
+            // CLOSE EMBED
+            // =====================================
             const embed = new EmbedBuilder()
 
                 .setColor("#57F287")
@@ -165,9 +194,9 @@ module.exports = (client) => {
                 embeds: [embed]
             });
 
-            // ===============================
-            // DELETE
-            // ===============================
+            // =====================================
+            // DELETE CHANNEL
+            // =====================================
             setTimeout(async () => {
 
                 await ticketChannel.delete().catch(() => {});
