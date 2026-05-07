@@ -1,6 +1,7 @@
 const {
     Events,
-    EmbedBuilder
+    EmbedBuilder,
+    PermissionsBitField
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -11,7 +12,7 @@ module.exports = (client) => {
     const STAFF_ROLE_ID = "1500930428993933373";
 
     // =========================================
-    // CUSTOM EMOJIS
+    // EMOJIS
     // =========================================
     const EMOJI = {
         pin: "<:pin:1501697389050986546>",
@@ -35,83 +36,65 @@ module.exports = (client) => {
         if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
 
             return interaction.reply({
-                content: "❌ Nie masz permisji do tej komendy.",
+                content: "❌ Nie masz permisji.",
                 flags: 64
             });
         }
 
-        // =====================================
-        // LOADING
-        // =====================================
-        await interaction.deferReply();
-
         try {
 
             // =====================================
-            // CUSTOMER
+            // LOADING
+            // =====================================
+            await interaction.deferReply({
+                flags: 64
+            });
+
+            // =====================================
+            // DATA
             // =====================================
             const customer =
                 interaction.options.getUser("uzytkownik");
 
-            // =====================================
-            // CHANNEL
-            // =====================================
             const channel = interaction.channel;
 
             // =====================================
-            // HIDE FOR EVERYONE
+            // RESET ALL PERMISSIONS
             // =====================================
-            await channel.permissionOverwrites.edit(
-                interaction.guild.id,
+            await channel.permissionOverwrites.set([
+
+                // everyone hidden
                 {
-                    ViewChannel: false
-                }
-            );
+                    id: interaction.guild.id,
+                    deny: [
+                        PermissionsBitField.Flags.ViewChannel
+                    ]
+                },
 
-            // =====================================
-            // HIDE ALL ROLES
-            // =====================================
-            for (const role of interaction.guild.roles.cache.values()) {
-
-                // pomiń everyone
-                if (role.id === interaction.guild.id) continue;
-
-                await channel.permissionOverwrites.edit(
-                    role.id,
-                    {
-                        ViewChannel: false
-                    }
-                ).catch(() => {});
-            }
-
-            // =====================================
-            // CUSTOMER ACCESS
-            // =====================================
-            await channel.permissionOverwrites.edit(
-                customer.id,
+                // customer access
                 {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true
-                }
-            );
+                    id: customer.id,
+                    allow: [
+                        PermissionsBitField.Flags.ViewChannel,
+                        PermissionsBitField.Flags.SendMessages,
+                        PermissionsBitField.Flags.ReadMessageHistory,
+                        PermissionsBitField.Flags.AttachFiles
+                    ]
+                },
 
-            // =====================================
-            // STAFF ACCESS
-            // =====================================
-            await channel.permissionOverwrites.edit(
-                interaction.user.id,
+                // person taking ticket
                 {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true,
-                    ManageChannels: true
+                    id: interaction.user.id,
+                    allow: [
+                        PermissionsBitField.Flags.ViewChannel,
+                        PermissionsBitField.Flags.SendMessages,
+                        PermissionsBitField.Flags.ReadMessageHistory,
+                        PermissionsBitField.Flags.AttachFiles,
+                        PermissionsBitField.Flags.ManageChannels
+                    ]
                 }
-            );
+
+            ]);
 
             // =====================================
             // EMBED
