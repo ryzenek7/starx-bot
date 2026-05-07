@@ -1,12 +1,11 @@
-# giveaway.js
-
-````js
 const {
     Events,
     EmbedBuilder,
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonStyle
+    ButtonStyle,
+    SlashCommandBuilder,
+    PermissionFlagsBits
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -34,18 +33,73 @@ module.exports = (client) => {
     // =========================================
     // GIVEAWAY DATA
     // =========================================
-    const participants = new Set();
+    const participants = new Map();
 
     // =========================================
-    // READY
+    // SLASH COMMAND
     // =========================================
     client.once(Events.ClientReady, async () => {
 
-        try {
+        const data = [
+            new SlashCommandBuilder()
+                .setName("konkurs")
+                .setDescription("Stwórz nowy konkurs")
+                .addStringOption(option =>
+                    option
+                        .setName("nagroda")
+                        .setDescription("Na co jest konkurs")
+                        .setRequired(true)
+                )
+                .addStringOption(option =>
+                    option
+                        .setName("czas")
+                        .setDescription("Np. 1h, 1d, 7d")
+                        .setRequired(true)
+                )
+                .addStringOption(option =>
+                    option
+                        .setName("wymagania")
+                        .setDescription("Wymagania do udziału")
+                        .setRequired(true)
+                )
+                .setDefaultMemberPermissions(
+                    PermissionFlagsBits.Administrator
+                )
+        ];
 
-            const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
+        await client.application.commands.set(data);
 
-            if (!channel) return;
+        console.log("✅ Slash commands loaded");
+    });
+
+    // =========================================
+    // COMMAND HANDLER
+    // =========================================
+    client.on(Events.InteractionCreate, async interaction => {
+
+        // =====================================
+        // SLASH COMMAND
+        // =====================================
+        if (interaction.isChatInputCommand()) {
+
+            if (interaction.commandName !== "konkurs") return;
+
+            const nagroda =
+                interaction.options.getString("nagroda");
+
+            const czas =
+                interaction.options.getString("czas");
+
+            const wymagania =
+                interaction.options.getString("wymagania");
+
+            const channel = await client.channels.fetch(
+                GIVEAWAY_CHANNEL_ID
+            );
+
+            const giveawayId = Date.now().toString();
+
+            participants.set(giveawayId, new Set());
 
             const embed = new EmbedBuilder()
 
@@ -57,18 +111,17 @@ module.exports = (client) => {
                     [
                         `## ${EMOJI.green} Nagroda`,
                         "```",
-                        "Discord Nitro Boost (1 miesiąc)",
+                        `${nagroda}`,
                         "```",
                         "",
                         `## ${EMOJI.pin} Wymagania`,
-                        `> ${EMOJI.green} Zweryfikowane konto`,
-                        `> ${EMOJI.green} Dołączony serwer`,
-                        `> ${EMOJI.green} Brak alt kont`,
+                        `> ${wymagania}`,
                         "",
                         `## ${EMOJI.zap} Jak dołączyć?`,
                         `> Kliknij przycisk poniżej`,
                         "",
                         `## ${EMOJI.lock} Informacje`,
+                        `> Czas trwania: ${czas}`,
                         `> Giveaway jest automatyczny`,
                         `> Winner zostanie wybrany losowo`
                     ].join("\n")
@@ -86,7 +139,7 @@ module.exports = (client) => {
 
             const button = new ButtonBuilder()
 
-                .setCustomId("join_giveaway")
+                .setCustomId(`join_giveaway_${giveawayId}`)
 
                 .setLabel("Dołącz do giveaway")
 
@@ -102,65 +155,131 @@ module.exports = (client) => {
                 components: [row]
             });
 
-            console.log("✅ Giveaway wysłany");
-
-        } catch (err) {
-
-            console.log("❌ Giveaway error:", err);
-        }
-    });
-
-    // =========================================
-    // BUTTON
-    // =========================================
-    client.on(Events.InteractionCreate, async interaction => {
-
-        if (!interaction.isButton()) return;
-
-        if (interaction.customId !== "join_giveaway") return;
-
-        try {
-
-            // =====================================
-            // ROLE CHECK
-            // =====================================
-            if (
-                !interaction.member.roles.cache.has(REQUIRED_ROLE_ID)
-            ) {
-
-                return interaction.reply({
-                    content:
-                        `${EMOJI.red} Musisz być zweryfikowany aby dołączyć.`,
-                    flags: 64
-                });
-            }
-
-            // =====================================
-            // ALREADY JOINED
-            // =====================================
-            if (participants.has(interaction.user.id)) {
-
-                return interaction.reply({
-                    content:
-                        `${EMOJI.red} Już bierzesz udział w giveaway.`,
-                    flags: 64
-                });
-            }
-
-            // =====================================
-            // ADD USER
-            // =====================================
-            participants.add(interaction.user.id);
-
-            return interaction.reply({
+            await interaction.reply({
                 content:
-                    `${EMOJI.green} Dołączyłeś do giveaway!`,
+                    `${EMOJI.green} Giveaway został utworzony!`,
                 flags: 64
             });
 
-        } catch (err) {
+            // =====================================
+            // TIMER
+            // =====================================
+            let timeMs = 0;
 
-            console.log("❌ Giveaway interaction error:", err);
+            if (czas.endsWith("m")) {
+                timeMs =
+                    parseInt(czas) * 60 * 1000;
+            }
+
+            else if (czas.endsWith("h")) {
+                timeMs =
+                    parseInt(czas) * 60 * 60 * 1000;
+            }
+
+            else if (czas.endsWith("d")) {
+                timeMs =
+                    parseInt(czas) * 24 * 60 * 60 * 1000;
+            }
+
+            setTimeout(async () => {
+
+                const users =
+                    [...participants.get(giveawayId)];
+
+                if (users.length <= 0) {
+
+                    return channel.send(
+                        `${EMOJI.red} Nikt nie wziął udziału w giveaway.`
+                    );
+                }
+
+                const winner =
+                    users[
+                        Math.floor(
+                            Math.random() * users.length
+                        )
+                    ];
+
+                channel.send({
+                    content:
+                        `${EMOJI.gift} Gratulacje <@${winner}>! Wygrałeś **${nagroda}**`
+                });
+
+                participants.delete(giveawayId);
+
+            }, timeMs);
+        }
+
+        // =====================================
+        // BUTTON
+        // =====================================
+        if (interaction.isButton()) {
+
+            if (
+                !interaction.customId.startsWith(
+                    "join_giveaway_"
+                )
+            ) return;
+
+            const giveawayId =
+                interaction.customId.replace(
+                    "join_giveaway_",
+                    ""
+                );
+
+            try {
+
+                // =================================
+                // ROLE CHECK
+                // =================================
+                if (
+                    !interaction.member.roles.cache.has(
+                        REQUIRED_ROLE_ID
+                    )
+                ) {
+
+                    return interaction.reply({
+                        content:
+                            `${EMOJI.red} Musisz być zweryfikowany aby dołączyć.`,
+                        flags: 64
+                    });
+                }
+
+                const users =
+                    participants.get(giveawayId);
+
+                // =================================
+                // ALREADY JOINED
+                // =================================
+                if (
+                    users.has(interaction.user.id)
+                ) {
+
+                    return interaction.reply({
+                        content:
+                            `${EMOJI.red} Już bierzesz udział w giveaway.`,
+                        flags: 64
+                    });
+                }
+
+                // =================================
+                // ADD USER
+                // =================================
+                users.add(interaction.user.id);
+
+                return interaction.reply({
+                    content:
+                        `${EMOJI.green} Dołączyłeś do giveaway!`,
+                    flags: 64
+                });
+
+            } catch (err) {
+
+                console.log(
+                    "❌ Giveaway interaction error:",
+                    err
+                );
+            }
         }
     });
 };
