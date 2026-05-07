@@ -69,6 +69,29 @@ module.exports = (client) => {
     }
 
     // =========================================
+    // TWORZENIE MENU
+    // =========================================
+    function createMenu() {
+
+        return new ActionRowBuilder().addComponents(
+            new StringSelectMenuBuilder()
+                .setCustomId("verify_select")
+                .setPlaceholder("Kliknij aby się zweryfikować")
+                .addOptions([
+                    {
+                        label: "Zweryfikuj się",
+                        description: "Rozwiąż działanie matematyczne",
+                        value: "math",
+                        emoji: {
+                            id: "1499784353012514917",
+                            animated: true
+                        }
+                    }
+                ])
+        );
+    }
+
+    // =========================================
     // PANEL
     // =========================================
     async function sendPanel() {
@@ -93,26 +116,9 @@ module.exports = (client) => {
             })
             .setTimestamp();
 
-        const menu = new StringSelectMenuBuilder()
-            .setCustomId("verify_select")
-            .setPlaceholder("Kliknij aby się zweryfikować")
-            .addOptions([
-                {
-                    label: "Zweryfikuj się",
-                    description: "Rozwiąż działanie matematyczne",
-                    value: "math",
-                    emoji: {
-                        id: "1499784353012514917",
-                        animated: true
-                    }
-                }
-            ]);
-
-        const row = new ActionRowBuilder().addComponents(menu);
-
         await channel.send({
             embeds: [embed],
-            components: [row]
+            components: [createMenu()]
         });
     }
 
@@ -160,6 +166,17 @@ module.exports = (client) => {
             modal.addComponents(row);
 
             await interaction.showModal(modal);
+
+            // =================================
+            // RESET SELECT MENU
+            // =================================
+            setTimeout(async () => {
+
+                await interaction.message.edit({
+                    components: [createMenu()]
+                }).catch(() => {});
+
+            }, 500);
         }
 
         // =====================================
