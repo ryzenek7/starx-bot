@@ -1,6 +1,7 @@
 const {
     Events,
-    EmbedBuilder
+    EmbedBuilder,
+    PermissionsBitField
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -8,7 +9,7 @@ module.exports = (client) => {
     // =========================================
     // CONFIG
     // =========================================
-    const LEGIT_CHANNEL_ID = "1499519884860854505";
+    const SUPPORT_ROLE_ID = "1499507487647338656";
 
     // =========================================
     // CUSTOM EMOJIS
@@ -21,7 +22,7 @@ module.exports = (client) => {
     };
 
     // =========================================
-    // COMMAND
+    // /PRZEJMIJ
     // =========================================
     client.on(Events.InteractionCreate, async interaction => {
 
@@ -31,15 +32,57 @@ module.exports = (client) => {
 
         try {
 
-            const user = interaction.options.getUser("uzytkownik");
-            const metoda = interaction.options.getString("metoda");
-            const kwota = interaction.options.getString("kwota");
+            // =====================================
+            // SUPPORT CHECK
+            // =====================================
+            if (!interaction.member.roles.cache.has(SUPPORT_ROLE_ID)) {
+
+                return interaction.reply({
+                    content: "❌ Nie masz permisji.",
+                    flags: 64
+                });
+            }
 
             // =====================================
-            // FORMATKA
+            // USER
             // =====================================
-            const vouch =
-                `+rep @${user.username} Exchanged ${metoda} ${kwota}`;
+            const customer = interaction.options.getUser("uzytkownik");
+
+            // =====================================
+            // HIDE SUPPORT ROLE
+            // =====================================
+            await interaction.channel.permissionOverwrites.edit(
+                SUPPORT_ROLE_ID,
+                {
+                    ViewChannel: false
+                }
+            );
+
+            // =====================================
+            // SHOW FOR PERSON TAKING TICKET
+            // =====================================
+            await interaction.channel.permissionOverwrites.edit(
+                interaction.user.id,
+                {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    ReadMessageHistory: true,
+                    AttachFiles: true
+                }
+            );
+
+            // =====================================
+            // SHOW FOR CUSTOMER
+            // =====================================
+            await interaction.channel.permissionOverwrites.edit(
+                customer.id,
+                {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    ReadMessageHistory: true,
+                    AttachFiles: true
+                }
+            );
 
             // =====================================
             // EMBED
@@ -48,28 +91,28 @@ module.exports = (client) => {
 
                 .setColor("#2b2d31")
 
-                .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                .setTitle(`${EMOJI.lock} StarX Exchange » Ticket Przejęty`)
 
                 .setDescription(
                     [
-                        `> ${EMOJI.pin} Prosimy o wystawienie legit checka`,
+                        `> ${EMOJI.pin} Ticket został przejęty przez ${interaction.user}`,
+                        `> ${EMOJI.zap} Obsługiwany klient: ${customer}`,
                         "",
-                        `## ${EMOJI.zap} Wzór`,
-                        "```",
-                        vouch,
-                        "```",
-                        `${EMOJI.lock} Ticket zostanie zamknięty po wysłaniu voucha na <#${LEGIT_CHANNEL_ID}>`
+                        `${EMOJI.money} Tylko przejmujący oraz klient widzą teraz ticket`
                     ].join("\n")
                 )
 
                 .setThumbnail(interaction.guild.iconURL())
 
                 .setFooter({
-                    text: "StarX Exchange • Legit System"
+                    text: "StarX Exchange • Ticket System"
                 })
 
                 .setTimestamp();
 
+            // =====================================
+            // SEND
+            // =====================================
             await interaction.reply({
                 embeds: [embed]
             });
