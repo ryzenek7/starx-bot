@@ -1,4 +1,4 @@
-// index.js STARX EXCHANGE FINAL PREMIUM + LC + PRZEJMIJ
+// index.js STARX EXCHANGE FINAL PREMIUM + KONKURS
 
 const {
   Client,
@@ -53,7 +53,6 @@ require("./verify")(client);
 require("./propozycje")(client);
 require("./invites")(client);
 require("./rep")(client);
-require("./przejmij")(client);
 require("./lc")(client);
 require("./giveaway")(client);
 
@@ -75,6 +74,37 @@ client.once(Events.ClientReady, async () => {
         .setName("reset")
         .setDescription("Restartuje bota"),
 
+      // =====================
+      // KONKURS
+      // =====================
+      new SlashCommandBuilder()
+        .setName("konkurs")
+        .setDescription("Stwórz nowy konkurs")
+
+        .addStringOption(option =>
+          option
+            .setName("nagroda")
+            .setDescription("Na co konkurs")
+            .setRequired(true)
+        )
+
+        .addStringOption(option =>
+          option
+            .setName("czas")
+            .setDescription("Np. 10m, 1h, 1d")
+            .setRequired(true)
+        )
+
+        .addStringOption(option =>
+          option
+            .setName("wymagania")
+            .setDescription("Wymagania do udziału")
+            .setRequired(true)
+        ),
+
+      // =====================
+      // STOCK
+      // =====================
       new SlashCommandBuilder()
         .setName("stakeadd")
         .setDescription("Dodaj stock")
@@ -141,19 +171,6 @@ client.once(Events.ClientReady, async () => {
         .addIntegerOption(option =>
           option.setName("ilosc")
             .setDescription("Ile dodać zaproszeń")
-            .setRequired(true)
-        ),
-
-      // =====================
-      // PRZEJMIJ
-      // =====================
-      new SlashCommandBuilder()
-        .setName("przejmij")
-        .setDescription("Przejmij ticket")
-
-        .addUserOption(option =>
-          option.setName("uzytkownik")
-            .setDescription("Klient")
             .setRequired(true)
         ),
 
