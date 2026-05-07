@@ -10,9 +10,9 @@ const {
 
 module.exports = (client) => {
 
-    // =========================
+    // =========================================
     // CONFIG
-    // =========================
+    // =========================================
     const VERIFY_CHANNEL_ID = "1499725942313058344";
     const VERIFIED_ROLE_ID = "1499521304146083954";
 
@@ -27,73 +27,101 @@ module.exports = (client) => {
         "1500261480212205629"
     ];
 
+    // =========================================
+    // CUSTOM EMOJIS
+    // =========================================
+    const EMOJIS = {
+        verify: "<a:verify:1499784353012514917>",
+        shield: "<:shield:1501989271077388500>",
+        pin: "<:pin:1501697389050986546>",
+        red: "<a:red:1501989543182864535>",
+        green: "<a:green:1501990166082879538>"
+    };
+
     // przechowywanie odpowiedzi
     const challenges = new Map();
 
-    // =========================
+    // =========================================
     // GENEROWANIE DZIAŁANIA
     // max wynik = 30
-    // =========================
+    // =========================================
     function generateMath() {
 
         const isAdd = Math.random() > 0.5;
 
+        // =========================
         // DODAWANIE
+        // =========================
         if (isAdd) {
 
-            const a = Math.floor(Math.random() * 16); // 0-15
-            const b = Math.floor(Math.random() * (31 - a)); // żeby max było 30
+            const a = Math.floor(Math.random() * 16);
+            const b = Math.floor(Math.random() * (31 - a));
 
             return {
-                question: `🟢 ${a} + ${b}`,
+                question: `${EMOJIS.green} ${a} + ${b}`,
                 answer: a + b
             };
         }
 
+        // =========================
         // ODEJMOWANIE
-        const a = Math.floor(Math.random() * 31); // 0-30
-        const b = Math.floor(Math.random() * (a + 1)); // żeby nie było minusów
+        // =========================
+        const a = Math.floor(Math.random() * 31);
+        const b = Math.floor(Math.random() * (a + 1));
 
         return {
-            question: `🔴 ${a} − ${b}`,
+            question: `${EMOJIS.red} ${a} − ${b}`,
             answer: a - b
         };
     }
 
-    // =========================
-    // PANEL
-    // =========================
+    // =========================================
+    // PANEL WERYFIKACJI
+    // =========================================
     async function sendPanel() {
 
         const channel = await client.channels.fetch(VERIFY_CHANNEL_ID);
 
+        if (!channel) return;
+
         const embed = new EmbedBuilder()
             .setColor("#5865F2")
-            .setTitle("🛡️ Weryfikacja")
+            .setTitle(`${EMOJIS.shield}・Weryfikacja`)
             .setDescription(
                 [
-                    "### Witaj!",
+                    "## Witaj na serwerze!",
                     "",
-                    "Aby uzyskać dostęp do serwera:",
-                    "• kliknij menu poniżej",
-                    "• rozwiąż krótkie działanie matematyczne",
+                    "Aby uzyskać dostęp do wszystkich kanałów:",
                     "",
-                    "> Wyniki są maksymalnie do **30**"
+                    `> ${EMOJIS.pin} Kliknij menu poniżej`,
+                    `> ${EMOJIS.verify} Rozwiąż krótkie działanie matematyczne`,
+                    "",
+                    "### Informacje",
+                    "```yaml",
+                    "• Wyniki działań są maksymalnie do 30",
+                    "• Weryfikacja trwa kilka sekund",
+                    "• Po poprawnej odpowiedzi otrzymasz rangę",
+                    "```"
                 ].join("\n")
             )
+            .setThumbnail(client.user.displayAvatarURL())
             .setFooter({
-                text: "System weryfikacji"
-            });
+                text: "System zabezpieczeń serwera"
+            })
+            .setTimestamp();
 
         const menu = new StringSelectMenuBuilder()
             .setCustomId("verify_select")
-            .setPlaceholder("📌 Kliknij aby się zweryfikować")
+            .setPlaceholder("Wybierz opcję")
             .addOptions([
                 {
                     label: "Zweryfikuj się",
                     description: "Rozwiąż działanie matematyczne",
                     value: "math",
-                    emoji: "✅"
+                    emoji: {
+                        id: "1499784353012514917",
+                        animated: true
+                    }
                 }
             ]);
 
@@ -105,21 +133,24 @@ module.exports = (client) => {
         });
     }
 
-    // =========================
+    // =========================================
     // READY
-    // =========================
+    // =========================================
     client.once(Events.ClientReady, async () => {
+
+        console.log(`${client.user.tag} online`);
+
         await sendPanel();
     });
 
-    // =========================
+    // =========================================
     // INTERAKCJE
-    // =========================
+    // =========================================
     client.on(Events.InteractionCreate, async (interaction) => {
 
-        // =========================
+        // =====================================
         // SELECT MENU
-        // =========================
+        // =====================================
         if (interaction.isStringSelectMenu()) {
 
             if (interaction.customId !== "verify_select") return;
@@ -130,14 +161,16 @@ module.exports = (client) => {
 
             const modal = new ModalBuilder()
                 .setCustomId("math_modal")
-                .setTitle("🧠 Weryfikacja");
+                .setTitle("Weryfikacja");
 
             const input = new TextInputBuilder()
                 .setCustomId("math_answer")
                 .setLabel(`Ile to: ${math.question} ?`)
                 .setPlaceholder("Wpisz poprawny wynik")
                 .setStyle(TextInputStyle.Short)
-                .setRequired(true);
+                .setRequired(true)
+                .setMinLength(1)
+                .setMaxLength(3);
 
             const row = new ActionRowBuilder().addComponents(input);
 
@@ -146,9 +179,9 @@ module.exports = (client) => {
             await interaction.showModal(modal);
         }
 
-        // =========================
+        // =====================================
         // MODAL SUBMIT
-        // =========================
+        // =====================================
         if (interaction.isModalSubmit()) {
 
             if (interaction.customId !== "math_modal") return;
@@ -156,44 +189,73 @@ module.exports = (client) => {
             const userAnswer = interaction.fields.getTextInputValue("math_answer");
             const correctAnswer = challenges.get(interaction.user.id);
 
+            // =================================
             // POPRAWNA ODPOWIEDŹ
+            // =================================
             if (Number(userAnswer) === correctAnswer) {
 
                 challenges.delete(interaction.user.id);
 
                 const member = await interaction.guild.members.fetch(interaction.user.id);
 
+                // dodanie roli
                 await member.roles.add(VERIFIED_ROLE_ID);
 
-                // ping na kanałach
+                // =================================
+                // PING NA KANAŁACH
+                // =================================
                 for (const channelId of PING_CHANNELS) {
 
                     try {
 
                         const channel = await client.channels.fetch(channelId);
 
-                        const msg = await channel.send({
+                        if (!channel) continue;
+
+                        const message = await channel.send({
                             content: `${interaction.user}`
                         });
 
+                        // usunięcie po 1 sekundzie
                         setTimeout(async () => {
-                            await msg.delete().catch(() => {});
+                            await message.delete().catch(() => {});
                         }, 1000);
 
                     } catch (err) {
-                        console.log(`Błąd kanału ${channelId}:`, err);
+                        console.log(`Błąd kanału ${channelId}:`, err.message);
                     }
                 }
 
+                // =================================
+                // SUKCES
+                // =================================
+                const successEmbed = new EmbedBuilder()
+                    .setColor("#57F287")
+                    .setDescription(
+                        `${EMOJIS.verify} **Pomyślnie przeszedłeś weryfikację!**`
+                    )
+                    .setFooter({
+                        text: "Miłego korzystania z serwera!"
+                    });
+
                 await interaction.reply({
-                    content: "✅ Zweryfikowano poprawnie!",
+                    embeds: [successEmbed],
                     ephemeral: true
                 });
 
             } else {
 
+                // =================================
+                // BŁĘDNA ODPOWIEDŹ
+                // =================================
+                const errorEmbed = new EmbedBuilder()
+                    .setColor("#ED4245")
+                    .setDescription(
+                        `${EMOJIS.red} **Błędna odpowiedź!** Spróbuj ponownie.`
+                    );
+
                 await interaction.reply({
-                    content: "❌ Błędna odpowiedź! Spróbuj ponownie.",
+                    embeds: [errorEmbed],
                     ephemeral: true
                 });
             }
