@@ -1,6 +1,10 @@
 const {
     Events,
-    EmbedBuilder
+    EmbedBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -21,62 +25,112 @@ module.exports = (client) => {
     };
 
     // =========================================
-    // /LC COMMAND
+    // INTERACTIONS
     // =========================================
     client.on(Events.InteractionCreate, async interaction => {
 
-        if (!interaction.isChatInputCommand()) return;
+        // =====================================
+        // /LC COMMAND
+        // =====================================
+        if (interaction.isChatInputCommand()) {
 
-        if (interaction.commandName !== "lc") return;
+            if (interaction.commandName !== "lc") return;
 
-        try {
+            try {
 
-            const embed = new EmbedBuilder()
+                // ===============================
+                // MODAL
+                // ===============================
+                const modal = new ModalBuilder()
 
-                .setColor("#2b2d31")
+                    .setCustomId("lc_modal")
 
-                .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                    .setTitle("StarX Exchange • Legit Check");
 
-                .setDescription(
-                    [
-                        `> ${EMOJI.pin} Wystaw legit check po zakończonej transakcji`,
-                        "",
-                        `## ${EMOJI.zap} Wzór`,
-                        "```",
-                        "+rep @user Exchanged BLIK -> LTC 30 PLN",
-                        "```",
-                        `${EMOJI.lock} Ticket zamknie się automatycznie po wysłaniu wiadomości na <#${LEGIT_CHANNEL_ID}>`
-                    ].join("\n")
-                )
+                // ===============================
+                // INPUT
+                // ===============================
+                const input = new TextInputBuilder()
 
-                .setThumbnail(interaction.guild.iconURL())
+                    .setCustomId("lc_text")
 
-                .setFooter({
-                    text: "StarX Exchange • Legit System"
-                })
+                    .setLabel("Wpisz wzór legit check")
 
-                .setTimestamp();
+                    .setPlaceholder(
+                        "+rep @user Exchanged BLIK -> LTC 30 PLN"
+                    )
 
-            await interaction.reply({
-                embeds: [embed]
-            });
+                    .setStyle(TextInputStyle.Paragraph)
 
-        } catch (err) {
+                    .setRequired(true);
 
-            console.log("❌ LC command error:", err);
+                const row = new ActionRowBuilder()
+                    .addComponents(input);
 
-            if (!interaction.replied) {
+                modal.addComponents(row);
+
+                await interaction.showModal(modal);
+
+            } catch (err) {
+
+                console.log("❌ LC modal error:", err);
+            }
+        }
+
+        // =====================================
+        // MODAL SUBMIT
+        // =====================================
+        if (interaction.isModalSubmit()) {
+
+            if (interaction.customId !== "lc_modal") return;
+
+            try {
+
+                const text =
+                    interaction.fields.getTextInputValue("lc_text");
+
+                // ===============================
+                // EMBED
+                // ===============================
+                const embed = new EmbedBuilder()
+
+                    .setColor("#2b2d31")
+
+                    .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+
+                    .setDescription(
+                        [
+                            `> ${EMOJI.pin} Wystaw legit check po zakończonej transakcji`,
+                            "",
+                            `## ${EMOJI.zap} Wzór`,
+                            "```",
+                            text,
+                            "```",
+                            `${EMOJI.lock} Ticket zamknie się automatycznie po wysłaniu wiadomości na <#${LEGIT_CHANNEL_ID}>`
+                        ].join("\n")
+                    )
+
+                    .setThumbnail(interaction.guild.iconURL())
+
+                    .setFooter({
+                        text: "StarX Exchange • Legit System"
+                    })
+
+                    .setTimestamp();
 
                 await interaction.reply({
-                    content: "❌ Wystąpił błąd.",
-                    flags: 64
+                    embeds: [embed]
                 });
+
+            } catch (err) {
+
+                console.log("❌ LC submit error:", err);
             }
         }
     });
 
     // =========================================
-    // AUTO CLOSE AFTER LEGIT CHECK
+    // AUTO CLOSE AFTER MESSAGE
     // =========================================
     client.on(Events.MessageCreate, async message => {
 
@@ -89,14 +143,16 @@ module.exports = (client) => {
 
             const guild = message.guild;
 
-            // znajdź ticket użytkownika
+            // znajdź ticket
             const ticketChannel = guild.channels.cache.find(c =>
                 c.name.includes(message.author.username.toLowerCase())
             );
 
             if (!ticketChannel) return;
 
-            // info o zamknięciu
+            // ===============================
+            // CLOSING EMBED
+            // ===============================
             const embed = new EmbedBuilder()
 
                 .setColor("#57F287")
@@ -109,7 +165,9 @@ module.exports = (client) => {
                 embeds: [embed]
             });
 
-            // delete po 3s
+            // ===============================
+            // DELETE
+            // ===============================
             setTimeout(async () => {
 
                 await ticketChannel.delete().catch(() => {});
