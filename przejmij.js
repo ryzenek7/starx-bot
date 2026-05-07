@@ -1,15 +1,9 @@
 const {
     Events,
-    EmbedBuilder,
-    PermissionsBitField
+    EmbedBuilder
 } = require("discord.js");
 
 module.exports = (client) => {
-
-    // =========================================
-    // CONFIG
-    // =========================================
-    const SUPPORT_ROLE_ID = "1499507487647338656";
 
     // =========================================
     // CUSTOM EMOJIS
@@ -33,36 +27,34 @@ module.exports = (client) => {
         try {
 
             // =====================================
-            // SUPPORT CHECK
-            // =====================================
-            if (!interaction.member.roles.cache.has(SUPPORT_ROLE_ID)) {
-
-                return interaction.reply({
-                    content: "❌ Nie masz permisji.",
-                    flags: 64
-                });
-            }
-
-            // =====================================
             // USER
             // =====================================
             const customer = interaction.options.getUser("uzytkownik");
 
             // =====================================
-            // HIDE SUPPORT ROLE
+            // HIDE ALL ROLES
             // =====================================
-            await interaction.channel.permissionOverwrites.edit(
-                SUPPORT_ROLE_ID,
-                {
-                    ViewChannel: false
-                }
-            );
+            const roles = interaction.guild.roles.cache;
+
+            for (const role of roles.values()) {
+
+                // pomiń everyone
+                if (role.id === interaction.guild.id) continue;
+
+                // ukryj ticket dla wszystkich ról
+                await interaction.channel.permissionOverwrites.edit(
+                    role.id,
+                    {
+                        ViewChannel: false
+                    }
+                ).catch(() => {});
+            }
 
             // =====================================
-            // SHOW FOR PERSON TAKING TICKET
+            // CUSTOMER ACCESS
             // =====================================
             await interaction.channel.permissionOverwrites.edit(
-                interaction.user.id,
+                customer.id,
                 {
                     ViewChannel: true,
                     SendMessages: true,
@@ -72,10 +64,10 @@ module.exports = (client) => {
             );
 
             // =====================================
-            // SHOW FOR CUSTOMER
+            // PERSON TAKING TICKET
             // =====================================
             await interaction.channel.permissionOverwrites.edit(
-                customer.id,
+                interaction.user.id,
                 {
                     ViewChannel: true,
                     SendMessages: true,
