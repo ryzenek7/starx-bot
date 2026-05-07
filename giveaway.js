@@ -109,16 +109,19 @@ module.exports = (client) => {
             let timeMs = 0;
 
             if (czas.endsWith("m")) {
+
                 timeMs =
                     parseInt(czas) * 60 * 1000;
             }
 
             else if (czas.endsWith("h")) {
+
                 timeMs =
                     parseInt(czas) * 60 * 60 * 1000;
             }
 
             else if (czas.endsWith("d")) {
+
                 timeMs =
                     parseInt(czas) * 24 * 60 * 60 * 1000;
             }
@@ -185,7 +188,7 @@ module.exports = (client) => {
 
                 .setLabel("Dołącz do giveaway")
 
-                .setEmoji("🎉")
+                .setEmoji("1502025560606507048")
 
                 .setStyle(ButtonStyle.Success);
 
