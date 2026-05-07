@@ -55,6 +55,7 @@ require("./invites")(client);
 require("./rep")(client);
 require("./przejmij")(client);
 require("./lc")(client);
+require("./giveaway")(client);
 
 // =====================
 // READY
