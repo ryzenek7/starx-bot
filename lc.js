@@ -14,8 +14,11 @@ module.exports = (client) => {
     // =========================================
     const LEGIT_CHANNEL_ID = "1499519884860854505";
 
-    // STAFF ROLE
+    // ROLA REALIZATORA
     const STAFF_ROLE_ID = "1500930428993933373";
+
+    // ACCESS ROLE
+    const TICKET_ACCESS_ROLE_ID = "1502020178026696744";
 
     // =========================================
     // CUSTOM EMOJIS
@@ -33,7 +36,7 @@ module.exports = (client) => {
     client.on(Events.InteractionCreate, async interaction => {
 
         // =====================================
-        // /LC COMMAND
+        // /LC
         // =====================================
         if (interaction.isChatInputCommand()) {
 
@@ -71,7 +74,7 @@ module.exports = (client) => {
                     .setLabel("Wpisz legit check")
 
                     .setPlaceholder(
-                        "+rep @user Exchanged BLIK -> LTC 30 PLN"
+                        "+rep @jarek.svx Purchased Konto Stake 40 PLN [BLIK]"
                     )
 
                     .setStyle(TextInputStyle.Paragraph)
@@ -116,17 +119,19 @@ module.exports = (client) => {
 
                     .setDescription(
                         [
-                            `> ${EMOJI.pin} Wystaw legit check po zakończonej transakcji`,
+                            `> ${EMOJI.pin} Legit check został przygotowany`,
                             "",
-                            `## ${EMOJI.zap} Legit Check`,
+                            `## ${EMOJI.zap} Treść`,
                             "```",
                             text,
                             "```",
-                            `${EMOJI.lock} Ticket zamknie się automatycznie po wysłaniu wiadomości na <#${LEGIT_CHANNEL_ID}>`
+                            `${EMOJI.lock} Wyślij wiadomość na <#${LEGIT_CHANNEL_ID}> aby zamknąć ticket`
                         ].join("\n")
                     )
 
-                    .setThumbnail(interaction.guild.iconURL())
+                    .setThumbnail(
+                        interaction.guild.iconURL()
+                    )
 
                     .setFooter({
                         text: "StarX Exchange • Legit System"
@@ -162,27 +167,52 @@ module.exports = (client) => {
 
             if (message.author.bot) return;
 
-            // tylko legit-check kanał
-            if (message.channel.id !== LEGIT_CHANNEL_ID) return;
+            // =====================================
+            // ONLY LEGIT CHANNEL
+            // =====================================
+            if (
+                message.channel.id !== LEGIT_CHANNEL_ID
+            ) return;
 
             const guild = message.guild;
 
             // =====================================
-            // FIND TICKET
+            // FIND USER TICKET
             // =====================================
-            const ticketChannel = guild.channels.cache.find(c =>
+            const ticketChannel =
+                guild.channels.cache.find(c =>
 
-                c.name
-                    .toLowerCase()
-                    .includes(message.author.username.toLowerCase())
-            );
+                    c.name
+                        .toLowerCase()
+                        .includes(
+                            message.author.username.toLowerCase()
+                        )
+                );
 
             if (!ticketChannel) return;
 
             // =====================================
+            // REMOVE ACCESS ROLE
+            // =====================================
+            const accessRole =
+                guild.roles.cache.get(
+                    TICKET_ACCESS_ROLE_ID
+                );
+
+            if (accessRole) {
+
+                for (const member of accessRole.members.values()) {
+
+                    await member.roles.remove(
+                        TICKET_ACCESS_ROLE_ID
+                    ).catch(() => {});
+                }
+            }
+
+            // =====================================
             // CLOSE EMBED
             // =====================================
-            const embed = new EmbedBuilder()
+            const closeEmbed = new EmbedBuilder()
 
                 .setColor("#57F287")
 
@@ -191,7 +221,7 @@ module.exports = (client) => {
                 );
 
             await ticketChannel.send({
-                embeds: [embed]
+                embeds: [closeEmbed]
             });
 
             // =====================================
@@ -199,7 +229,9 @@ module.exports = (client) => {
             // =====================================
             setTimeout(async () => {
 
-                await ticketChannel.delete().catch(() => {});
+                await ticketChannel
+                    .delete()
+                    .catch(() => {});
 
             }, 3000);
 
