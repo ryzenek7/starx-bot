@@ -12,6 +12,15 @@ module.exports = (client) => {
     const STAFF_ROLE_ID = "1500930428993933373";
 
     // =========================================
+    // ADMIN / SUPPORT ROLES
+    // =========================================
+    const ADMIN_ROLES = [
+        "1499499185337012377", // owner
+        "1500930428993933373", // realizator
+        "1499507487647338656"  // support
+    ];
+
+    // =========================================
     // EMOJIS
     // =========================================
     const EMOJI = {
@@ -22,123 +31,222 @@ module.exports = (client) => {
     };
 
     // =========================================
-    // /PRZEJMIJ
+    // INTERACTION
     // =========================================
     client.on(Events.InteractionCreate, async interaction => {
 
         if (!interaction.isChatInputCommand()) return;
 
-        if (interaction.commandName !== "przejmij") return;
-
         // =====================================
         // ROLE CHECK
         // =====================================
-        if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+        if (
+            interaction.commandName === "przejmij" ||
+            interaction.commandName === "odprzyjmij"
+        ) {
 
-            return interaction.reply({
-                content: "❌ Nie masz permisji.",
-                flags: 64
-            });
+            if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+
+                return interaction.reply({
+                    content: "❌ Nie masz permisji.",
+                    flags: 64
+                });
+            }
         }
 
-        try {
+        // =====================================
+        // /PRZEJMIJ
+        // =====================================
+        if (interaction.commandName === "przejmij") {
 
-            // =====================================
-            // LOADING
-            // =====================================
-            await interaction.deferReply({
-                flags: 64
-            });
+            try {
 
-            // =====================================
-            // DATA
-            // =====================================
-            const customer =
-                interaction.options.getUser("uzytkownik");
+                await interaction.deferReply({
+                    flags: 64
+                });
 
-            const channel = interaction.channel;
+                const customer =
+                    interaction.options.getUser("uzytkownik");
 
-            // =====================================
-            // RESET ALL PERMISSIONS
-            // =====================================
-            await channel.permissionOverwrites.set([
+                const channel = interaction.channel;
 
-                // everyone hidden
-                {
-                    id: interaction.guild.id,
-                    deny: [
-                        PermissionsBitField.Flags.ViewChannel
-                    ]
-                },
+                // =====================================
+                // ONLY CUSTOMER + STAFF
+                // =====================================
+                await channel.permissionOverwrites.set([
 
-                // customer access
-                {
-                    id: customer.id,
-                    allow: [
-                        PermissionsBitField.Flags.ViewChannel,
-                        PermissionsBitField.Flags.SendMessages,
-                        PermissionsBitField.Flags.ReadMessageHistory,
-                        PermissionsBitField.Flags.AttachFiles
-                    ]
-                },
+                    {
+                        id: interaction.guild.id,
+                        deny: [
+                            PermissionsBitField.Flags.ViewChannel
+                        ]
+                    },
 
-                // person taking ticket
-                {
-                    id: interaction.user.id,
-                    allow: [
-                        PermissionsBitField.Flags.ViewChannel,
-                        PermissionsBitField.Flags.SendMessages,
-                        PermissionsBitField.Flags.ReadMessageHistory,
-                        PermissionsBitField.Flags.AttachFiles,
-                        PermissionsBitField.Flags.ManageChannels
-                    ]
-                }
+                    {
+                        id: customer.id,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                            PermissionsBitField.Flags.AttachFiles
+                        ]
+                    },
 
-            ]);
+                    {
+                        id: interaction.user.id,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                            PermissionsBitField.Flags.AttachFiles,
+                            PermissionsBitField.Flags.ManageChannels
+                        ]
+                    }
 
-            // =====================================
-            // EMBED
-            // =====================================
-            const embed = new EmbedBuilder()
+                ]);
 
-                .setColor("#2b2d31")
+                const embed = new EmbedBuilder()
 
-                .setTitle(
-                    `${EMOJI.lock} StarX Exchange » Ticket Przejęty`
-                )
+                    .setColor("#2b2d31")
 
-                .setDescription(
-                    [
-                        `> ${EMOJI.pin} Ticket został przejęty przez ${interaction.user}`,
-                        `> ${EMOJI.zap} Klient: ${customer}`,
-                        "",
-                        `${EMOJI.money} Ticket widzi tylko klient oraz osoba przejmująca`
-                    ].join("\n")
-                )
+                    .setTitle(
+                        `${EMOJI.lock} StarX Exchange » Ticket Przejęty`
+                    )
 
-                .setThumbnail(interaction.guild.iconURL())
+                    .setDescription(
+                        [
+                            `> ${EMOJI.pin} Ticket został przejęty przez ${interaction.user}`,
+                            `> ${EMOJI.zap} Klient: ${customer}`,
+                            "",
+                            `${EMOJI.money} Ticket widzi tylko klient oraz osoba przejmująca`
+                        ].join("\n")
+                    )
 
-                .setFooter({
-                    text: "StarX Exchange • Premium Ticket System"
-                })
+                    .setThumbnail(interaction.guild.iconURL())
 
-                .setTimestamp();
+                    .setFooter({
+                        text: "StarX Exchange • Premium Ticket System"
+                    })
 
-            // =====================================
-            // SEND
-            // =====================================
-            await interaction.editReply({
-                embeds: [embed]
-            });
-
-        } catch (err) {
-
-            console.log("❌ Przejmij error:", err);
-
-            if (interaction.deferred || interaction.replied) {
+                    .setTimestamp();
 
                 await interaction.editReply({
-                    content: "❌ Wystąpił błąd podczas przejmowania ticketu."
+                    embeds: [embed]
+                });
+
+            } catch (err) {
+
+                console.log("❌ Przejmij error:", err);
+
+                await interaction.editReply({
+                    content: "❌ Wystąpił błąd."
+                }).catch(() => {});
+            }
+        }
+
+        // =====================================
+        // /ODPRZYJMIJ
+        // =====================================
+        if (interaction.commandName === "odprzyjmij") {
+
+            try {
+
+                await interaction.deferReply({
+                    flags: 64
+                });
+
+                const channel = interaction.channel;
+
+                // =====================================
+                // RESET PERMISSIONS
+                // =====================================
+                const overwrites = [
+
+                    {
+                        id: interaction.guild.id,
+                        deny: [
+                            PermissionsBitField.Flags.ViewChannel
+                        ]
+                    }
+                ];
+
+                // =====================================
+                // GIVE ACCESS TO ADMIN ROLES
+                // =====================================
+                for (const roleId of ADMIN_ROLES) {
+
+                    overwrites.push({
+                        id: roleId,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                            PermissionsBitField.Flags.AttachFiles
+                        ]
+                    });
+                }
+
+                // =====================================
+                // KEEP ACCESS FOR MEMBERS IN TICKET
+                // =====================================
+                channel.permissionOverwrites.cache.forEach(overwrite => {
+
+                    if (
+                        overwrite.type === 1 &&
+                        overwrite.id !== interaction.guild.id
+                    ) {
+
+                        overwrites.push({
+                            id: overwrite.id,
+                            allow: [
+                                PermissionsBitField.Flags.ViewChannel,
+                                PermissionsBitField.Flags.SendMessages,
+                                PermissionsBitField.Flags.ReadMessageHistory,
+                                PermissionsBitField.Flags.AttachFiles
+                            ]
+                        });
+                    }
+                });
+
+                await channel.permissionOverwrites.set(overwrites);
+
+                // =====================================
+                // EMBED
+                // =====================================
+                const embed = new EmbedBuilder()
+
+                    .setColor("#57F287")
+
+                    .setTitle(
+                        `${EMOJI.zap} StarX Exchange » Ticket Odprzejęty`
+                    )
+
+                    .setDescription(
+                        [
+                            `> ${EMOJI.pin} Ticket został przywrócony`,
+                            "",
+                            `${EMOJI.money} Administracja ponownie widzi ticket`
+                        ].join("\n")
+                    )
+
+                    .setThumbnail(interaction.guild.iconURL())
+
+                    .setFooter({
+                        text: "StarX Exchange • Ticket System"
+                    })
+
+                    .setTimestamp();
+
+                await interaction.editReply({
+                    embeds: [embed]
+                });
+
+            } catch (err) {
+
+                console.log("❌ Odprzyjmij error:", err);
+
+                await interaction.editReply({
+                    content: "❌ Wystąpił błąd."
                 }).catch(() => {});
             }
         }
