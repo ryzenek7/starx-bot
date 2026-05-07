@@ -33,9 +33,7 @@ module.exports = (client) => {
     const EMOJIS = {
         verify: "<a:verify:1499784353012514917>",
         shield: "<:shield:1501989271077388500>",
-        pin: "<:pin:1501697389050986546>",
-        red: "<a:red:1501989543182864535>",
-        green: "<a:green:1501990166082879538>"
+        pin: "<:pin:1501697389050986546>"
     };
 
     // przechowywanie odpowiedzi
@@ -43,40 +41,35 @@ module.exports = (client) => {
 
     // =========================================
     // GENEROWANIE DZIAŁANIA
-    // max wynik = 30
     // =========================================
     function generateMath() {
 
         const isAdd = Math.random() > 0.5;
 
-        // =========================
         // DODAWANIE
-        // =========================
         if (isAdd) {
 
             const a = Math.floor(Math.random() * 16);
             const b = Math.floor(Math.random() * (31 - a));
 
             return {
-                question: `${EMOJIS.green} ${a} + ${b}`,
+                question: `🟢 ${a} + ${b}`,
                 answer: a + b
             };
         }
 
-        // =========================
         // ODEJMOWANIE
-        // =========================
         const a = Math.floor(Math.random() * 31);
         const b = Math.floor(Math.random() * (a + 1));
 
         return {
-            question: `${EMOJIS.red} ${a} − ${b}`,
+            question: `🔴 ${a} − ${b}`,
             answer: a - b
         };
     }
 
     // =========================================
-    // PANEL WERYFIKACJI
+    // PANEL
     // =========================================
     async function sendPanel() {
 
@@ -89,19 +82,9 @@ module.exports = (client) => {
             .setTitle(`${EMOJIS.shield}・Weryfikacja`)
             .setDescription(
                 [
-                    "## Witaj na serwerze!",
-                    "",
-                    "Aby uzyskać dostęp do wszystkich kanałów:",
-                    "",
                     `> ${EMOJIS.pin} Kliknij menu poniżej`,
-                    `> ${EMOJIS.verify} Rozwiąż krótkie działanie matematyczne`,
-                    "",
-                    "### Informacje",
-                    "```yaml",
-                    "• Wyniki działań są maksymalnie do 30",
-                    "• Weryfikacja trwa kilka sekund",
-                    "• Po poprawnej odpowiedzi otrzymasz rangę",
-                    "```"
+                    `> ${EMOJIS.verify} Rozwiąż proste działanie matematyczne`,
+                    `> ${EMOJIS.shield} Odbierz dostęp do serwera`
                 ].join("\n")
             )
             .setThumbnail(client.user.displayAvatarURL())
@@ -112,7 +95,7 @@ module.exports = (client) => {
 
         const menu = new StringSelectMenuBuilder()
             .setCustomId("verify_select")
-            .setPlaceholder("Wybierz opcję")
+            .setPlaceholder("Kliknij aby się zweryfikować")
             .addOptions([
                 {
                     label: "Zweryfikuj się",
@@ -216,7 +199,7 @@ module.exports = (client) => {
                             content: `${interaction.user}`
                         });
 
-                        // usunięcie po 1 sekundzie
+                        // usuń po 1 sekundzie
                         setTimeout(async () => {
                             await message.delete().catch(() => {});
                         }, 1000);
@@ -233,10 +216,7 @@ module.exports = (client) => {
                     .setColor("#57F287")
                     .setDescription(
                         `${EMOJIS.verify} **Pomyślnie przeszedłeś weryfikację!**`
-                    )
-                    .setFooter({
-                        text: "Miłego korzystania z serwera!"
-                    });
+                    );
 
                 await interaction.reply({
                     embeds: [successEmbed],
@@ -251,7 +231,7 @@ module.exports = (client) => {
                 const errorEmbed = new EmbedBuilder()
                     .setColor("#ED4245")
                     .setDescription(
-                        `${EMOJIS.red} **Błędna odpowiedź!** Spróbuj ponownie.`
+                        "❌ **Błędna odpowiedź! Spróbuj ponownie.**"
                     );
 
                 await interaction.reply({
