@@ -1,4 +1,4 @@
-// index.js STARX EXCHANGE FINAL PREMIUM + OWNER CHECKINVITES + TESTINVITE + PRZEJMIJ
+// index.js STARX EXCHANGE FINAL PREMIUM + LC + PRZEJMIJ
 
 const {
   Client,
@@ -16,7 +16,7 @@ const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
 const GUILD_ID = "1499481942394146946";
 
-// rola owner/admin
+// OWNER ROLE
 const OWNER_ROLE_ID = "1499499185337012377";
 
 // =====================
@@ -54,6 +54,7 @@ require("./propozycje")(client);
 require("./invites")(client);
 require("./rep")(client);
 require("./przejmij")(client);
+require("./lc")(client);
 
 // =====================
 // READY
@@ -147,25 +148,20 @@ client.once(Events.ClientReady, async () => {
       // =====================
       new SlashCommandBuilder()
         .setName("przejmij")
-        .setDescription("Wyślij prośbę o legit check")
+        .setDescription("Przejmij ticket")
 
         .addUserOption(option =>
           option.setName("uzytkownik")
-            .setDescription("Osoba od transakcji")
+            .setDescription("Klient")
             .setRequired(true)
-        )
+        ),
 
-        .addStringOption(option =>
-          option.setName("metoda")
-            .setDescription("Np. BLIK → LTC")
-            .setRequired(true)
-        )
-
-        .addStringOption(option =>
-          option.setName("kwota")
-            .setDescription("Np. 30 PLN")
-            .setRequired(true)
-        )
+      // =====================
+      // LC
+      // =====================
+      new SlashCommandBuilder()
+        .setName("lc")
+        .setDescription("Wyślij wzór legit check")
 
     ].map(cmd => cmd.toJSON());
 
@@ -230,7 +226,6 @@ client.on(Events.InteractionCreate, async interaction => {
         });
       }
 
-      // dalszą obsługę robi invites.js
       return;
     }
 
