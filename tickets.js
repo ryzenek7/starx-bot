@@ -15,10 +15,14 @@ module.exports = (client) => {
   // CONFIG
   // =========================================
   const PANEL_CHANNEL_ID = "1499512781861556314";
+
   const SUPPORT_ROLE_ID = "1499507487647338656";
 
+  // ACCESS ROLE
+  const TICKET_ACCESS_ROLE_ID = "1502020178026696744";
+
   // =========================================
-  // CUSTOM EMOJI
+  // EMOJIS
   // =========================================
   const EMOJI = {
     ticket: "<:ticket:1501697124734206032>",
@@ -35,8 +39,11 @@ module.exports = (client) => {
     return new ActionRowBuilder().addComponents(
 
       new StringSelectMenuBuilder()
+
         .setCustomId("ticket_select")
+
         .setPlaceholder("🎫 Wybierz kategorię")
+
         .addOptions([
 
           {
@@ -70,21 +77,25 @@ module.exports = (client) => {
   }
 
   // =========================================
-  // PANEL READY
+  // READY
   // =========================================
   client.once(Events.ClientReady, async () => {
 
     try {
 
-      const channel = await client.channels.fetch(PANEL_CHANNEL_ID);
+      const channel =
+        await client.channels.fetch(PANEL_CHANNEL_ID);
 
-      if (!channel) {
-        return console.log("❌ Nie znaleziono kanału");
-      }
+      if (!channel) return;
 
       const embed = new EmbedBuilder()
+
         .setColor("#2b2d31")
-        .setTitle(`${EMOJI.ticket} StarX Exchange » TICKETY`)
+
+        .setTitle(
+          `${EMOJI.ticket} StarX Exchange » TICKETY`
+        )
+
         .setDescription(
           [
             `> ${EMOJI.pin} Wybierz kategorię z menu poniżej`,
@@ -92,15 +103,25 @@ module.exports = (client) => {
             `> ${EMOJI.lock} Bezpieczny kontakt z administracją`
           ].join("\n")
         )
-        .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-        .setThumbnail(client.user.displayAvatarURL())
+
+        .setImage(
+          "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+        )
+
+        .setThumbnail(
+          client.user.displayAvatarURL()
+        )
+
         .setFooter({
           text: "© 2026 StarX Exchange"
         })
+
         .setTimestamp();
 
       await channel.send({
+
         embeds: [embed],
+
         components: [createMenu()]
       });
 
@@ -108,38 +129,45 @@ module.exports = (client) => {
 
     } catch (err) {
 
-      console.log("❌ Błąd panelu:", err);
+      console.log("❌ Ticket panel error:", err);
     }
   });
 
   // =========================================
   // INTERACTIONS
   // =========================================
-  client.on(Events.InteractionCreate, async (interaction) => {
+  client.on(Events.InteractionCreate, async interaction => {
 
     // =====================================
     // CREATE TICKET
     // =====================================
     if (interaction.isStringSelectMenu()) {
 
-      if (interaction.customId !== "ticket_select") return;
+      if (interaction.customId !== "ticket_select")
+        return;
 
       try {
 
-        const category = interaction.values[0];
+        const category =
+          interaction.values[0];
 
         // =================================
-        // CHECK EXISTING
+        // EXISTING CHECK
         // =================================
-        const existing = interaction.guild.channels.cache.find(
-          c =>
-            c.name === `ticket-${interaction.user.username}`.toLowerCase()
-        );
+        const existing =
+          interaction.guild.channels.cache.find(
+            c =>
+              c.name ===
+              `ticket-${interaction.user.username}`.toLowerCase()
+          );
 
         if (existing) {
 
           return interaction.reply({
-            content: `❌ Masz już otwarty ticket: ${existing}`,
+
+            content:
+              `❌ Masz już otwarty ticket: ${existing}`,
+
             flags: 64
           });
         }
@@ -147,72 +175,98 @@ module.exports = (client) => {
         // =================================
         // CREATE CHANNEL
         // =================================
-        const channel = await interaction.guild.channels.create({
+        const channel =
+          await interaction.guild.channels.create({
 
-          name: `ticket-${interaction.user.username}`.toLowerCase(),
+            name:
+              `ticket-${interaction.user.username}`.toLowerCase(),
 
-          type: ChannelType.GuildText,
+            type: ChannelType.GuildText,
 
-          permissionOverwrites: [
+            permissionOverwrites: [
 
-            {
-              id: interaction.guild.id,
-              deny: [PermissionsBitField.Flags.ViewChannel]
-            },
+              // everyone hidden
+              {
+                id: interaction.guild.id,
 
-            {
-              id: interaction.user.id,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel,
-                PermissionsBitField.Flags.SendMessages,
-                PermissionsBitField.Flags.ReadMessageHistory,
-                PermissionsBitField.Flags.AttachFiles
-              ]
-            },
+                deny: [
+                  PermissionsBitField.Flags.ViewChannel
+                ]
+              },
 
-            {
-              id: SUPPORT_ROLE_ID,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel,
-                PermissionsBitField.Flags.SendMessages,
-                PermissionsBitField.Flags.ReadMessageHistory,
-                PermissionsBitField.Flags.ManageMessages
-              ]
-            }
-          ]
-        });
+              // customer
+              {
+                id: interaction.user.id,
+
+                allow: [
+                  PermissionsBitField.Flags.ViewChannel,
+                  PermissionsBitField.Flags.SendMessages,
+                  PermissionsBitField.Flags.ReadMessageHistory,
+                  PermissionsBitField.Flags.AttachFiles
+                ]
+              },
+
+              // support
+              {
+                id: SUPPORT_ROLE_ID,
+
+                allow: [
+                  PermissionsBitField.Flags.ViewChannel,
+                  PermissionsBitField.Flags.SendMessages,
+                  PermissionsBitField.Flags.ReadMessageHistory,
+                  PermissionsBitField.Flags.ManageMessages
+                ]
+              },
+
+              // access role hidden
+              {
+                id: TICKET_ACCESS_ROLE_ID,
+
+                deny: [
+                  PermissionsBitField.Flags.ViewChannel
+                ]
+              }
+            ]
+          });
 
         // =================================
         // CLOSE BUTTON
         // =================================
-        const closeButton = new ButtonBuilder()
-          .setCustomId("close_ticket")
-          .setLabel("Zamknij ticket")
-          .setEmoji("1501697222901895258")
-          .setStyle(ButtonStyle.Danger);
+        const closeButton =
+          new ButtonBuilder()
 
-        const row = new ActionRowBuilder()
-          .addComponents(closeButton);
+            .setCustomId("close_ticket")
 
-        // =================================
-        // TICKET MESSAGE
-        // =================================
-        const ticketMessage = await channel.send({
+            .setLabel("Zamknij ticket")
 
-          content:
-            `<@&${SUPPORT_ROLE_ID}> 👋 ${interaction.user}\n` +
-            `${EMOJI.pin} Nowy ticket\n` +
-            `${EMOJI.ticket} Kategoria: **${category}**`,
+            .setEmoji("1501697222901895258")
 
-          components: [row],
+            .setStyle(ButtonStyle.Danger);
 
-          allowedMentions: {
-            roles: [SUPPORT_ROLE_ID]
-          }
-        });
+        const row =
+          new ActionRowBuilder()
+            .addComponents(closeButton);
 
         // =================================
-        // REMOVE PING AFTER 1S
+        // SEND MESSAGE
+        // =================================
+        const ticketMessage =
+          await channel.send({
+
+            content:
+              `<@&${SUPPORT_ROLE_ID}> 👋 ${interaction.user}\n` +
+              `${EMOJI.pin} Nowy ticket\n` +
+              `${EMOJI.ticket} Kategoria: **${category}**`,
+
+            components: [row],
+
+            allowedMentions: {
+              roles: [SUPPORT_ROLE_ID]
+            }
+          });
+
+        // =================================
+        // REMOVE PING
         // =================================
         setTimeout(async () => {
 
@@ -233,13 +287,16 @@ module.exports = (client) => {
         }, 1000);
 
         // =================================
-        // SUCCESS EMBED
+        // SUCCESS
         // =================================
-        const successEmbed = new EmbedBuilder()
-          .setColor("#57F287")
-          .setDescription(
-            `${EMOJI.ticket} Ticket został utworzony: ${channel}`
-          );
+        const successEmbed =
+          new EmbedBuilder()
+
+            .setColor("#57F287")
+
+            .setDescription(
+              `${EMOJI.ticket} Ticket został utworzony: ${channel}`
+            );
 
         await interaction.reply({
 
@@ -248,26 +305,16 @@ module.exports = (client) => {
           flags: 64
         });
 
-        // =================================
-        // RESET MENU
-        // =================================
-        setTimeout(async () => {
-
-          await interaction.message.edit({
-            components: [createMenu()]
-          }).catch(() => {});
-
-        }, 500);
-
       } catch (err) {
 
-        console.log("❌ Błąd tworzenia ticketa:", err);
+        console.log("❌ Create ticket error:", err);
 
         if (!interaction.replied) {
 
           await interaction.reply({
 
-            content: "❌ Nie udało się stworzyć ticketa.",
+            content:
+              "❌ Nie udało się stworzyć ticketa.",
 
             flags: 64
           });
@@ -280,39 +327,65 @@ module.exports = (client) => {
     // =====================================
     if (interaction.isButton()) {
 
-      if (interaction.customId !== "close_ticket") return;
+      if (interaction.customId !== "close_ticket")
+        return;
 
       try {
 
-        const member = await interaction.guild.members.fetch(interaction.user.id);
+        const member =
+          await interaction.guild.members.fetch(
+            interaction.user.id
+          );
 
         // =================================
-        // CHECK SUPPORT ROLE
+        // SUPPORT CHECK
         // =================================
-        if (!member.roles.cache.has(SUPPORT_ROLE_ID)) {
+        if (
+          !member.roles.cache.has(SUPPORT_ROLE_ID)
+        ) {
 
           return interaction.reply({
 
-            content: "❌ Nie masz permisji support.",
+            content:
+              "❌ Nie masz permisji support.",
 
             flags: 64
           });
         }
 
         // =================================
-        // CLOSING EMBED
+        // REMOVE ACCESS ROLE
         // =================================
-        const closingEmbed = new EmbedBuilder()
-          .setColor("#ED4245")
-          .setDescription(
-            `${EMOJI.lock} Ticket zostanie zamknięty za **3 sekundy**`
+        const accessRole =
+          interaction.guild.roles.cache.get(
+            TICKET_ACCESS_ROLE_ID
           );
+
+        if (accessRole) {
+
+          for (const member of accessRole.members.values()) {
+
+            await member.roles.remove(
+              TICKET_ACCESS_ROLE_ID
+            ).catch(() => {});
+          }
+        }
+
+        // =================================
+        // CLOSE EMBED
+        // =================================
+        const closingEmbed =
+          new EmbedBuilder()
+
+            .setColor("#ED4245")
+
+            .setDescription(
+              `${EMOJI.lock} Ticket zostanie zamknięty za **3 sekundy**`
+            );
 
         await interaction.reply({
 
-          embeds: [closingEmbed],
-
-          flags: 64
+          embeds: [closingEmbed]
         });
 
         // =================================
@@ -320,13 +393,15 @@ module.exports = (client) => {
         // =================================
         setTimeout(async () => {
 
-          await interaction.channel.delete().catch(() => {});
+          await interaction.channel
+            .delete()
+            .catch(() => {});
 
         }, 3000);
 
       } catch (err) {
 
-        console.log("❌ Błąd zamykania:", err);
+        console.log("❌ Close ticket error:", err);
       }
     }
   });
