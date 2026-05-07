@@ -1,13 +1,17 @@
 const {
     Events,
-    EmbedBuilder,
-    PermissionsBitField
+    EmbedBuilder
 } = require("discord.js");
 
 module.exports = (client) => {
 
     // =========================================
-    // EMOJI
+    // STAFF ROLE
+    // =========================================
+    const STAFF_ROLE_ID = "1500930428993933373";
+
+    // =========================================
+    // CUSTOM EMOJIS
     // =========================================
     const EMOJI = {
         pin: "<:pin:1501697389050986546>",
@@ -26,6 +30,17 @@ module.exports = (client) => {
         if (interaction.commandName !== "przejmij") return;
 
         // =====================================
+        // ROLE CHECK
+        // =====================================
+        if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+
+            return interaction.reply({
+                content: "❌ Nie masz permisji do tej komendy.",
+                flags: 64
+            });
+        }
+
+        // =====================================
         // LOADING
         // =====================================
         await interaction.deferReply();
@@ -33,18 +48,18 @@ module.exports = (client) => {
         try {
 
             // =====================================
-            // USER
+            // CUSTOMER
             // =====================================
             const customer =
                 interaction.options.getUser("uzytkownik");
 
             // =====================================
-            // CURRENT CHANNEL
+            // CHANNEL
             // =====================================
             const channel = interaction.channel;
 
             // =====================================
-            // HIDE CHANNEL FOR @everyone
+            // HIDE FOR EVERYONE
             // =====================================
             await channel.permissionOverwrites.edit(
                 interaction.guild.id,
@@ -54,12 +69,12 @@ module.exports = (client) => {
             );
 
             // =====================================
-            // REMOVE ALL ROLES ACCESS
+            // HIDE ALL ROLES
             // =====================================
-            interaction.guild.roles.cache.forEach(async role => {
+            for (const role of interaction.guild.roles.cache.values()) {
 
                 // pomiń everyone
-                if (role.id === interaction.guild.id) return;
+                if (role.id === interaction.guild.id) continue;
 
                 await channel.permissionOverwrites.edit(
                     role.id,
@@ -67,7 +82,7 @@ module.exports = (client) => {
                         ViewChannel: false
                     }
                 ).catch(() => {});
-            });
+            }
 
             // =====================================
             // CUSTOMER ACCESS
@@ -84,7 +99,7 @@ module.exports = (client) => {
             );
 
             // =====================================
-            // PERSON TAKING TICKET
+            // STAFF ACCESS
             // =====================================
             await channel.permissionOverwrites.edit(
                 interaction.user.id,
