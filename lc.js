@@ -73,8 +73,12 @@ module.exports = (client) => {
 
                     .setLabel("Wpisz legit check")
 
+                    .setValue(
+                        `+rep @${interaction.user.username} Purchased `
+                    )
+
                     .setPlaceholder(
-                        "+rep @jarek.svx Purchased Konto Stake 40 PLN [BLIK]"
+                        "Np. Konto Stake 40 PLN [BLIK]"
                     )
 
                     .setStyle(TextInputStyle.Paragraph)
@@ -86,6 +90,9 @@ module.exports = (client) => {
 
                 modal.addComponents(row);
 
+                // =====================================
+                // SHOW MODAL
+                // =====================================
                 await interaction.showModal(modal);
 
             } catch (err) {
