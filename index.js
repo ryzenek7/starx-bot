@@ -1,4 +1,4 @@
-// index.js STARX EXCHANGE FINAL PREMIUM + OWNER CHECKINVITES + TESTINVITE
+// index.js STARX EXCHANGE FINAL PREMIUM + OWNER CHECKINVITES + TESTINVITE + PRZEJMIJ
 
 const {
   Client,
@@ -53,12 +53,15 @@ require("./verify")(client);
 require("./propozycje")(client);
 require("./invites")(client);
 require("./rep")(client);
+require("./przejmij")(client);
 
 // =====================
 // READY
 // =====================
 client.once(Events.ClientReady, async () => {
+
   try {
+
     console.log(`✅ Zalogowano jako ${client.user.tag}`);
 
     const commands = [
@@ -137,6 +140,31 @@ client.once(Events.ClientReady, async () => {
           option.setName("ilosc")
             .setDescription("Ile dodać zaproszeń")
             .setRequired(true)
+        ),
+
+      // =====================
+      // PRZEJMIJ
+      // =====================
+      new SlashCommandBuilder()
+        .setName("przejmij")
+        .setDescription("Wyślij prośbę o legit check")
+
+        .addUserOption(option =>
+          option.setName("uzytkownik")
+            .setDescription("Osoba od transakcji")
+            .setRequired(true)
+        )
+
+        .addStringOption(option =>
+          option.setName("metoda")
+            .setDescription("Np. BLIK → LTC")
+            .setRequired(true)
+        )
+
+        .addStringOption(option =>
+          option.setName("kwota")
+            .setDescription("Np. 30 PLN")
+            .setRequired(true)
         )
 
     ].map(cmd => cmd.toJSON());
@@ -151,6 +179,7 @@ client.once(Events.ClientReady, async () => {
     console.log("✅ Komendy slash zostały dodane");
 
   } catch (err) {
+
     console.log("❌ Ready error:", err);
   }
 });
@@ -159,7 +188,9 @@ client.once(Events.ClientReady, async () => {
 // GLOBAL COMMANDS
 // =====================
 client.on(Events.InteractionCreate, async interaction => {
+
   try {
+
     if (!interaction.isChatInputCommand()) return;
 
     // =====================
@@ -168,6 +199,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "reset") {
 
       if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
+
         return interaction.reply({
           content: "❌ Nie masz permisji.",
           flags: 64
@@ -183,13 +215,15 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // =====================
-    // OWNER ONLY COMMANDS
+    // OWNER ONLY
     // =====================
     if (
       interaction.commandName === "checkinvites" ||
       interaction.commandName === "testinvite"
     ) {
+
       if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
+
         return interaction.reply({
           content: "❌ Tylko właściciel może użyć tej komendy.",
           flags: 64
@@ -201,6 +235,7 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
   } catch (err) {
+
     console.log("❌ Interaction error:", err);
   }
 });
