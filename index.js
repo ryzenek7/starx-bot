@@ -1,4 +1,4 @@
-// index.js STARX EXCHANGE FINAL PREMIUM + KONKURS
+// index.js STARX EXCHANGE FINAL PREMIUM
 
 const {
   Client,
@@ -6,17 +6,18 @@ const {
   Events,
   SlashCommandBuilder,
   REST,
-  Routes
+  Routes,
+  PermissionFlagsBits
 } = require("discord.js");
 
 // =====================
 // CONFIG
 // =====================
 const TOKEN = process.env.TOKEN;
+
 const CLIENT_ID = "1499478004265517396";
 const GUILD_ID = "1499481942394146946";
 
-// OWNER ROLE
 const OWNER_ROLE_ID = "1499499185337012377";
 
 // =====================
@@ -27,7 +28,6 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildInvites,
     GatewayIntentBits.MessageContent
   ]
 });
@@ -36,6 +36,11 @@ const client = new Client({
 // START
 // =====================
 console.log("🚀 Uruchamianie StarX Exchange Bot...");
+
+if (!TOKEN) {
+  console.log("❌ BRAK TOKENA w ENV!");
+  process.exit(1);
+}
 
 // =====================
 // MODULES
@@ -57,7 +62,7 @@ require("./lc")(client);
 require("./giveaway")(client);
 
 // =====================
-// READY
+// READY + SLASH COMMANDS
 // =====================
 client.once(Events.ClientReady, async () => {
 
@@ -68,68 +73,35 @@ client.once(Events.ClientReady, async () => {
     const commands = [
 
       // =====================
-      // ADMIN
+      // RESET
       // =====================
       new SlashCommandBuilder()
         .setName("reset")
-        .setDescription("Restartuje bota"),
+        .setDescription("Restartuje bota")
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
       // =====================
-      // KONKURS
-      // =====================
-      new SlashCommandBuilder()
-        .setName("konkurs")
-        .setDescription("Stwórz nowy konkurs")
-
-        .addStringOption(option =>
-          option
-            .setName("nagroda")
-            .setDescription("Na co konkurs")
-            .setRequired(true)
-        )
-
-        .addStringOption(option =>
-          option
-            .setName("czas")
-            .setDescription("Np. 10m, 1h, 1d")
-            .setRequired(true)
-        )
-
-        .addStringOption(option =>
-          option
-            .setName("wymagania")
-            .setDescription("Wymagania do udziału")
-            .setRequired(true)
-        ),
-
-      // =====================
-      // STOCK
+      // STAKE SYSTEM
       // =====================
       new SlashCommandBuilder()
         .setName("stakeadd")
         .setDescription("Dodaj stock")
-        .addIntegerOption(option =>
-          option.setName("ilosc")
-            .setDescription("Podaj ilość")
-            .setRequired(true)
+        .addIntegerOption(o =>
+          o.setName("ilosc").setRequired(true)
         ),
 
       new SlashCommandBuilder()
         .setName("stakeremove")
         .setDescription("Usuń stock")
-        .addIntegerOption(option =>
-          option.setName("ilosc")
-            .setDescription("Podaj ilość")
-            .setRequired(true)
+        .addIntegerOption(o =>
+          o.setName("ilosc").setRequired(true)
         ),
 
       new SlashCommandBuilder()
         .setName("stakeset")
         .setDescription("Ustaw stock")
-        .addIntegerOption(option =>
-          option.setName("ilosc")
-            .setDescription("Podaj ilość")
-            .setRequired(true)
+        .addIntegerOption(o =>
+          o.setName("ilosc").setRequired(true)
         ),
 
       new SlashCommandBuilder()
@@ -141,7 +113,7 @@ client.once(Events.ClientReady, async () => {
       // =====================
       new SlashCommandBuilder()
         .setName("invites")
-        .setDescription("Sprawdź ile osób zaprosiłeś"),
+        .setDescription("Sprawdź swoje zaproszenia"),
 
       new SlashCommandBuilder()
         .setName("topinvites")
@@ -149,29 +121,23 @@ client.once(Events.ClientReady, async () => {
 
       new SlashCommandBuilder()
         .setName("myinvite")
-        .setDescription("Wygeneruj swój link zaproszenia"),
+        .setDescription("Twój link zaproszenia"),
 
       new SlashCommandBuilder()
         .setName("checkinvites")
-        .setDescription("Sprawdź ile zaproszeń ma użytkownik")
-        .addUserOption(option =>
-          option.setName("osoba")
-            .setDescription("Wybierz użytkownika")
-            .setRequired(true)
+        .setDescription("Sprawdź zaproszenia użytkownika")
+        .addUserOption(o =>
+          o.setName("osoba").setRequired(true)
         ),
 
       new SlashCommandBuilder()
         .setName("testinvite")
-        .setDescription("Dodaj testowe zaproszenia użytkownikowi")
-        .addUserOption(option =>
-          option.setName("osoba")
-            .setDescription("Wybierz użytkownika")
-            .setRequired(true)
+        .setDescription("Dodaj testowe zaproszenia")
+        .addUserOption(o =>
+          o.setName("osoba").setRequired(true)
         )
-        .addIntegerOption(option =>
-          option.setName("ilosc")
-            .setDescription("Ile dodać zaproszeń")
-            .setRequired(true)
+        .addIntegerOption(o =>
+          o.setName("ilosc").setRequired(true)
         ),
 
       // =====================
@@ -179,7 +145,7 @@ client.once(Events.ClientReady, async () => {
       // =====================
       new SlashCommandBuilder()
         .setName("lc")
-        .setDescription("Wyślij wzór legit check")
+        .setDescription("Legit check template")
 
     ].map(cmd => cmd.toJSON());
 
@@ -190,16 +156,15 @@ client.once(Events.ClientReady, async () => {
       { body: commands }
     );
 
-    console.log("✅ Komendy slash zostały dodane");
+    console.log("✅ Slash commands deployed");
 
   } catch (err) {
-
     console.log("❌ Ready error:", err);
   }
 });
 
 // =====================
-// GLOBAL COMMANDS
+// INTERACTIONS
 // =====================
 client.on(Events.InteractionCreate, async interaction => {
 
@@ -213,15 +178,14 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === "reset") {
 
       if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
-
         return interaction.reply({
-          content: "❌ Nie masz permisji.",
+          content: "❌ Brak permisji.",
           flags: 64
         });
       }
 
       await interaction.reply({
-        content: "🔄 Restartuję bota...",
+        content: "🔄 Restart...",
         flags: 64
       });
 
@@ -229,32 +193,29 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     // =====================
-    // OWNER ONLY
+    // OWNER CHECK SYSTEM
     // =====================
-    if (
-      interaction.commandName === "checkinvites" ||
-      interaction.commandName === "testinvite"
-    ) {
+    const ownerOnly = ["checkinvites", "testinvite"];
+
+    if (ownerOnly.includes(interaction.commandName)) {
 
       if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
-
         return interaction.reply({
-          content: "❌ Tylko właściciel może użyć tej komendy.",
+          content: "❌ Tylko owner.",
           flags: 64
         });
       }
 
-      return;
+      // NIE blokujemy execution — tylko kontrola
     }
 
   } catch (err) {
-
     console.log("❌ Interaction error:", err);
   }
 });
 
 // =====================
-// ERRORS
+// SAFETY
 // =====================
 process.on("unhandledRejection", err => {
   console.log("❌ UnhandledRejection:", err);
