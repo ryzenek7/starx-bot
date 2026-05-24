@@ -32,7 +32,7 @@ module.exports = (client) => {
     client.on(Events.InteractionCreate, async interaction => {
 
         // =====================================
-        // /LC COMMAND
+        // /LC
         // =====================================
         if (interaction.isChatInputCommand()) {
 
@@ -46,20 +46,20 @@ module.exports = (client) => {
                 });
             }
 
-            // =====================
+            // =====================================
             // MODAL
-            // =====================
+            // =====================================
             const modal = new ModalBuilder()
                 .setCustomId(`lc_modal_${interaction.user.id}`)
                 .setTitle("StarX Exchange • Legit Check");
 
-            // =====================
+            // =====================================
             // INPUT
-            // =====================
+            // =====================================
             const input = new TextInputBuilder()
                 .setCustomId("lc_text")
-                .setLabel("Wpisz legit check")
-                .setValue(`+rep @seller Purchased `)
+                .setLabel("Wpisz produkt/usługę")
+                .setValue("+rep @seller Purchased ")
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(true);
 
@@ -79,9 +79,16 @@ module.exports = (client) => {
 
             let text = interaction.fields.getTextInputValue("lc_text");
 
-            // usuwa @seller z tekstu
-            text = text.replace("+rep @seller", "").trim();
+            // usuń template
+            text = text.replace("+rep @seller Purchased", "").trim();
 
+            // finalny tekst
+            const finalText =
+                `+rep ${interaction.user} Purchased ${text}`;
+
+            // =====================================
+            // EMBED
+            // =====================================
             const embed = new EmbedBuilder()
                 .setColor("#2b2d31")
                 .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
@@ -89,7 +96,9 @@ module.exports = (client) => {
                     `> ${EMOJI.pin} Legit check przygotowany`,
                     "",
                     `## ${EMOJI.zap} Treść`,
-                    `${interaction.user} Purchased ${text}`,
+                    "```",
+                    finalText,
+                    "```",
                     "",
                     `${EMOJI.lock} Wyślij wiadomość na <#${LEGIT_CHANNEL_ID}>`
                 ].join("\n"))
@@ -161,7 +170,7 @@ module.exports = (client) => {
             });
 
             // =====================================
-            // DELETE CHANNEL
+            // DELETE TICKET
             // =====================================
             setTimeout(async () => {
 
