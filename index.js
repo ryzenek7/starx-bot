@@ -18,7 +18,11 @@ const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1499478004265517396";
 const GUILD_ID = "1499481942394146946";
 
+// OWNER
 const OWNER_ROLE_ID = "1499499185337012377";
+
+// STAFF
+const STAFF_ROLE_ID = "1500930428993933373";
 
 // =====================
 // CLIENT
@@ -38,7 +42,7 @@ const client = new Client({
 console.log("🚀 Uruchamianie StarX Exchange Bot...");
 
 if (!TOKEN) {
-  console.log("❌ BRAK TOKENA w ENV!");
+  console.log("❌ Brak TOKEN w ENV");
   process.exit(1);
 }
 
@@ -52,7 +56,6 @@ require("./opinie")(client);
 require("./kalkulator")(client);
 require("./obliczprowizje")(client);
 require("./cennik")(client);
-require("./stakeacc")(client);
 require("./regulamin")(client);
 require("./verify")(client);
 require("./propozycje")(client);
@@ -60,9 +63,10 @@ require("./invites")(client);
 require("./rep")(client);
 require("./lc")(client);
 require("./giveaway")(client);
+require("./przejmij")(client);
 
 // =====================
-// READY + SLASH COMMANDS
+// READY
 // =====================
 client.once(Events.ClientReady, async () => {
 
@@ -78,35 +82,66 @@ client.once(Events.ClientReady, async () => {
       new SlashCommandBuilder()
         .setName("reset")
         .setDescription("Restartuje bota")
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+        .setDefaultMemberPermissions(
+          PermissionFlagsBits.Administrator
+        ),
 
       // =====================
-      // STAKE SYSTEM
+      // PRZEJMIJ
       // =====================
       new SlashCommandBuilder()
-        .setName("stakeadd")
-        .setDescription("Dodaj stock")
-        .addIntegerOption(o =>
-          o.setName("ilosc").setRequired(true)
+        .setName("przejmij")
+        .setDescription("Przejmij ticket")
+
+        .addUserOption(option =>
+          option
+            .setName("uzytkownik")
+            .setDescription("Właściciel ticketa")
+            .setRequired(true)
+        )
+
+        .setDefaultMemberPermissions(
+          PermissionFlagsBits.Administrator
         ),
 
+      // =====================
+      // ODPRZYJMIJ
+      // =====================
       new SlashCommandBuilder()
-        .setName("stakeremove")
-        .setDescription("Usuń stock")
-        .addIntegerOption(o =>
-          o.setName("ilosc").setRequired(true)
+        .setName("odprzyjmij")
+        .setDescription("Przywróć ticket")
+
+        .setDefaultMemberPermissions(
+          PermissionFlagsBits.Administrator
         ),
 
+      // =====================
+      // GIVEAWAY
+      // =====================
       new SlashCommandBuilder()
-        .setName("stakeset")
-        .setDescription("Ustaw stock")
-        .addIntegerOption(o =>
-          o.setName("ilosc").setRequired(true)
-        ),
+        .setName("konkurs")
+        .setDescription("Stwórz nowy konkurs")
 
-      new SlashCommandBuilder()
-        .setName("stakepanel")
-        .setDescription("Odśwież panel stock"),
+        .addStringOption(option =>
+          option
+            .setName("nagroda")
+            .setDescription("Nagroda")
+            .setRequired(true)
+        )
+
+        .addStringOption(option =>
+          option
+            .setName("czas")
+            .setDescription("Np. 10m, 1h, 1d")
+            .setRequired(true)
+        )
+
+        .addStringOption(option =>
+          option
+            .setName("wymagania")
+            .setDescription("Wymagania")
+            .setRequired(true)
+        ),
 
       // =====================
       // INVITES
@@ -121,23 +156,35 @@ client.once(Events.ClientReady, async () => {
 
       new SlashCommandBuilder()
         .setName("myinvite")
-        .setDescription("Twój link zaproszenia"),
+        .setDescription("Wygeneruj swój link"),
 
       new SlashCommandBuilder()
         .setName("checkinvites")
         .setDescription("Sprawdź zaproszenia użytkownika")
-        .addUserOption(o =>
-          o.setName("osoba").setRequired(true)
+
+        .addUserOption(option =>
+          option
+            .setName("osoba")
+            .setDescription("Użytkownik")
+            .setRequired(true)
         ),
 
       new SlashCommandBuilder()
         .setName("testinvite")
         .setDescription("Dodaj testowe zaproszenia")
-        .addUserOption(o =>
-          o.setName("osoba").setRequired(true)
+
+        .addUserOption(option =>
+          option
+            .setName("osoba")
+            .setDescription("Użytkownik")
+            .setRequired(true)
         )
-        .addIntegerOption(o =>
-          o.setName("ilosc").setRequired(true)
+
+        .addIntegerOption(option =>
+          option
+            .setName("ilosc")
+            .setDescription("Ilość")
+            .setRequired(true)
         ),
 
       // =====================
@@ -145,20 +192,28 @@ client.once(Events.ClientReady, async () => {
       // =====================
       new SlashCommandBuilder()
         .setName("lc")
-        .setDescription("Legit check template")
+        .setDescription("Wyślij legit check")
 
     ].map(cmd => cmd.toJSON());
 
-    const rest = new REST({ version: "10" }).setToken(TOKEN);
+    const rest =
+      new REST({ version: "10" })
+        .setToken(TOKEN);
 
     await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands }
+      Routes.applicationGuildCommands(
+        CLIENT_ID,
+        GUILD_ID
+      ),
+      {
+        body: commands
+      }
     );
 
     console.log("✅ Slash commands deployed");
 
   } catch (err) {
+
     console.log("❌ Ready error:", err);
   }
 });
@@ -177,7 +232,12 @@ client.on(Events.InteractionCreate, async interaction => {
     // =====================
     if (interaction.commandName === "reset") {
 
-      if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
+      if (
+        !interaction.member.roles.cache.has(
+          OWNER_ROLE_ID
+        )
+      ) {
+
         return interaction.reply({
           content: "❌ Brak permisji.",
           flags: 64
@@ -185,37 +245,77 @@ client.on(Events.InteractionCreate, async interaction => {
       }
 
       await interaction.reply({
-        content: "🔄 Restart...",
+        content: "🔄 Restartuję bota...",
         flags: 64
       });
 
-      return setTimeout(() => process.exit(0), 1000);
+      return setTimeout(() => {
+        process.exit(0);
+      }, 1000);
     }
 
     // =====================
-    // OWNER CHECK SYSTEM
+    // OWNER ONLY
     // =====================
-    const ownerOnly = ["checkinvites", "testinvite"];
+    const ownerOnly = [
+      "checkinvites",
+      "testinvite"
+    ];
 
-    if (ownerOnly.includes(interaction.commandName)) {
+    if (
+      ownerOnly.includes(
+        interaction.commandName
+      )
+    ) {
 
-      if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
+      if (
+        !interaction.member.roles.cache.has(
+          OWNER_ROLE_ID
+        )
+      ) {
+
         return interaction.reply({
           content: "❌ Tylko owner.",
           flags: 64
         });
       }
+    }
 
-      // NIE blokujemy execution — tylko kontrola
+    // =====================
+    // STAFF ONLY
+    // =====================
+    const staffOnly = [
+      "przejmij",
+      "odprzyjmij"
+    ];
+
+    if (
+      staffOnly.includes(
+        interaction.commandName
+      )
+    ) {
+
+      if (
+        !interaction.member.roles.cache.has(
+          STAFF_ROLE_ID
+        )
+      ) {
+
+        return interaction.reply({
+          content: "❌ Brak permisji.",
+          flags: 64
+        });
+      }
     }
 
   } catch (err) {
+
     console.log("❌ Interaction error:", err);
   }
 });
 
 // =====================
-// SAFETY
+// ERRORS
 // =====================
 process.on("unhandledRejection", err => {
   console.log("❌ UnhandledRejection:", err);
