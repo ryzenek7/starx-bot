@@ -47,14 +47,18 @@ module.exports = (client) => {
       if (!channel) return;
 
       const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
-        .setTitle("💰 StarX Exchange » CENNIK")
+        .setColor("#1b2dff")
+        .setTitle("🌟 StarX Exchange » CENNIK")
         .setDescription(
 `${EMOJI_PIN} Wybierz kategorię z menu poniżej.
 
+━━━━━━━━━━━━━━━━━━━━━━━
+
 ${EMOJI_ZAP} Szybka realizacja  
 ${EMOJI_LOCK} Bezpieczne transakcje  
-${EMOJI_MONEY} Najlepsze ceny`
+${EMOJI_MONEY} Najlepsze ceny
+
+━━━━━━━━━━━━━━━━━━━━━━━`
         )
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
@@ -101,6 +105,7 @@ ${EMOJI_MONEY} Najlepsze ceny`
       console.log("✅ Cennik wysłany");
 
     } catch (err) {
+
       console.log("❌ Cennik error:", err);
     }
   });
@@ -121,7 +126,7 @@ ${EMOJI_MONEY} Najlepsze ceny`
       if (interaction.values[0] === "nitro") {
 
         const embed = new EmbedBuilder()
-          .setColor("#5865F2")
+          .setColor("#1b2dff")
           .setTitle(`${EMOJI_NITRO} StarX Exchange » NITRO`)
           .setDescription(
 `${EMOJI_NITRO} **Nitro Boost (28 dni • Full Warranty)**  
@@ -143,7 +148,7 @@ ${EMOJI_MONEY} \`20 zł\``
       if (interaction.values[0] === "streaming") {
 
         const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
+          .setColor("#1b2dff")
           .setTitle(`${EMOJI_NETFLIX} StarX Exchange » STREAMING`)
           .setDescription(
 `${EMOJI_SPOTIFY} **Spotify Premium LIFETIME [KEY]**  
@@ -192,7 +197,7 @@ ${EMOJI_MONEY} \`10 zł\``
       if (interaction.values[0] === "vpn") {
 
         const embed = new EmbedBuilder()
-          .setColor("#0099ff")
+          .setColor("#1b2dff")
           .setTitle(`${EMOJI_NORD} StarX Exchange » VPN`)
           .setDescription(
 `${EMOJI_NORD} **NordVPN (Private) [LIFETIME]**  
