@@ -10,7 +10,7 @@ const {
 
 module.exports = (client) => {
 
-    const GIVEAWAY_CHANNEL_ID = "1502022020487970948";
+    const CHANNEL_ID = "1502022020487970948";
     const REQUIRED_ROLE_ID = "1499521304146083954";
 
     const EMOJI = {
@@ -24,17 +24,20 @@ module.exports = (client) => {
         red: "<a:red:1501989543182864535>"
     };
 
-    const participants = new Map();
+    let giveawayMessageId = null;
+    let participants = new Set();
+    let giveawayEnd = null;
+    let giveawayReward = null;
 
-    // =========================
+    // =====================
     // SLASH COMMAND
-    // =========================
+    // =====================
     client.once(Events.ClientReady, async () => {
 
         const data = [
             new SlashCommandBuilder()
                 .setName("konkurs")
-                .setDescription("Stwórz nowy konkurs")
+                .setDescription("Stwórz giveaway")
                 .addStringOption(o =>
                     o.setName("nagroda")
                         .setDescription("Nagroda")
@@ -45,164 +48,136 @@ module.exports = (client) => {
                         .setDescription("np. 10m, 1h, 1d")
                         .setRequired(true)
                 )
-                .addStringOption(o =>
-                    o.setName("wymagania")
-                        .setDescription("Wymagania")
-                        .setRequired(true)
-                )
                 .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         ];
 
         await client.application.commands.set(data);
-        console.log("✅ Slash commands loaded");
+        console.log("✅ Giveaway loaded");
     });
 
-    // =========================
-    // INTERACTIONS
-    // =========================
+    // =====================
+    // CREATE GIVEAWAY
+    // =====================
     client.on(Events.InteractionCreate, async interaction => {
 
-        // =========================
-        // CREATE GIVEAWAY
-        // =========================
-        if (interaction.isChatInputCommand()) {
+        if (!interaction.isChatInputCommand()) return;
+        if (interaction.commandName !== "konkurs") return;
 
-            if (interaction.commandName !== "konkurs") return;
+        const nagroda = interaction.options.getString("nagroda");
+        const czas = interaction.options.getString("czas");
 
-            const nagroda = interaction.options.getString("nagroda");
-            const czas = interaction.options.getString("czas");
-            const wymagania = interaction.options.getString("wymagania");
+        let timeMs = 0;
+        const value = parseInt(czas);
 
-            let timeMs = 0;
-            const value = parseInt(czas);
+        if (czas.endsWith("m")) timeMs = value * 60 * 1000;
+        if (czas.endsWith("h")) timeMs = value * 60 * 60 * 1000;
+        if (czas.endsWith("d")) timeMs = value * 24 * 60 * 60 * 1000;
 
-            if (czas.endsWith("m")) timeMs = value * 60 * 1000;
-            if (czas.endsWith("h")) timeMs = value * 60 * 60 * 1000;
-            if (czas.endsWith("d")) timeMs = value * 24 * 60 * 60 * 1000;
-
-            if (!timeMs || isNaN(timeMs)) {
-                return interaction.reply({
-                    content: `${EMOJI.red} Nieprawidłowy czas!`,
-                    flags: 64
-                });
-            }
-
-            const giveawayId = Date.now().toString();
-            participants.set(giveawayId, new Set());
-
-            const endTimestamp = Math.floor((Date.now() + timeMs) / 1000);
-
-            const embed = new EmbedBuilder()
-                .setColor("#2b2d31")
-                .setTitle(`${EMOJI.gift} StarX Exchange » GIVEAWAY`)
-                .setDescription([
-                    `## ${EMOJI.green} Nagroda`,
-                    `\`\`\`${nagroda}\`\`\``,
-                    ``,
-                    `## ${EMOJI.pin} Wymagania`,
-                    `> ${wymagania}`,
-                    ``,
-                    `## ${EMOJI.zap} Jak dołączyć?`,
-                    `> Kliknij przycisk poniżej`,
-                    ``,
-                    `## ${EMOJI.lock} Informacje`,
-                    `> ${EMOJI.time} Koniec: <t:${endTimestamp}:R>`,
-                    `> ${EMOJI.users} Uczestnicy: **0**`
-                ].join("\n"))
-                .setFooter({ text: "StarX Exchange • Giveaway System" })
-                .setTimestamp();
-
-            const button = new ButtonBuilder()
-                .setCustomId(`join_giveaway_${giveawayId}`)
-                .setLabel("Dołącz")
-                .setStyle(ButtonStyle.Success)
-                .setEmoji(EMOJI.gift);
-
-            const row = new ActionRowBuilder().addComponents(button);
-
-            const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
-            const message = await channel.send({ embeds: [embed], components: [row] });
-
-            interaction.reply({
-                content: `${EMOJI.green} Giveaway utworzony!`,
+        if (!timeMs || isNaN(timeMs)) {
+            return interaction.reply({
+                content: `${EMOJI.red} Nieprawidłowy czas`,
                 flags: 64
             });
-
-            // =========================
-            // END TIMER
-            // =========================
-            setTimeout(async () => {
-
-                const users = participants.get(giveawayId);
-
-                if (!users || users.size === 0) {
-                    return channel.send(`${EMOJI.red} Brak uczestników giveaway.`);
-                }
-
-                const arr = [...users];
-                const winner = arr[Math.floor(Math.random() * arr.length)];
-
-                const disabledButton = ButtonBuilder.from(button).setDisabled(true);
-                const disabledRow = new ActionRowBuilder().addComponents(disabledButton);
-
-                await message.edit({ components: [disabledRow] });
-
-                channel.send(`${EMOJI.gift} Gratulacje <@${winner}> wygrałeś **${nagroda}**!`);
-
-                participants.delete(giveawayId);
-
-            }, timeMs);
         }
 
-        // =========================
-        // JOIN BUTTON
-        // =========================
-        if (interaction.isButton()) {
+        participants = new Set();
+        giveawayReward = nagroda;
+        giveawayEnd = Date.now() + timeMs;
 
-            if (!interaction.customId.startsWith("join_giveaway_")) return;
+        const endTimestamp = Math.floor(giveawayEnd / 1000);
 
-            const giveawayId = interaction.customId.replace("join_giveaway_", "");
-            const users = participants.get(giveawayId);
+        const embed = new EmbedBuilder()
+            .setColor("#2b2d31")
+            .setTitle(`${EMOJI.gift} GIVEAWAY`)
+            .setDescription(`
+🎁 **Nagroda:** ${nagroda}
 
-            if (!users) {
-                return interaction.reply({
-                    content: `${EMOJI.red} Ten giveaway już się zakończył.`,
-                    flags: 64
-                });
-            }
+⏰ **Koniec:** <t:${endTimestamp}:R>
 
-            if (!interaction.member.roles.cache.has(REQUIRED_ROLE_ID)) {
-                return interaction.reply({
-                    content: `${EMOJI.red} Nie masz wymaganej roli.`,
-                    flags: 64
-                });
-            }
+👥 **Uczestnicy:** 0
 
-            if (users.has(interaction.user.id)) {
-                return interaction.reply({
-                    content: `${EMOJI.red} Już bierzesz udział.`,
-                    flags: 64
-                });
-            }
+📌 Kliknij przycisk aby dołączyć
+            `)
+            .setFooter({ text: "StarX Exchange Giveaway" });
 
-            users.add(interaction.user.id);
+        const button = new ButtonBuilder()
+            .setCustomId("join_giveaway")
+            .setLabel("Dołącz")
+            .setStyle(ButtonStyle.Success)
+            .setEmoji(EMOJI.gift);
 
-            const message = interaction.message;
-            const oldEmbed = message.embeds[0];
+        const row = new ActionRowBuilder().addComponents(button);
 
-            const updated = EmbedBuilder.from(oldEmbed).setDescription(
-                oldEmbed.description.replace(
-                    /\*\*\d+\*\*/,
-                    `**${users.size}**`
-                )
+        const channel = await client.channels.fetch(CHANNEL_ID);
+
+        const msg = await channel.send({
+            embeds: [embed],
+            components: [row]
+        });
+
+        giveawayMessageId = msg.id;
+
+        interaction.reply({
+            content: `${EMOJI.green} Giveaway utworzony!`,
+            flags: 64
+        });
+
+        // =====================
+        // END GIVEAWAY
+        // =====================
+        setTimeout(async () => {
+
+            const users = [...participants];
+
+            const message = await channel.messages.fetch(giveawayMessageId).catch(() => null);
+
+            if (!message) return;
+
+            const disabledRow = new ActionRowBuilder().addComponents(
+                ButtonBuilder.from(button).setDisabled(true)
             );
 
-            await message.edit({ embeds: [updated] });
+            await message.edit({ components: [disabledRow] });
 
+            if (users.length === 0) {
+                return channel.send(`${EMOJI.red} Brak uczestników.`);
+            }
+
+            const winner = users[Math.floor(Math.random() * users.length)];
+
+            channel.send(`${EMOJI.gift} Gratulacje <@${winner}> wygrałeś **${nagroda}**!`);
+
+        }, timeMs);
+    });
+
+    // =====================
+    // JOIN
+    // =====================
+    client.on(Events.InteractionCreate, async interaction => {
+
+        if (!interaction.isButton()) return;
+        if (interaction.customId !== "join_giveaway") return;
+        if (interaction.message.id !== giveawayMessageId) return;
+
+        if (!interaction.member.roles.cache.has(REQUIRED_ROLE_ID)) {
             return interaction.reply({
-                content: `${EMOJI.green} Dołączono!`,
+                content: `${EMOJI.red} Nie masz roli.`,
                 flags: 64
             });
         }
+
+        if (participants.has(interaction.user.id)) {
+            return interaction.reply({
+                content: `${EMOJI.red} Już bierzesz udział.`,
+                flags: 64
+            });
+        }
+
+        participants.add(interaction.user.id);
+
+        return interaction.reply({
+            content: `${EMOJI.green} Dołączyłeś do giveaway!`,
+            flags: 64
+        });
     });
 };
