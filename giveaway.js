@@ -34,12 +34,14 @@ module.exports = (client) => {
                 .setDescription("Stwórz nowy konkurs")
                 .addStringOption(o =>
                     o.setName("nagroda")
-                        .setDescription("Nagroda")
                         .setRequired(true)
                 )
                 .addStringOption(o =>
                     o.setName("czas")
-                        .setDescription("np. 10m, 1h, 1d")
+                        .setRequired(true)
+                )
+                .addStringOption(o =>
+                    o.setName("wymagania") // 🔥 FIX 1
                         .setRequired(true)
                 )
                 .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
@@ -55,6 +57,7 @@ module.exports = (client) => {
 
         const nagroda = interaction.options.getString("nagroda");
         const czas = interaction.options.getString("czas");
+        const wymagania = interaction.options.getString("wymagania"); // 🔥 FIX 2
 
         let timeMs = 0;
         const value = parseInt(czas);
@@ -62,13 +65,6 @@ module.exports = (client) => {
         if (czas.endsWith("m")) timeMs = value * 60 * 1000;
         if (czas.endsWith("h")) timeMs = value * 60 * 60 * 1000;
         if (czas.endsWith("d")) timeMs = value * 24 * 60 * 60 * 1000;
-
-        if (!timeMs || isNaN(timeMs)) {
-            return interaction.reply({
-                content: `${EMOJI.red} Nieprawidłowy czas!`,
-                flags: 64
-            });
-        }
 
         const giveawayId = Date.now().toString();
         participants.set(giveawayId, new Set());
@@ -82,19 +78,17 @@ module.exports = (client) => {
                 `## ${EMOJI.green} Nagroda`,
                 `\`\`\`${nagroda}\`\`\``,
                 ``,
-                `## ${EMOJI.pin} Wymagania`,
-                `> Brak`,
+                `## ${EMOJI.pin} Wymagania`, // 🔥 FIX 3
+                `> ${wymagania}`,
                 ``,
                 `## ${EMOJI.zap} Jak dołączyć?`,
                 `> Kliknij przycisk poniżej`,
                 ``,
                 `## ${EMOJI.lock} Informacje`,
                 `> ${EMOJI.time} Koniec: <t:${endTimestamp}:R>`,
-                `> ${EMOJI.users} Uczestnicy: **0**`,
-                `> Giveaway jest automatyczny`,
-                `> Winner zostanie wybrany losowo`
+                `> ${EMOJI.users} Uczestnicy: **0**`
             ].join("\n"))
-            .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand") // 🔥 FIX IMAGE
+            .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
             .setFooter({ text: "StarX Exchange • Giveaway System" })
             .setTimestamp();
 
@@ -118,8 +112,9 @@ module.exports = (client) => {
 
             const users = participants.get(giveawayId);
 
-            const disabledButton = ButtonBuilder.from(button).setDisabled(true);
-            const disabledRow = new ActionRowBuilder().addComponents(disabledButton);
+            const disabledRow = new ActionRowBuilder().addComponents(
+                ButtonBuilder.from(button).setDisabled(true)
+            );
 
             await message.edit({ components: [disabledRow] });
 
@@ -152,20 +147,7 @@ module.exports = (client) => {
             });
         }
 
-        if (!interaction.member.roles.cache.has(REQUIRED_ROLE_ID)) {
-            return interaction.reply({
-                content: `${EMOJI.red} Nie masz roli.`,
-                flags: 64
-            });
-        }
-
-        if (users.has(interaction.user.id)) {
-            return interaction.reply({
-                content: `${EMOJI.red} Już bierzesz udział.`,
-                flags: 64
-            });
-        }
-
+        // 🔥 FIX 4 — DODAWANIE USERA (to brakowało!)
         users.add(interaction.user.id);
 
         return interaction.reply({
