@@ -12,7 +12,9 @@ module.exports = (client) => {
     // =========================================
     // CONFIG
     // =========================================
-    const LEGIT_CHANNEL_ID = "1499519884860854505";
+
+    // KANAŁ #rep
+    const LEGIT_CHANNEL_ID = "1500893110048133253";
 
     // ROLA REALIZATORA
     const STAFF_ROLE_ID = "1500930428993933373";
@@ -36,7 +38,7 @@ module.exports = (client) => {
     client.on(Events.InteractionCreate, async interaction => {
 
         // =====================================
-        // /LC
+        // /lc
         // =====================================
         if (interaction.isChatInputCommand()) {
 
@@ -59,30 +61,22 @@ module.exports = (client) => {
                 // MODAL
                 // =====================================
                 const modal = new ModalBuilder()
-
                     .setCustomId("lc_modal")
-
                     .setTitle("StarX Exchange • Legit Check");
 
                 // =====================================
                 // INPUT
                 // =====================================
                 const input = new TextInputBuilder()
-
                     .setCustomId("lc_text")
-
                     .setLabel("Wpisz legit check")
-
                     .setValue(
                         `+rep @${interaction.user.username} Purchased `
                     )
-
                     .setPlaceholder(
                         "Np. Konto Stake 40 PLN [BLIK]"
                     )
-
                     .setStyle(TextInputStyle.Paragraph)
-
                     .setRequired(true);
 
                 const row = new ActionRowBuilder()
@@ -175,7 +169,7 @@ module.exports = (client) => {
             if (message.author.bot) return;
 
             // =====================================
-            // ONLY LEGIT CHANNEL
+            // ONLY #rep CHANNEL
             // =====================================
             if (
                 message.channel.id !== LEGIT_CHANNEL_ID
