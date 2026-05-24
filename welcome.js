@@ -4,50 +4,84 @@ module.exports = (client) => {
 
   const WELCOME_CHANNEL_ID = "1499527016347865399";
 
+  // =====================
+  // EMOJI
+  // =====================
+  const EMOJI = {
+    wave: "👋",
+    star: "🌟",
+    ticket: "🎫",
+    legit: "✅",
+    calc: "🧮",
+    exchange: "💱",
+    users: "<:users:1500243884733894716>",
+    green: "<a:green:1501990166082879538>",
+    zap: "<:zap:1501697151737139350>",
+    pin: "<:pin:1501697389050986546>"
+  };
+
   client.on(Events.GuildMemberAdd, async (member) => {
+
     try {
 
-      console.log("✅ NOWY USER:", member.user.tag);
-
       const channel = await client.channels.fetch(WELCOME_CHANNEL_ID);
-      if (!channel) return console.log("❌ Nie znaleziono kanału welcome");
+      if (!channel) return;
 
-      // numer osoby na serwerze
       const memberCount = member.guild.memberCount;
 
       const embed = new EmbedBuilder()
-        .setColor("#57F287")
-        .setTitle("👋 Witaj na StarX Exchange!")
+
+        .setColor("#2b2d31")
+
+        .setTitle(`${EMOJI.wave} StarX Exchange » Welcome`)
+
         .setDescription(
-`**${member}**, witamy na serwerze! 🔥
-
-🎉 Jesteś **${memberCount}** osobą na serwerze!
-
-📌 **Ważne kanały:**
-
-💱 <#1499513009188376767>
-🎫 <#1499512781861556314>
-✅ <#1499519884860854505>
-⭐ <#1499519935657935049>
-🧮 <#1499568863602540645>
-🥩 <#1499812157246669001>
-
-💡 Życzymy miłego pobytu i udanych wymian!`
+[
+`## ${EMOJI.green} Witaj na serwerze!`,
+`> ${member} miło Cię widzieć na **StarX Exchange**`,
+`> Jesteś **${memberCount}** osobą na serwerze`,
+``,
+`## ${EMOJI.pin} Ważne kanały`,
+`> ${EMOJI.exchange} Wymiany — <#1499513009188376767>`,
+`> ${EMOJI.ticket} Tickety — <#1499512781861556314>`,
+`> ${EMOJI.legit} Legit Check — <#1499519884860854505>`,
+`> ⭐ Opinie — <#1499519935657935049>`,
+`> ${EMOJI.calc} Kalkulator — <#1499568863602540645>`,
+``,
+`## ${EMOJI.zap} Informacje`,
+`> Zachowuj kulturę`,
+`> Przeczytaj regulamin`,
+`> Życzymy udanych wymian 🔥`
+].join("\n")
         )
-        .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+
+        .setThumbnail(
+          member.user.displayAvatarURL({
+            dynamic: true,
+            size: 1024
+          })
+        )
+
+        .setImage(
+          "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+        )
+
         .setFooter({
-          text: "StarX Exchange • 2026"
+          text: "© 2026 StarX Exchange"
         })
+
         .setTimestamp();
 
       await channel.send({
-        content: `🎉 ${member}`,
+        content: `${EMOJI.wave} ${member}`,
         embeds: [embed]
       });
 
+      console.log(`✅ Welcome sent to ${member.user.tag}`);
+
     } catch (err) {
+
       console.log("❌ Welcome error:", err);
     }
   });
-
 };
