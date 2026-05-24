@@ -15,23 +15,24 @@ module.exports = (client) => {
   // CONFIG
   // =====================
   const PANEL_CHANNEL_ID = "1499512781861556314";
-
   const REALIZATOR_ROLE_ID = "1500930428993933373";
 
   // =====================
-  // EMOJIS (twoje stare)
+  // EMOJI
   // =====================
   const EMOJI = {
-    ticket: "<:ticket:1501697124734206032>",
-    pin: "<:pin:1501697389050986546>",
+    list: "<:list:1501693215328440370>",
+    admin: "<:admin:1501989271077388500>",
+    warning: "<:warning:1501693444030992395>",
+    cart: "<:cart:1500243849535033577>",
     zap: "<:zap:1501697151737139350>",
-    lock: "<:lock:1501697222901895258>"
+    ticket: "<:ticket:1501697124734206032>",
+    clock: "<:clock:1502030015943151868>",
+    lock: "<:lock:1501697222901895258>",
+    support: "<:support:1500243961124618381>",
+    pin: "<:pin:1501697389050986546>",
+    money: "<a:money:1501685438103031920>"
   };
-
-  // =====================
-  // CLAIM STORAGE
-  // =====================
-  const claimed = new Map(); // channelId -> userId
 
   // =====================
   // MENU
@@ -44,41 +45,49 @@ module.exports = (client) => {
         .addOptions([
           {
             label: "Wymiana / Zakup",
+            description: "Kupno lub wymiana",
             value: "Wymiana / Zakup",
             emoji: { id: "1500243849535033577" }
           },
           {
             label: "Pomoc",
+            description: "Wsparcie administracji",
             value: "Pomoc",
             emoji: { id: "1500243961124618381" }
           },
           {
             label: "Middleman",
+            description: "Usługa pośrednika",
             value: "Middleman",
-            emoji: { id: "1500243884733894716" }
+            emoji: { id: "1501685438103031920", animated: true }
           }
         ])
     );
   }
 
   // =====================
-  // READY PANEL
+  // PANEL
   // =====================
   client.once(Events.ClientReady, async () => {
+
     try {
+
       const channel = await client.channels.fetch(PANEL_CHANNEL_ID);
       if (!channel) return;
 
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
-        .setTitle(`${EMOJI.ticket} StarX Exchange » TICKETY`)
+        .setTitle(`${EMOJI.ticket} StarX Exchange » System Ticketów`)
         .setDescription([
-          `> ${EMOJI.pin} Wybierz kategorię z menu poniżej`,
-          `> ${EMOJI.zap} Szybka odpowiedź`,
-          `> ${EMOJI.lock} Bezpieczny kontakt`
+          `> ${EMOJI.list} Wybierz kategorię z menu poniżej`,
+          `> ${EMOJI.zap} Szybka pomoc realizatorów`,
+          `> ${EMOJI.lock} Prywatny i bezpieczny kontakt`,
+          `> ${EMOJI.clock} Odpowiedź zwykle w kilka minut`
         ].join("\n"))
         .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-        .setFooter({ text: "© 2026 StarX Exchange" })
+        .setFooter({
+          text: "© 2026 StarX Exchange"
+        })
         .setTimestamp();
 
       await channel.send({
@@ -87,6 +96,7 @@ module.exports = (client) => {
       });
 
       console.log("✅ Ticket panel wysłany");
+
     } catch (err) {
       console.log("❌ Ticket panel error:", err);
     }
@@ -96,23 +106,41 @@ module.exports = (client) => {
   // CREATE TICKET
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
+
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "ticket_select") return;
 
     try {
+
       const category = interaction.values[0];
 
+      // sprawdza czy ticket istnieje
+      const existing = interaction.guild.channels.cache.find(
+        c =>
+          c.name === `ticket-${interaction.user.username}`.toLowerCase()
+      );
+
+      if (existing) {
+        return interaction.reply({
+          content: `${EMOJI.warning} Masz już otwarty ticket: ${existing}`,
+          flags: 64
+        });
+      }
+
+      // tworzenie kanału
       const channel = await interaction.guild.channels.create({
         name: `ticket-${interaction.user.username}`.toLowerCase(),
         type: ChannelType.GuildText,
 
         permissionOverwrites: [
+
+          // everyone
           {
             id: interaction.guild.id,
             deny: [PermissionsBitField.Flags.ViewChannel]
           },
 
-          // CLIENT
+          // autor ticketu
           {
             id: interaction.user.id,
             allow: [
@@ -123,7 +151,7 @@ module.exports = (client) => {
             ]
           },
 
-          // REALIZATORZY (OPEN)
+          // realizatorzy
           {
             id: REALIZATOR_ROLE_ID,
             allow: [
@@ -136,28 +164,43 @@ module.exports = (client) => {
         ]
       });
 
+      // =====================
+      // BUTTON
+      // =====================
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-          .setCustomId("claim_ticket")
-          .setLabel("Przejmij")
-          .setStyle(ButtonStyle.Success),
-
-        new ButtonBuilder()
           .setCustomId("close_ticket")
-          .setLabel("Zamknij")
+          .setLabel("Zamknij Ticket")
+          .setEmoji("🔒")
           .setStyle(ButtonStyle.Danger)
       );
 
+      // =====================
+      // EMBED TICKETA
+      // =====================
+      const embed = new EmbedBuilder()
+        .setColor("#2b2d31")
+        .setTitle(`${EMOJI.ticket} Nowy Ticket`)
+        .setDescription([
+          `${EMOJI.pin} Użytkownik: ${interaction.user}`,
+          `${EMOJI.list} Kategoria: **${category}**`,
+          `${EMOJI.admin} Support odpowie najszybciej jak to możliwe`,
+          `${EMOJI.money} StarX Exchange`
+        ].join("\n"))
+        .setFooter({
+          text: "System Ticketów"
+        })
+        .setTimestamp();
+
       await channel.send({
-        content:
-          `${EMOJI.pin} Nowy ticket\n` +
-          `👤 ${interaction.user}\n` +
-          `${EMOJI.ticket} Kategoria: **${category}**`,
+        content: `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
+        embeds: [embed],
         components: [row]
       });
 
+      // odpowiedź
       return interaction.reply({
-        content: `✅ Ticket utworzony: ${channel}`,
+        content: `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
         flags: 64
       });
 
@@ -167,78 +210,46 @@ module.exports = (client) => {
   });
 
   // =====================
-  // BUTTONS (CLAIM + CLOSE)
+  // CLOSE TICKET
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
+
     if (!interaction.isButton()) return;
+    if (interaction.customId !== "close_ticket") return;
 
-    const channel = interaction.channel;
-
-    // =====================
-    // CLAIM
-    // =====================
-    if (interaction.customId === "claim_ticket") {
-
-      if (!interaction.member.roles.cache.has(REALIZATOR_ROLE_ID)) {
-        return interaction.reply({
-          content: "❌ Nie jesteś realizatorem.",
-          flags: 64
-        });
-      }
-
-      if (claimed.has(channel.id)) {
-        return interaction.reply({
-          content: "❌ Ticket już przejęty.",
-          flags: 64
-        });
-      }
-
-      claimed.set(channel.id, interaction.user.id);
-
-      // ❌ usuń dostęp całej roli realizatorów
-      await channel.permissionOverwrites.edit(REALIZATOR_ROLE_ID, {
-        ViewChannel: false
-      }).catch(() => {});
-
-      // 🔥 dodaj tylko claimującego
-      await channel.permissionOverwrites.edit(interaction.user.id, {
-        ViewChannel: true,
-        SendMessages: true,
-        ReadMessageHistory: true,
-        ManageMessages: true
-      }).catch(() => {});
-
-      const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
-        .setDescription(`${EMOJI.zap} Ticket przejął: ${interaction.user}`);
-
-      return interaction.reply({ embeds: [embed] });
-    }
-
-    // =====================
-    // CLOSE
-    // =====================
-    if (interaction.customId === "close_ticket") {
+    try {
 
       const member = await interaction.guild.members.fetch(interaction.user.id);
 
-      if (!member.roles.cache.has(REALIZATOR_ROLE_ID)) {
+      // tylko realizator lub właściciel
+      if (
+        !member.roles.cache.has(REALIZATOR_ROLE_ID) &&
+        interaction.channel.name !== `ticket-${interaction.user.username}`.toLowerCase()
+      ) {
         return interaction.reply({
-          content: "❌ Brak permisji.",
+          content: `${EMOJI.warning} Nie masz permisji do zamknięcia ticketu.`,
           flags: 64
         });
       }
 
       const embed = new EmbedBuilder()
         .setColor("#ED4245")
-        .setDescription(`${EMOJI.lock} Ticket zamyka się...`);
+        .setDescription(
+          `${EMOJI.lock} Ticket zostanie zamknięty za 3 sekundy...`
+        );
 
-      await interaction.reply({ embeds: [embed] });
+      await interaction.reply({
+        embeds: [embed]
+      });
 
       setTimeout(async () => {
-        claimed.delete(channel.id);
-        await channel.delete().catch(() => {});
+
+        await interaction.channel.delete().catch(() => {});
+
       }, 3000);
+
+    } catch (err) {
+      console.log("❌ Close ticket error:", err);
     }
   });
 };
