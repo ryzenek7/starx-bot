@@ -1,4 +1,4 @@
-// propozycje.js FINAL PREMIUM
+// propozycje.js SMALL PREMIUM
 
 const {
   EmbedBuilder,
@@ -9,14 +9,9 @@ module.exports = (client) => {
 
   const CHANNEL_ID = "1499573354712010872";
 
-  // =====================
-  // EMOJI SERWEROWE
-  // =====================
   const EMOJI = {
     pin: "<:pin:1501697389050986546>",
-    zap: "<:zap:1501697151737139350>",
-    green: "<a:green:1501990166082879538>",
-    users: "<:users:1500243884733894716>"
+    green: "<a:green:1501990166082879538>"
   };
 
   client.on(Events.MessageCreate, async (message) => {
@@ -27,85 +22,53 @@ module.exports = (client) => {
       if (message.channel.id !== CHANNEL_ID) return;
       if (!message.content) return;
 
-      // =====================
-      // DELETE USER MESSAGE
-      // =====================
+      // usuń wiadomość użytkownika
       await message.delete().catch(() => {});
 
-      // =====================
-      // AVATAR
-      // =====================
-      const avatar = message.author.displayAvatarURL({
-        dynamic: true,
-        size: 512
-      });
-
-      // =====================
-      // DATE
-      // =====================
       const now = new Date().toLocaleString("pl-PL");
 
-      // =====================
-      // EMBED
-      // =====================
+      // embed
       const embed = new EmbedBuilder()
 
         .setColor("#2b2d31")
 
-        .setTitle("🌟 StarX Exchange » PROPOZYCJA")
+        .setTitle("🌟 StarX Exchange » Propozycja")
 
         .setDescription(
-[
-`## ${EMOJI.green} Autor propozycji`,
-`> <@${message.author.id}>`,
-``,
-`## ${EMOJI.pin} Treść`,
-"```",
-`${message.content}`,
-"```",
-``,
-`## ${EMOJI.zap} Informacje`,
-`> 📅 Dodano: ${now}`,
-`> 💬 Głosuj reakcjami poniżej`,
-`> 🧠 Zachowaj kulturę w dyskusji`
-].join("\n")
+`${EMOJI.green} Autor: <@${message.author.id}>
+
+${EMOJI.pin} Propozycja:
+\`\`\`
+${message.content}
+\`\`\`
+
+📅 ${now}`
         )
 
-        .setThumbnail(avatar)
-
-        .setImage(
-          "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+        .setThumbnail(
+          message.author.displayAvatarURL({
+            dynamic: true
+          })
         )
 
         .setFooter({
-          text: "© 2026 StarX Exchange • Propozycje"
-        })
+          text: "© 2026 StarX Exchange"
+        });
 
-        .setTimestamp();
-
-      // =====================
-      // SEND EMBED
-      // =====================
+      // wyślij embed
       const sent = await message.channel.send({
         embeds: [embed]
       });
 
-      // =====================
-      // REACTIONS
-      // =====================
+      // reakcje
       await sent.react("✅");
       await sent.react("❌");
-      await sent.react("🤍");
 
-      // =====================
-      // THREAD
-      // =====================
+      // thread
       await sent.startThread({
         name: `Dyskusja • ${message.author.username}`,
         autoArchiveDuration: 1440
       });
-
-      console.log("✅ Propozycja wysłana");
 
     } catch (err) {
 
