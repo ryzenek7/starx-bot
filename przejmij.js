@@ -6,20 +6,19 @@ const {
 
 module.exports = (client) => {
 
-  // =====================
+  // =====================================
   // ROLE IDS
-  // =====================
+  // =====================================
   const STAFF_ROLE_ID = "1500930428993933373";
 
   const ADMIN_ROLES = [
-    "1499499185337012377",
-    "1499507487647338656",
-    "1500930428993933373"
+    "1499499185337012377", // owner
+    "1499507487647338656"  // support
   ];
 
-  // =====================
+  // =====================================
   // EMOJI
-  // =====================
+  // =====================================
   const EMOJI = {
     pin: "<:pin:1501697389050986546>",
     zap: "<:zap:1501697151737139350>",
@@ -27,19 +26,24 @@ module.exports = (client) => {
     money: "<a:money:1501685438103031920>"
   };
 
-  // =====================
-  // INTERACTIONS
-  // =====================
+  // =====================================
+  // INTERACTION CREATE
+  // =====================================
   client.on(Events.InteractionCreate, async interaction => {
 
     if (!interaction.isChatInputCommand()) return;
 
     // =====================================
-    // PRZEJMIJ
+    // /PRZEJMIJ
     // =====================================
     if (interaction.commandName === "przejmij") {
 
-      if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+      // STAFF CHECK
+      if (
+        !interaction.member.roles.cache.has(
+          STAFF_ROLE_ID
+        )
+      ) {
 
         return interaction.reply({
           content: "❌ Nie masz permisji.",
@@ -50,13 +54,16 @@ module.exports = (client) => {
       try {
 
         const customer =
-          interaction.options.getUser("uzytkownik");
+          interaction.options.getUser(
+            "uzytkownik"
+          );
 
-        const channel = interaction.channel;
+        const channel =
+          interaction.channel;
 
-        // =====================================
-        // UKRYJ ADMINISTRACJI
-        // =====================================
+        // =================================
+        // UKRYJ OWNER + SUPPORT
+        // =================================
         for (const roleId of ADMIN_ROLES) {
 
           await channel.permissionOverwrites.edit(
@@ -67,9 +74,9 @@ module.exports = (client) => {
           ).catch(() => {});
         }
 
-        // =====================================
+        // =================================
         // POKAŻ KLIENTOWI
-        // =====================================
+        // =================================
         await channel.permissionOverwrites.edit(
           customer.id,
           {
@@ -80,9 +87,9 @@ module.exports = (client) => {
           }
         );
 
-        // =====================================
-        // POKAŻ PRZEJMUJĄCEMU
-        // =====================================
+        // =================================
+        // POKAŻ REALIZATOROWI
+        // =================================
         await channel.permissionOverwrites.edit(
           interaction.user.id,
           {
@@ -94,31 +101,33 @@ module.exports = (client) => {
           }
         );
 
-        // =====================================
+        // =================================
         // EMBED
-        // =====================================
-        const embed = new EmbedBuilder()
+        // =================================
+        const embed =
+          new EmbedBuilder()
 
-          .setColor("#2b2d31")
+            .setColor("#2b2d31")
 
-          .setTitle(
-            `${EMOJI.lock} StarX Exchange » Ticket Przejęty`
-          )
+            .setTitle(
+              `${EMOJI.lock} StarX Exchange » Ticket Przejęty`
+            )
 
-          .setDescription(
+            .setDescription(
 [
 `> ${EMOJI.pin} Ticket przejęty przez ${interaction.user}`,
 `> ${EMOJI.zap} Klient: ${customer}`,
 ``,
-`${EMOJI.money} Ticket widzi tylko klient i osoba przejmująca`
+`${EMOJI.money} Ticket widzi tylko klient i realizator`
 ].join("\n")
-          )
+            )
 
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          })
+            .setFooter({
+              text:
+                "© 2026 StarX Exchange"
+            })
 
-          .setTimestamp();
+            .setTimestamp();
 
         await interaction.reply({
           embeds: [embed]
@@ -126,21 +135,33 @@ module.exports = (client) => {
 
       } catch (err) {
 
-        console.log("❌ przejmij error:", err);
+        console.log(
+          "❌ przejmij error:",
+          err
+        );
 
-        interaction.reply({
-          content: "❌ Wystąpił błąd.",
+        await interaction.reply({
+          content:
+            "❌ Wystąpił błąd.",
           flags: 64
         }).catch(() => {});
       }
     }
 
     // =====================================
-    // ODPRZYJMIJ
+    // /ODPRZYJMIJ
     // =====================================
-    if (interaction.commandName === "odprzyjmij") {
+    if (
+      interaction.commandName ===
+      "odprzyjmij"
+    ) {
 
-      if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+      // STAFF CHECK
+      if (
+        !interaction.member.roles.cache.has(
+          STAFF_ROLE_ID
+        )
+      ) {
 
         return interaction.reply({
           content: "❌ Nie masz permisji.",
@@ -150,11 +171,12 @@ module.exports = (client) => {
 
       try {
 
-        const channel = interaction.channel;
+        const channel =
+          interaction.channel;
 
-        // =====================================
-        // PRZYWRÓĆ ADMINISTRACJĘ
-        // =====================================
+        // =================================
+        // PRZYWRÓĆ OWNER + SUPPORT
+        // =================================
         for (const roleId of ADMIN_ROLES) {
 
           await channel.permissionOverwrites.edit(
@@ -167,30 +189,32 @@ module.exports = (client) => {
           ).catch(() => {});
         }
 
-        // =====================================
+        // =================================
         // EMBED
-        // =====================================
-        const embed = new EmbedBuilder()
+        // =================================
+        const embed =
+          new EmbedBuilder()
 
-          .setColor("#57F287")
+            .setColor("#57F287")
 
-          .setTitle(
-            `${EMOJI.zap} StarX Exchange » Ticket Odprzejęty`
-          )
+            .setTitle(
+              `${EMOJI.zap} StarX Exchange » Ticket Odprzejęty`
+            )
 
-          .setDescription(
+            .setDescription(
 [
 `> ${EMOJI.pin} Ticket został przywrócony`,
 ``,
 `${EMOJI.money} Administracja ponownie widzi ticket`
 ].join("\n")
-          )
+            )
 
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          })
+            .setFooter({
+              text:
+                "© 2026 StarX Exchange"
+            })
 
-          .setTimestamp();
+            .setTimestamp();
 
         await interaction.reply({
           embeds: [embed]
@@ -198,10 +222,14 @@ module.exports = (client) => {
 
       } catch (err) {
 
-        console.log("❌ odprzyjmij error:", err);
+        console.log(
+          "❌ odprzyjmij error:",
+          err
+        );
 
-        interaction.reply({
-          content: "❌ Wystąpił błąd.",
+        await interaction.reply({
+          content:
+            "❌ Wystąpił błąd.",
           flags: 64
         }).catch(() => {});
       }
