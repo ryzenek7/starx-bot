@@ -24,8 +24,11 @@ module.exports = (client) => {
   // READY
   // ==========================
   client.once(Events.ClientReady, async () => {
+
     try {
+
       for (const guild of client.guilds.cache.values()) {
+
         const invites = await guild.invites.fetch();
 
         inviteCache.set(
@@ -37,6 +40,7 @@ module.exports = (client) => {
       console.log("✅ Invite system loaded");
 
     } catch (err) {
+
       console.log("❌ Invite Ready Error:", err);
     }
   });
@@ -45,23 +49,28 @@ module.exports = (client) => {
   // NAGRODY RANG
   // ==========================
   async function updateRewardRoles(member, total) {
+
     if (!member) return;
 
-    // 20+ = -10% i usuwa -5%
+    // 20+ = -10%
     if (total >= 20) {
+
       await member.roles.add(ROLE_10).catch(() => {});
       await member.roles.remove(ROLE_5).catch(() => {});
+
       return;
     }
 
     // 10+ = -5%
     if (total >= 10) {
+
       await member.roles.add(ROLE_5).catch(() => {});
       await member.roles.remove(ROLE_10).catch(() => {});
+
       return;
     }
 
-    // mniej niż 10 = usuń obie
+    // mniej niż 10
     await member.roles.remove(ROLE_5).catch(() => {});
     await member.roles.remove(ROLE_10).catch(() => {});
   }
@@ -70,14 +79,22 @@ module.exports = (client) => {
   // JOIN TRACKER
   // ==========================
   client.on(Events.GuildMemberAdd, async member => {
+
     try {
+
       const guild = member.guild;
 
-      const oldInvites = inviteCache.get(guild.id) || new Map();
-      const newInvites = await guild.invites.fetch();
+      const oldInvites =
+        inviteCache.get(guild.id) || new Map();
+
+      const newInvites =
+        await guild.invites.fetch();
 
       const usedInvite = newInvites.find(inv => {
-        const oldUses = oldInvites.get(inv.code) || 0;
+
+        const oldUses =
+          oldInvites.get(inv.code) || 0;
+
         return inv.uses > oldUses;
       });
 
@@ -91,20 +108,30 @@ module.exports = (client) => {
       let ownerId = null;
 
       if (personalInvites.has(usedInvite.code)) {
-        ownerId = personalInvites.get(usedInvite.code);
+
+        ownerId =
+          personalInvites.get(usedInvite.code);
+
       } else if (usedInvite.inviter) {
-        ownerId = usedInvite.inviter.id;
+
+        ownerId =
+          usedInvite.inviter.id;
       }
 
       if (!ownerId) return;
 
-      const key = `invites_${guild.id}_${ownerId}`;
-      client[key] = (client[key] || 0) + 1;
+      const key =
+        `invites_${guild.id}_${ownerId}`;
+
+      client[key] =
+        (client[key] || 0) + 1;
 
       const total = client[key];
 
       const inviterMember =
-        await guild.members.fetch(ownerId).catch(() => null);
+        await guild.members
+          .fetch(ownerId)
+          .catch(() => null);
 
       await updateRewardRoles(inviterMember, total);
 
@@ -112,15 +139,20 @@ module.exports = (client) => {
       // LOG
       // ======================
       const logChannel =
-        await guild.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
+        await guild.channels
+          .fetch(LOG_CHANNEL_ID)
+          .catch(() => null);
 
       if (logChannel) {
+
         const inviter =
-          await client.users.fetch(ownerId).catch(() => null);
+          await client.users
+            .fetch(ownerId)
+            .catch(() => null);
 
         const embed = new EmbedBuilder()
-          .setColor("#2b2d31")
-          .setTitle("🥷 StarX Exchange » NOWE ZAPROSZENIE")
+          .setColor("#1b2dff")
+          .setTitle("🌟 StarX Exchange » NOWE ZAPROSZENIE")
           .setDescription(
 `👤 **Nowy użytkownik:** ${member}
 
@@ -130,7 +162,9 @@ module.exports = (client) => {
 
 🎁 **Nagrody:**
 10 osób = <@&${ROLE_5}>
-20 osób = <@&${ROLE_10}> 
+20 osób = <@&${ROLE_10}>
+
+⚠️ Promocja działa wyłącznie na zakup kont i nie obejmuje exchange.
 
 🔗 Kod: \`${usedInvite.code}\``
           )
@@ -145,6 +179,7 @@ module.exports = (client) => {
       }
 
     } catch (err) {
+
       console.log("❌ Join Invite Error:", err);
     }
   });
@@ -153,7 +188,9 @@ module.exports = (client) => {
   // COMMANDS
   // ==========================
   client.on(Events.InteractionCreate, async interaction => {
+
     try {
+
       if (!interaction.isChatInputCommand()) return;
 
       // ======================
@@ -161,19 +198,23 @@ module.exports = (client) => {
       // ======================
       if (interaction.commandName === "myinvite") {
 
-        const invite = await interaction.channel.createInvite({
-          maxAge: 0,
-          maxUses: 0,
-          unique: true
-        });
+        const invite =
+          await interaction.channel.createInvite({
+            maxAge: 0,
+            maxUses: 0,
+            unique: true
+          });
 
-        personalInvites.set(invite.code, interaction.user.id);
+        personalInvites.set(
+          invite.code,
+          interaction.user.id
+        );
 
         return interaction.reply({
           embeds: [
             new EmbedBuilder()
-              .setColor("#2b2d31")
-              .setTitle("🔗 StarX Exchange » TWÓJ LINK")
+              .setColor("#1b2dff")
+              .setTitle("🌟 StarX Exchange » TWÓJ LINK")
               .setDescription(
 `👤 ${interaction.user}
 
@@ -192,17 +233,21 @@ https://discord.gg/${invite.code}`
       if (interaction.commandName === "invites") {
 
         const amount =
-          client[`invites_${interaction.guild.id}_${interaction.user.id}`] || 0;
+          client[
+            `invites_${interaction.guild.id}_${interaction.user.id}`
+          ] || 0;
 
         return interaction.reply({
           embeds: [
             new EmbedBuilder()
-              .setColor("#2b2d31")
-              .setTitle("📨 StarX Exchange » INVITES")
+              .setColor("#1b2dff")
+              .setTitle("🌟 StarX Exchange » INVITES")
               .setDescription(
 `👤 ${interaction.user}
 
-Zaprosiłeś **${amount}** osób.`
+Zaprosiłeś **${amount}** osób.
+
+⚠️ Promocja działa wyłącznie na zakup kont i nie obejmuje exchange.`
               )
           ],
           flags: 64
@@ -214,16 +259,19 @@ Zaprosiłeś **${amount}** osób.`
       // ======================
       if (interaction.commandName === "checkinvites") {
 
-        const user = interaction.options.getUser("osoba");
+        const user =
+          interaction.options.getUser("osoba");
 
         const amount =
-          client[`invites_${interaction.guild.id}_${user.id}`] || 0;
+          client[
+            `invites_${interaction.guild.id}_${user.id}`
+          ] || 0;
 
         return interaction.reply({
           embeds: [
             new EmbedBuilder()
-              .setColor("#2b2d31")
-              .setTitle("📨 StarX Exchange » CHECK INVITES")
+              .setColor("#1b2dff")
+              .setTitle("🌟 StarX Exchange » CHECK INVITES")
               .setDescription(
 `👤 ${user}
 
@@ -239,13 +287,16 @@ Posiada **${amount}** zaproszeń.`
       // ======================
       if (interaction.commandName === "topinvites") {
 
-        const members = interaction.guild.members.cache
-          .filter(m => !m.user.bot)
-          .map(m => ({
-            user: m.user,
-            invites:
-              client[`invites_${interaction.guild.id}_${m.id}`] || 0
-          }));
+        const members =
+          interaction.guild.members.cache
+            .filter(m => !m.user.bot)
+            .map(m => ({
+              user: m.user,
+              invites:
+                client[
+                  `invites_${interaction.guild.id}_${m.id}`
+                ] || 0
+            }));
 
         const sorted = members
           .filter(x => x.invites > 0)
@@ -255,16 +306,20 @@ Posiada **${amount}** zaproszeń.`
         let desc = "";
 
         sorted.forEach((x, i) => {
-          desc += `**${i + 1}.** ${x.user} — **${x.invites} osób**\n`;
+
+          desc +=
+            `**${i + 1}.** ${x.user} — **${x.invites} osób**\n`;
         });
 
-        if (!desc) desc = "Brak danych.";
+        if (!desc) {
+          desc = "Brak danych.";
+        }
 
         return interaction.reply({
           embeds: [
             new EmbedBuilder()
-              .setColor("#2b2d31")
-              .setTitle("🏆 StarX Exchange » TOP INVITES")
+              .setColor("#1b2dff")
+              .setTitle("🌟 StarX Exchange » TOP INVITES")
               .setDescription(desc)
           ]
         });
@@ -275,7 +330,12 @@ Posiada **${amount}** zaproszeń.`
       // ======================
       if (interaction.commandName === "testinvite") {
 
-        if (!interaction.member.roles.cache.has(OWNER_ROLE_ID)) {
+        if (
+          !interaction.member.roles.cache.has(
+            OWNER_ROLE_ID
+          )
+        ) {
+
           return interaction.reply({
             content: "❌ Nie masz permisji.",
             flags: 64
@@ -306,8 +366,8 @@ Posiada **${amount}** zaproszeń.`
         return interaction.reply({
           embeds: [
             new EmbedBuilder()
-              .setColor("#2b2d31")
-              .setTitle("🧪 StarX Exchange » TEST INVITE")
+              .setColor("#1b2dff")
+              .setTitle("🌟 StarX Exchange » TEST INVITE")
               .setDescription(
 `Dodano **${amount}** zaproszeń użytkownikowi ${user}
 
@@ -319,6 +379,7 @@ Posiada **${amount}** zaproszeń.`
       }
 
     } catch (err) {
+
       console.log("❌ Invite Command Error:", err);
     }
   });
