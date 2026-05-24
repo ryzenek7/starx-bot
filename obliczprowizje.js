@@ -26,6 +26,7 @@ module.exports = (client) => {
 
     const EMOJI_MONEY = "<a:money:1501685438103031920>";
     const EMOJI_BOX = "<:box:1500243849535033577>";
+    const EMOJI_ARROW = "<a:Arrow_White:1508094625984811038>";
 
     // =====================
     // PROWIZJE
@@ -53,7 +54,13 @@ module.exports = (client) => {
         "CRYPTO_KODBLIK": 4,
         "CRYPTO_PAYPAL": 4,
         "CRYPTO_CRYPTO": 4,
-        "CRYPTO_LTC": 4
+        "CRYPTO_LTC": 4,
+
+        // LTC
+        "LTC_BLIK": 4,
+        "LTC_KODBLIK": 4,
+        "LTC_PAYPAL": 4,
+        "LTC_CRYPTO": 4
     };
 
     // =====================
@@ -61,6 +68,7 @@ module.exports = (client) => {
     // =====================
 
     function emoji(method) {
+
         if (method === "BLIK") return EMOJI_BLIK;
         if (method === "KODBLIK") return EMOJI_BLIK;
         if (method === "PAYPAL") return EMOJI_PAYPAL;
@@ -68,6 +76,13 @@ module.exports = (client) => {
         if (method === "LTC") return EMOJI_LTC;
 
         return "💸";
+    }
+
+    function methodName(method) {
+
+        if (method === "KODBLIK") return "KOD BLIK";
+
+        return method;
     }
 
     // =====================
@@ -79,10 +94,17 @@ module.exports = (client) => {
         const channel = await client.channels.fetch(CHANNEL_ID);
 
         const embed = new EmbedBuilder()
-            .setColor("#2b2d31")
+            .setColor("#1b2dff")
             .setTitle("🌟 StarX Exchange » OBLICZ PROWIZJĘ")
             .setDescription(`
 ${EMOJI_MONEY} Oblicz ile dostaniesz lub ile musisz wpłacić.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
 ${EMOJI_BOX} Kliknij menu poniżej.
             `)
             .setFooter({
@@ -267,6 +289,7 @@ ${EMOJI_BOX} Kliknij menu poniżej.
                         new TextInputBuilder()
                             .setCustomId("kwota")
                             .setLabel("Podaj kwotę")
+                            .setPlaceholder("Np. 100")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true)
                     )
@@ -293,6 +316,7 @@ ${EMOJI_BOX} Kliknij menu poniżej.
             const key = `${from}_${to}`;
 
             if (!rates[key]) {
+
                 return interaction.reply({
                     content: "❌ Nie można wymienić tej metody.",
                     flags: 64
@@ -308,34 +332,46 @@ ${EMOJI_BOX} Kliknij menu poniżej.
             );
 
             if (isNaN(kwota) || kwota <= 0) {
+
                 return interaction.reply({
                     content: "❌ Podano nieprawidłową kwotę.",
                     flags: 64
                 });
             }
 
+            // LICZENIE PROWIZJI
+            let prowizja = (kwota * percent) / 100;
+
+            // MINIMALNA PROWIZJA
+            if (prowizja < 3) {
+                prowizja = 3;
+            }
+
             let wynik = 0;
 
             if (type === "otrzymam") {
 
-                wynik = kwota - (kwota * percent / 100);
+                wynik = kwota - prowizja;
 
             } else {
 
-                wynik = kwota / (1 - percent / 100);
+                wynik = kwota + prowizja;
             }
 
             const embed = new EmbedBuilder()
-                .setColor("#2b2d31")
+                .setColor("#1b2dff")
                 .setTitle("🌟 StarX Exchange » WYNIK")
                 .setDescription(`
-${emoji(from)} **Z:** ${from}
+${emoji(from)} **Z:** ${methodName(from)}
 
-${emoji(to)} **Na:** ${to}
+${emoji(to)} **Na:** ${methodName(to)}
 
 💸 **Prowizja:** ${percent}%
+${EMOJI_ARROW} **Minimalna prowizja:** 3 PLN
 
-${EMOJI_MONEY} **Wynik:** ${wynik.toFixed(2)} zł
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_MONEY} **Wynik:** \`${wynik.toFixed(2)} PLN\`
                 `)
                 .setFooter({
                     text: "© 2026 StarX Exchange x Kalkulator"
