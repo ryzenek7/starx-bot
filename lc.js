@@ -9,10 +9,16 @@ const {
 
 module.exports = (client) => {
 
+    // =====================================
+    // CONFIG
+    // =====================================
     const LEGIT_CHANNEL_ID = "1500893110048133253";
     const STAFF_ROLE_ID = "1500930428993933373";
     const TICKET_ACCESS_ROLE_ID = "1502020178026696744";
 
+    // =====================================
+    // EMOJI
+    // =====================================
     const EMOJI = {
         pin: "<:pin:1501697389050986546>",
         zap: "<:zap:1501697151737139350>",
@@ -21,17 +27,18 @@ module.exports = (client) => {
     };
 
     // =====================================
-    // LC COMMAND
+    // INTERACTIONS
     // =====================================
     client.on(Events.InteractionCreate, async interaction => {
 
-        // =====================
-        // /lc
-        // =====================
+        // =====================================
+        // /LC COMMAND
+        // =====================================
         if (interaction.isChatInputCommand()) {
 
             if (interaction.commandName !== "lc") return;
 
+            // tylko realizator
             if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
                 return interaction.reply({
                     content: "❌ Brak permisji.",
@@ -39,14 +46,20 @@ module.exports = (client) => {
                 });
             }
 
+            // =====================
+            // MODAL
+            // =====================
             const modal = new ModalBuilder()
                 .setCustomId(`lc_modal_${interaction.user.id}`)
                 .setTitle("StarX Exchange • Legit Check");
 
+            // =====================
+            // INPUT
+            // =====================
             const input = new TextInputBuilder()
                 .setCustomId("lc_text")
                 .setLabel("Wpisz legit check")
-                .setPlaceholder("Np. Konto Stake 40 PLN [BLIK]")
+                .setValue(`+rep <@${interaction.user.id}> Purchased `)
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(true);
 
@@ -57,9 +70,9 @@ module.exports = (client) => {
             return interaction.showModal(modal);
         }
 
-        // =====================
-        // MODAL
-        // =====================
+        // =====================================
+        // MODAL SUBMIT
+        // =====================================
         if (interaction.isModalSubmit()) {
 
             if (!interaction.customId.startsWith("lc_modal_")) return;
@@ -79,7 +92,9 @@ module.exports = (client) => {
                     "",
                     `${EMOJI.lock} Wyślij wiadomość na <#${LEGIT_CHANNEL_ID}>`
                 ].join("\n"))
-                .setFooter({ text: "StarX Exchange • Legit System" })
+                .setFooter({
+                    text: "StarX Exchange • Legit System"
+                })
                 .setTimestamp();
 
             return interaction.reply({
@@ -90,23 +105,23 @@ module.exports = (client) => {
     });
 
     // =====================================
-    // SAFE AUTO CLOSE SYSTEM
+    // AUTO CLOSE AFTER +REP
     // =====================================
     client.on(Events.MessageCreate, async message => {
 
-        if (message.author.bot) return;
-        if (message.channel.id !== LEGIT_CHANNEL_ID) return;
-
-        // ⚠️ tylko jeśli wiadomość zawiera +rep
-        if (!message.content.toLowerCase().includes("+rep")) return;
-
         try {
+
+            if (message.author.bot) return;
+            if (message.channel.id !== LEGIT_CHANNEL_ID) return;
+
+            // tylko +rep
+            if (!message.content.toLowerCase().includes("+rep")) return;
 
             const guild = message.guild;
 
-            // =====================
-            // SAFE TICKET FIND (CHANNEL-BASED)
-            // =====================
+            // =====================================
+            // FIND TICKET
+            // =====================================
             const ticketChannel = guild.channels.cache.find(c =>
                 c.isTextBased() &&
                 c.name.includes("ticket")
@@ -114,9 +129,9 @@ module.exports = (client) => {
 
             if (!ticketChannel) return;
 
-            // =====================
-            // DISABLE ACCESS ROLE ONLY FOR MEMBERS IN CHANNEL
-            // =====================
+            // =====================================
+            // REMOVE ACCESS ROLE
+            // =====================================
             const accessRole = guild.roles.cache.get(TICKET_ACCESS_ROLE_ID);
 
             if (accessRole) {
@@ -124,25 +139,33 @@ module.exports = (client) => {
                 const members = [...accessRole.members.values()];
 
                 for (const member of members) {
-                    await member.roles.remove(TICKET_ACCESS_ROLE_ID)
+
+                    await member.roles
+                        .remove(TICKET_ACCESS_ROLE_ID)
                         .catch(() => {});
                 }
             }
 
-            // =====================
+            // =====================================
             // CLOSE EMBED
-            // =====================
+            // =====================================
             const closeEmbed = new EmbedBuilder()
                 .setColor("#57F287")
-                .setDescription(`${EMOJI.lock} Legit check wykryty — zamykam ticket...`);
+                .setDescription(
+                    `${EMOJI.lock} Legit check wykryty — zamykam ticket...`
+                );
 
-            await ticketChannel.send({ embeds: [closeEmbed] });
+            await ticketChannel.send({
+                embeds: [closeEmbed]
+            });
 
-            // =====================
-            // DELETE
-            // =====================
+            // =====================================
+            // DELETE CHANNEL
+            // =====================================
             setTimeout(async () => {
+
                 await ticketChannel.delete().catch(() => {});
+
             }, 3000);
 
         } catch (err) {
