@@ -31,13 +31,15 @@ module.exports = (client) => {
     lock: "<:lock:1501697222901895258>",
     support: "<:support:1500243961124618381>",
     pin: "<:pin:1501697389050986546>",
-    money: "<a:money:1501685438103031920>"
+    money: "<a:money:1501685438103031920>",
+    middleman: "<:middleman:1500243884733894716>"
   };
 
   // =====================
   // MENU
   // =====================
   function createMenu() {
+
     return new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId("ticket_select")
@@ -59,7 +61,7 @@ module.exports = (client) => {
             label: "Middleman",
             description: "Usługa pośrednika",
             value: "Middleman",
-            emoji: { id: "1501685438103031920", animated: true }
+            emoji: { id: "1500243884733894716" }
           }
         ])
     );
@@ -171,7 +173,7 @@ module.exports = (client) => {
         new ButtonBuilder()
           .setCustomId("close_ticket")
           .setLabel("Zamknij Ticket")
-          .setEmoji("🔒")
+          .setEmoji("1501697222901895258")
           .setStyle(ButtonStyle.Danger)
       );
 
