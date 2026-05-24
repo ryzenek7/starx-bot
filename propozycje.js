@@ -6,49 +6,100 @@ const {
 } = require("discord.js");
 
 module.exports = (client) => {
+
   const CHANNEL_ID = "1499573354712010872";
 
+  // =====================
+  // EMOJI SERWEROWE
+  // =====================
+  const EMOJI = {
+    pin: "<:pin:1501697389050986546>",
+    zap: "<:zap:1501697151737139350>",
+    green: "<a:green:1501990166082879538>",
+    users: "<:users:1500243884733894716>"
+  };
+
   client.on(Events.MessageCreate, async (message) => {
+
     try {
+
       if (message.author.bot) return;
       if (message.channel.id !== CHANNEL_ID) return;
       if (!message.content) return;
 
-      // usuń zwykłą wiadomość użytkownika
+      // =====================
+      // DELETE USER MESSAGE
+      // =====================
       await message.delete().catch(() => {});
 
-      // avatar
-      const avatar =
-        message.author.displayAvatarURL({ dynamic: true, size: 512 });
+      // =====================
+      // AVATAR
+      // =====================
+      const avatar = message.author.displayAvatarURL({
+        dynamic: true,
+        size: 512
+      });
 
-      // data
+      // =====================
+      // DATE
+      // =====================
       const now = new Date().toLocaleString("pl-PL");
 
-      // embed
+      // =====================
+      // EMBED
+      // =====================
       const embed = new EmbedBuilder()
-        .setColor("#2b59ff")
-        .setTitle("💧 StarX Exchange × PROPOZYCJA")
-        .setDescription(
-          `👤 **Opublikował:** <@${message.author.id}>\n` +
-          `📝 **Treść propozycji:** ${message.content}\n` +
-          `📅 **Data opublikowania:** ${now}`
-        )
-        .setThumbnail(avatar)
-        .setFooter({
-          text: `© 2026 StarX Exchange × Propozycja • ${now}`
-        });
 
-      // wyślij embed
+        .setColor("#2b2d31")
+
+        .setTitle("🌟 StarX Exchange » PROPOZYCJA")
+
+        .setDescription(
+[
+`## ${EMOJI.green} Autor propozycji`,
+`> <@${message.author.id}>`,
+``,
+`## ${EMOJI.pin} Treść`,
+"```",
+`${message.content}`,
+"```",
+``,
+`## ${EMOJI.zap} Informacje`,
+`> 📅 Dodano: ${now}`,
+`> 💬 Głosuj reakcjami poniżej`,
+`> 🧠 Zachowaj kulturę w dyskusji`
+].join("\n")
+        )
+
+        .setThumbnail(avatar)
+
+        .setImage(
+          "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+        )
+
+        .setFooter({
+          text: "© 2026 StarX Exchange • Propozycje"
+        })
+
+        .setTimestamp();
+
+      // =====================
+      // SEND EMBED
+      // =====================
       const sent = await message.channel.send({
         embeds: [embed]
       });
 
-      // reakcje
-      await sent.react("👍");
-      await sent.react("👎");
+      // =====================
+      // REACTIONS
+      // =====================
+      await sent.react("✅");
+      await sent.react("❌");
       await sent.react("🤍");
 
-      // thread
+      // =====================
+      // THREAD
+      // =====================
       await sent.startThread({
         name: `Dyskusja • ${message.author.username}`,
         autoArchiveDuration: 1440
@@ -57,6 +108,7 @@ module.exports = (client) => {
       console.log("✅ Propozycja wysłana");
 
     } catch (err) {
+
       console.log("❌ propozycje error:", err);
     }
   });
