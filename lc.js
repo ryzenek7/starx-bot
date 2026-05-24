@@ -59,7 +59,7 @@ module.exports = (client) => {
             const input = new TextInputBuilder()
                 .setCustomId("lc_text")
                 .setLabel("Wpisz legit check")
-                .setValue(`+rep <@${interaction.user.id}> Purchased `)
+                .setValue(`+rep @seller Purchased `)
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(true);
 
@@ -77,7 +77,10 @@ module.exports = (client) => {
 
             if (!interaction.customId.startsWith("lc_modal_")) return;
 
-            const text = interaction.fields.getTextInputValue("lc_text");
+            let text = interaction.fields.getTextInputValue("lc_text");
+
+            // usuwa @seller z tekstu
+            text = text.replace("+rep @seller", "").trim();
 
             const embed = new EmbedBuilder()
                 .setColor("#2b2d31")
@@ -86,9 +89,7 @@ module.exports = (client) => {
                     `> ${EMOJI.pin} Legit check przygotowany`,
                     "",
                     `## ${EMOJI.zap} Treść`,
-                    "```",
-                    text,
-                    "```",
+                    `${interaction.user} Purchased ${text}`,
                     "",
                     `${EMOJI.lock} Wyślij wiadomość na <#${LEGIT_CHANNEL_ID}>`
                 ].join("\n"))
