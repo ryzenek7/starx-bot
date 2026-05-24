@@ -10,117 +10,142 @@ module.exports = (client) => {
 
   const CHANNEL_ID = "1499519884860854505";
 
-  let yesVotes = 10;
-  let noVotes = 1;
-
-  let legitMessageId = null;
-  const votedUsers = new Set();
+  // =====================
+  // STORAGE (per message)
+  // =====================
+  const panels = new Map();
+  const cooldown = new Map();
 
   // =====================
   // PANEL
   // =====================
   async function sendPanel() {
-    try {
-      const channel = await client.channels.fetch(CHANNEL_ID);
-      if (!channel) return;
 
-      const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
-        .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
-        .setDescription(
-`<a:1499784353012514917:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+    const channel = await client.channels.fetch(CHANNEL_ID);
+    if (!channel) return;
 
-<a:1499784378992295956:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+    const embed = new EmbedBuilder()
+      .setColor("#2b2d31")
+      .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
+      .setDescription(`
+<a:1499784353012514917:1499784353012514917> TAK
 
-⚠️ Oddanie głosu <a:1499784378992295956:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
-        )
-        .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-        .setFooter({
-          text: "© 2026 StarX Exchange x Legit Check"
-        });
+<a:1499784378992295956:1499784378992295956> NIE
 
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("legit_yes")
-          .setEmoji("1499784353012514917")
-          .setLabel(`${yesVotes}`)
-          .setStyle(ButtonStyle.Secondary),
+⚠️ Głosuj odpowiedzialnie
+      `)
+      .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
+      .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
 
-        new ButtonBuilder()
-          .setCustomId("legit_no")
-          .setEmoji("1499784378992295956")
-          .setLabel(`${noVotes}`)
-          .setStyle(ButtonStyle.Secondary)
-      );
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("legit_yes")
+        .setLabel("0")
+        .setStyle(ButtonStyle.Success),
 
-      const msg = await channel.send({
-        embeds: [embed],
-        components: [row]
-      });
+      new ButtonBuilder()
+        .setCustomId("legit_no")
+        .setLabel("0")
+        .setStyle(ButtonStyle.Danger)
+    );
 
-      legitMessageId = msg.id;
+    const msg = await channel.send({
+      embeds: [embed],
+      components: [row]
+    });
 
-    } catch (err) {
-      console.log(err);
-    }
+    panels.set(msg.id, {
+      yes: 0,
+      no: 0,
+      voters: new Set()
+    });
   }
 
+  // =====================
+  // READY
+  // =====================
   client.once(Events.ClientReady, async () => {
     await sendPanel();
+    console.log("✅ Legit panel loaded");
   });
 
   // =====================
-  // BUTTONY
+  // BUTTONS
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isButton()) return;
-    if (interaction.message.id !== legitMessageId) return;
 
-    if (votedUsers.has(interaction.user.id)) {
+    if (!interaction.isButton()) return;
+
+    const panel = panels.get(interaction.message.id);
+    if (!panel) return;
+
+    const userId = interaction.user.id;
+
+    // =====================
+    // COOLDOWN ANTI-SPAM
+    // =====================
+    const lastClick = cooldown.get(userId) || 0;
+    if (Date.now() - lastClick < 3000) {
+      return interaction.reply({
+        content: "❌ Klikasz za szybko.",
+        flags: 64
+      });
+    }
+
+    cooldown.set(userId, Date.now());
+
+    // =====================
+    // ALREADY VOTED
+    // =====================
+    if (panel.voters.has(userId)) {
       return interaction.reply({
         content: "❌ Już oddałeś głos.",
         flags: 64
       });
     }
 
-    votedUsers.add(interaction.user.id);
+    panel.voters.add(userId);
 
-    if (interaction.customId === "legit_yes") yesVotes++;
-    if (interaction.customId === "legit_no") noVotes++;
+    // =====================
+    // VOTE UPDATE
+    // =====================
+    if (interaction.customId === "legit_yes") panel.yes++;
+    if (interaction.customId === "legit_no") panel.no++;
 
-    const embed = new EmbedBuilder()
+    const embed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+    const newEmbed = new EmbedBuilder()
       .setColor("#2b2d31")
       .setTitle("🌟 StarX Exchange » CZY JESTEŚMY LEGIT")
-      .setDescription(
-`<:tak:1499784353012514917> Jeśli uważasz, że **TAK**, kliknij przycisk poniżej.
+      .setDescription(`
+<a:1499784353012514917:1499784353012514917> TAK
 
-<:nie:1499784378992295956> Jeśli uważasz, że **NIE**, kliknij przycisk poniżej.
+<a:1499784378992295956:1499784378992295956> NIE
 
-⚠️ Oddanie głosu <:nie:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
-      )
+📊 Wyniki:
+✔️ TAK: **${panel.yes}**
+❌ NIE: **${panel.no}**
+
+⚠️ Głosuj uczciwie
+      `)
       .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-      .setFooter({
-        text: "© 2026 StarX Exchange x Legit Check"
-      });
+      .setFooter({ text: "© 2026 StarX Exchange x Legit Check" });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("legit_yes")
-        .setEmoji("1499784353012514917")
-        .setLabel(`${yesVotes}`)
-        .setStyle(ButtonStyle.Secondary),
+        .setLabel(`${panel.yes}`)
+        .setStyle(ButtonStyle.Success),
 
       new ButtonBuilder()
         .setCustomId("legit_no")
-        .setEmoji("1499784378992295956")
-        .setLabel(`${noVotes}`)
-        .setStyle(ButtonStyle.Secondary)
+        .setLabel(`${panel.no}`)
+        .setStyle(ButtonStyle.Danger)
     );
 
     await interaction.update({
-      embeds: [embed],
+      embeds: [newEmbed],
       components: [row]
     });
   });
-
 };
