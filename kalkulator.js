@@ -18,14 +18,17 @@ module.exports = async (client) => {
   const EMOJI_LTC = "<:ltc:1499784285211726014>";
 
   // ANIMOWANE
-  const EMOJI_MONEY = "<a:cash:1501685438103031920>";
+  const EMOJI_MONEY = "<a:money:1501685438103031920>";
+  const EMOJI_ARROW = "<a:Arrow_White:1508094625984811038>";
   const EMOJI_BOX = "<:box:1500243849535033577>";
 
   // ==========================
   // PANEL
   // ==========================
   async function sendPanel() {
+
     try {
+
       const channel = await client.channels.fetch(CHANNEL_ID);
 
       if (!channel) {
@@ -33,14 +36,22 @@ module.exports = async (client) => {
       }
 
       const embed = new EmbedBuilder()
-        .setColor("#2b2d31")
+        .setColor("#1b2dff")
         .setTitle("🌟 StarX Exchange » PROWIZJE")
         .setDescription(
 `${EMOJI_MONEY} Wybierz metodę płatności z menu poniżej.
 
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
 ${EMOJI_BOX} Szybkie i przejrzyste prowizje.`
         )
-        .setFooter({ text: "© 2026 StarX Exchange x Prowizje" });
+        .setFooter({
+          text: "© 2026 StarX Exchange"
+        });
 
       const menu = new StringSelectMenuBuilder()
         .setCustomId("show_rates")
@@ -49,22 +60,42 @@ ${EMOJI_BOX} Szybkie i przejrzyste prowizje.`
           {
             label: "BLIK",
             value: "BLIK",
-            emoji: { id: "1499784231608389742", name: "blik" }
+            emoji: {
+              id: "1499784231608389742",
+              name: "blik"
+            }
+          },
+          {
+            label: "KOD BLIK",
+            value: "KODBLIK",
+            emoji: {
+              id: "1499784231608389742",
+              name: "blik"
+            }
           },
           {
             label: "PAYPAL",
             value: "PAYPAL",
-            emoji: { id: "1499784258091483236", name: "paypal" }
+            emoji: {
+              id: "1499784258091483236",
+              name: "paypal"
+            }
           },
           {
             label: "CRYPTO",
             value: "CRYPTO",
-            emoji: { id: "1499784635201224724", name: "crypto" }
+            emoji: {
+              id: "1499784635201224724",
+              name: "crypto"
+            }
           },
           {
             label: "LTC",
             value: "LTC",
-            emoji: { id: "1499784285211726014", name: "ltc" }
+            emoji: {
+              id: "1499784285211726014",
+              name: "ltc"
+            }
           }
         ]);
 
@@ -102,51 +133,96 @@ ${EMOJI_BOX} Szybkie i przejrzyste prowizje.`
     const type = interaction.values[0];
     let desc = "";
 
+    // ==========================
+    // BLIK
+    // ==========================
     if (type === "BLIK") {
-      desc = `
-${EMOJI_BLIK} ➜ ${EMOJI_PAYPAL} × **8.0%**
-${EMOJI_BLIK} ➜ ${EMOJI_CRYPTO} × **8.0%**
-${EMOJI_BLIK} ➜ ${EMOJI_LTC} × **8.0%**
 
-${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
+      desc = `
+• ${EMOJI_BLIK} **BLIK ➜** ${EMOJI_PAYPAL} **PAYPAL** — Prowizja wynosi: **2%**
+• ${EMOJI_BLIK} **BLIK ➜** ${EMOJI_CRYPTO} **CRYPTO** — Prowizja wynosi: **8%**
+• ${EMOJI_BLIK} **BLIK ➜** ${EMOJI_LTC} **LTC** — Prowizja wynosi: **8%**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
 `;
     }
 
+    // ==========================
+    // KOD BLIK
+    // ==========================
+    if (type === "KODBLIK") {
+
+      desc = `
+• ${EMOJI_BLIK} **KOD BLIK ➜** ${EMOJI_PAYPAL} **PAYPAL** — Prowizja wynosi: **6%**
+• ${EMOJI_BLIK} **KOD BLIK ➜** ${EMOJI_CRYPTO} **CRYPTO** — Prowizja wynosi: **11%**
+• ${EMOJI_BLIK} **KOD BLIK ➜** ${EMOJI_LTC} **LTC** — Prowizja wynosi: **11%**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
+`;
+    }
+
+    // ==========================
+    // PAYPAL
+    // ==========================
     if (type === "PAYPAL") {
-      desc = `
-${EMOJI_PAYPAL} ➜ ${EMOJI_BLIK} × **7.0%**
-${EMOJI_PAYPAL} ➜ ${EMOJI_CRYPTO} × **7.0%**
-${EMOJI_PAYPAL} ➜ ${EMOJI_LTC} × **7.5%**
 
-${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
+      desc = `
+• ${EMOJI_PAYPAL} **PAYPAL ➜** ${EMOJI_BLIK} **BLIK** — Prowizja wynosi: **9%**
+• ${EMOJI_PAYPAL} **PAYPAL ➜** ${EMOJI_CRYPTO} **CRYPTO** — Prowizja wynosi: **9%**
+• ${EMOJI_PAYPAL} **PAYPAL ➜** ${EMOJI_LTC} **LTC** — Prowizja wynosi: **9%**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
 `;
     }
 
+    // ==========================
+    // CRYPTO
+    // ==========================
     if (type === "CRYPTO") {
-      desc = `
-${EMOJI_CRYPTO} ➜ ${EMOJI_BLIK} × **3.5%**
-${EMOJI_CRYPTO} ➜ ${EMOJI_PAYPAL} × **3.5%**
-${EMOJI_CRYPTO} ➜ ${EMOJI_LTC} × **3.5%**
 
-${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
+      desc = `
+• ${EMOJI_CRYPTO} **CRYPTO ➜** ${EMOJI_BLIK} **BLIK** — Prowizja wynosi: **4%**
+• ${EMOJI_CRYPTO} **CRYPTO ➜** ${EMOJI_BLIK} **KOD BLIK** — Prowizja wynosi: **4%**
+• ${EMOJI_CRYPTO} **CRYPTO ➜** ${EMOJI_PAYPAL} **PAYPAL** — Prowizja wynosi: **4%**
+• ${EMOJI_CRYPTO} **CRYPTO ➜** ${EMOJI_CRYPTO} **CRYPTO** — Prowizja wynosi: **4%**
+• ${EMOJI_CRYPTO} **CRYPTO ➜** ${EMOJI_LTC} **LTC** — Prowizja wynosi: **4%**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
 `;
     }
 
+    // ==========================
+    // LTC
+    // ==========================
     if (type === "LTC") {
-      desc = `
-${EMOJI_LTC} ➜ ${EMOJI_BLIK} × **3.5%**
-${EMOJI_LTC} ➜ ${EMOJI_PAYPAL} × **4.0%**
-${EMOJI_LTC} ➜ ${EMOJI_CRYPTO} × **3.5%**
 
-${EMOJI_MONEY} Minimalna prowizja: **2 PLN**
+      desc = `
+• ${EMOJI_LTC} **LTC ➜** ${EMOJI_BLIK} **BLIK** — Prowizja wynosi: **4%**
+• ${EMOJI_LTC} **LTC ➜** ${EMOJI_BLIK} **KOD BLIK** — Prowizja wynosi: **4%**
+• ${EMOJI_LTC} **LTC ➜** ${EMOJI_PAYPAL} **PAYPAL** — Prowizja wynosi: **4%**
+• ${EMOJI_LTC} **LTC ➜** ${EMOJI_CRYPTO} **CRYPTO** — Prowizja wynosi: **4%**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
 `;
     }
 
     const embed = new EmbedBuilder()
-      .setColor("#2b2d31")
+      .setColor("#1b2dff")
       .setTitle(`🌟 StarX Exchange » ${type}`)
       .setDescription(desc)
-      .setFooter({ text: "© 2026 StarX Exchange" });
+      .setFooter({
+        text: "© 2026 StarX Exchange"
+      });
 
     await interaction.reply({
       embeds: [embed],
