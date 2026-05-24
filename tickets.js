@@ -116,7 +116,9 @@ module.exports = (client) => {
 
       const category = interaction.values[0];
 
-      // sprawdza czy ticket istnieje
+      // =====================
+      // CHECK EXISTING
+      // =====================
       const existing = interaction.guild.channels.cache.find(
         c =>
           c.name === `ticket-${interaction.user.username}`.toLowerCase()
@@ -129,7 +131,9 @@ module.exports = (client) => {
         });
       }
 
-      // tworzenie kanału
+      // =====================
+      // CREATE CHANNEL
+      // =====================
       const channel = await interaction.guild.channels.create({
         name: `ticket-${interaction.user.username}`.toLowerCase(),
         type: ChannelType.GuildText,
@@ -142,7 +146,7 @@ module.exports = (client) => {
             deny: [PermissionsBitField.Flags.ViewChannel]
           },
 
-          // autor ticketu
+          // owner
           {
             id: interaction.user.id,
             allow: [
@@ -153,7 +157,7 @@ module.exports = (client) => {
             ]
           },
 
-          // realizatorzy
+          // realizator
           {
             id: REALIZATOR_ROLE_ID,
             allow: [
@@ -178,7 +182,7 @@ module.exports = (client) => {
       );
 
       // =====================
-      // EMBED TICKETA
+      // EMBED
       // =====================
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
@@ -200,7 +204,9 @@ module.exports = (client) => {
         components: [row]
       });
 
-      // odpowiedź
+      // =====================
+      // REPLY
+      // =====================
       return interaction.reply({
         content: `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
         flags: 64
@@ -223,17 +229,19 @@ module.exports = (client) => {
 
       const member = await interaction.guild.members.fetch(interaction.user.id);
 
-      // tylko realizator lub właściciel
-      if (
-        !member.roles.cache.has(REALIZATOR_ROLE_ID) &&
-        interaction.channel.name !== `ticket-${interaction.user.username}`.toLowerCase()
-      ) {
+      // =====================
+      // ONLY REALIZATOR
+      // =====================
+      if (!member.roles.cache.has(REALIZATOR_ROLE_ID)) {
         return interaction.reply({
-          content: `${EMOJI.warning} Nie masz permisji do zamknięcia ticketu.`,
+          content: `${EMOJI.warning} Tylko realizator może zamknąć ticket.`,
           flags: 64
         });
       }
 
+      // =====================
+      // CLOSE EMBED
+      // =====================
       const embed = new EmbedBuilder()
         .setColor("#ED4245")
         .setDescription(
@@ -244,6 +252,9 @@ module.exports = (client) => {
         embeds: [embed]
       });
 
+      // =====================
+      // DELETE CHANNEL
+      // =====================
       setTimeout(async () => {
 
         await interaction.channel.delete().catch(() => {});
