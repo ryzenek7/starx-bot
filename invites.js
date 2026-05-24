@@ -1,260 +1,462 @@
-// index.js STARX EXCHANGE FINAL
-
 const {
-  Client,
-  GatewayIntentBits,
-  Events,
-  SlashCommandBuilder,
-  REST,
-  Routes,
-  PermissionFlagsBits
+  EmbedBuilder,
+  Events
 } = require("discord.js");
 
-// =====================
-// CONFIG
-// =====================
-const TOKEN = process.env.TOKEN;
+module.exports = (client) => {
 
-const CLIENT_ID = "1499478004265517396";
-const GUILD_ID = "1499481942394146946";
+  const inviteCache = new Map();
+  const personalInvites = new Map();
 
-const OWNER_ROLE_ID = "1499499185337012377";
+  // ==========================
+  // CONFIG
+  // ==========================
+  const LOG_CHANNEL_ID = "1500261480212205629";
 
-// =====================
-// CLIENT
-// =====================
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
-});
+  const ROLE_5 = "1500270028635771032";
+  const ROLE_10 = "1500270005646786670";
 
-// =====================
-// START
-// =====================
-console.log("🚀 Uruchamianie StarX Exchange Bot...");
+  const OWNER_ROLE_ID = "1499499185337012377";
 
-if (!TOKEN) {
-  console.log("❌ BRAK TOKENA w ENV!");
-  process.exit(1);
-}
+  // ==========================
+  // READY
+  // ==========================
+  client.once(Events.ClientReady, async () => {
 
-// =====================
-// MODULES
-// =====================
-require("./tickets")(client);
-require("./welcome")(client);
-require("./legit")(client);
-require("./opinie")(client);
-require("./kalkulator")(client);
-require("./obliczprowizje")(client);
-require("./cennik")(client);
-require("./regulamin")(client);
-require("./verify")(client);
-require("./propozycje")(client);
-require("./invites")(client);
-require("./rep")(client);
-require("./lc")(client);
-require("./giveaway")(client);
-require("./przejmij")(client);
+    try {
 
-// =====================
-// READY + SLASH COMMANDS
-// =====================
-client.once(Events.ClientReady, async () => {
+      for (const guild of client.guilds.cache.values()) {
 
-  try {
+        const invites = await guild.invites.fetch();
 
-    console.log(`✅ Zalogowano jako ${client.user.tag}`);
-
-    const commands = [
-
-      // =====================
-      // RESET
-      // =====================
-      new SlashCommandBuilder()
-        .setName("reset")
-        .setDescription("Restartuje bota")
-        .setDefaultMemberPermissions(
-          PermissionFlagsBits.Administrator
-        ),
-
-      // =====================
-      // INVITES
-      // =====================
-      new SlashCommandBuilder()
-        .setName("invites")
-        .setDescription("Sprawdź swoje zaproszenia"),
-
-      new SlashCommandBuilder()
-        .setName("topinvites")
-        .setDescription("Ranking zaproszeń"),
-
-      new SlashCommandBuilder()
-        .setName("myinvite")
-        .setDescription("Twój link zaproszenia"),
-
-      new SlashCommandBuilder()
-        .setName("checkinvites")
-        .setDescription("Sprawdź zaproszenia użytkownika")
-        .addUserOption(o =>
-          o
-            .setName("osoba")
-            .setDescription("Użytkownik")
-            .setRequired(true)
-        ),
-
-      new SlashCommandBuilder()
-        .setName("testinvite")
-        .setDescription("Dodaj testowe zaproszenia")
-        .addUserOption(o =>
-          o
-            .setName("osoba")
-            .setDescription("Użytkownik")
-            .setRequired(true)
-        )
-        .addIntegerOption(o =>
-          o
-            .setName("ilosc")
-            .setDescription("Ilość")
-            .setRequired(true)
-        ),
-
-      // =====================
-      // LC
-      // =====================
-      new SlashCommandBuilder()
-        .setName("lc")
-        .setDescription("Legit check template"),
-
-      // =====================
-      // PRZEJMIJ
-      // =====================
-      new SlashCommandBuilder()
-        .setName("przejmij")
-        .setDescription("Przejmij ticket")
-        .addUserOption(o =>
-          o
-            .setName("uzytkownik")
-            .setDescription("Klient")
-            .setRequired(true)
-        ),
-
-      new SlashCommandBuilder()
-        .setName("odprzyjmij")
-        .setDescription("Przywróć ticket")
-
-    ].map(cmd => cmd.toJSON());
-
-    const rest = new REST({ version: "10" })
-      .setToken(TOKEN);
-
-    await rest.put(
-      Routes.applicationGuildCommands(
-        CLIENT_ID,
-        GUILD_ID
-      ),
-      { body: commands }
-    );
-
-    console.log("✅ Slash commands deployed");
-
-  } catch (err) {
-
-    console.log("❌ Ready error:", err);
-  }
-});
-
-// =====================
-// INTERACTIONS
-// =====================
-client.on(Events.InteractionCreate, async interaction => {
-
-  try {
-
-    if (!interaction.isChatInputCommand()) return;
-
-    // =====================
-    // RESET
-    // =====================
-    if (interaction.commandName === "reset") {
-
-      if (
-        !interaction.member.roles.cache.has(
-          OWNER_ROLE_ID
-        )
-      ) {
-
-        return interaction.reply({
-          content: "❌ Brak permisji.",
-          flags: 64
-        });
+        inviteCache.set(
+          guild.id,
+          new Map(invites.map(inv => [inv.code, inv.uses]))
+        );
       }
 
-      await interaction.reply({
-        content: "🔄 Restart...",
-        flags: 64
+      console.log("✅ Invite system loaded");
+
+    } catch (err) {
+
+      console.log("❌ Invite Ready Error:", err);
+    }
+  });
+
+  // ==========================
+  // UPDATE REWARD ROLES
+  // ==========================
+  async function updateRewardRoles(member, total) {
+
+    if (!member) return;
+
+    // 20+
+    if (total >= 20) {
+
+      await member.roles.add(ROLE_10).catch(() => {});
+      await member.roles.remove(ROLE_5).catch(() => {});
+
+      return;
+    }
+
+    // 10+
+    if (total >= 10) {
+
+      await member.roles.add(ROLE_5).catch(() => {});
+      await member.roles.remove(ROLE_10).catch(() => {});
+
+      return;
+    }
+
+    // remove
+    await member.roles.remove(ROLE_5).catch(() => {});
+    await member.roles.remove(ROLE_10).catch(() => {});
+  }
+
+  // ==========================
+  // MEMBER JOIN
+  // ==========================
+  client.on(Events.GuildMemberAdd, async member => {
+
+    try {
+
+      const guild = member.guild;
+
+      const oldInvites =
+        inviteCache.get(guild.id) || new Map();
+
+      const newInvites =
+        await guild.invites.fetch();
+
+      const usedInvite = newInvites.find(inv => {
+
+        const oldUses =
+          oldInvites.get(inv.code) || 0;
+
+        return inv.uses > oldUses;
       });
 
-      return setTimeout(() => {
-        process.exit(0);
-      }, 1000);
+      inviteCache.set(
+        guild.id,
+        new Map(newInvites.map(inv => [inv.code, inv.uses]))
+      );
+
+      if (!usedInvite) return;
+
+      let ownerId = null;
+
+      if (personalInvites.has(usedInvite.code)) {
+
+        ownerId =
+          personalInvites.get(usedInvite.code);
+
+      } else if (usedInvite.inviter) {
+
+        ownerId =
+          usedInvite.inviter.id;
+      }
+
+      if (!ownerId) return;
+
+      const key =
+        `invites_${guild.id}_${ownerId}`;
+
+      client[key] =
+        (client[key] || 0) + 1;
+
+      const total = client[key];
+
+      const inviterMember =
+        await guild.members
+          .fetch(ownerId)
+          .catch(() => null);
+
+      await updateRewardRoles(
+        inviterMember,
+        total
+      );
+
+      // ======================
+      // LOG
+      // ======================
+      const logChannel =
+        await guild.channels
+          .fetch(LOG_CHANNEL_ID)
+          .catch(() => null);
+
+      if (logChannel) {
+
+        const inviter =
+          await client.users
+            .fetch(ownerId)
+            .catch(() => null);
+
+        const embed = new EmbedBuilder()
+
+          .setColor("#1b2dff")
+
+          .setTitle(
+            "🌟 StarX Exchange » NOWE ZAPROSZENIE"
+          )
+
+          .setDescription(
+`👤 **Nowy użytkownik:** ${member}
+
+📨 **Zaprosił:** ${inviter}
+
+📈 **Łącznie zaproszeń:** **${total}**
+
+🎁 **Nagrody:**
+10 osób = <@&${ROLE_5}>
+20 osób = <@&${ROLE_10}>
+
+⚠️ Promocja działa wyłącznie na zakup kont i nie obejmuje exchange.
+
+🔗 Kod: \`${usedInvite.code}\``
+          )
+
+          .setFooter({
+            text:
+              "Komendy: /invites • /myinvite • /topinvites • /checkinvites"
+          })
+
+          .setTimestamp();
+
+        await logChannel.send({
+          embeds: [embed]
+        });
+      }
+
+    } catch (err) {
+
+      console.log("❌ Join Invite Error:", err);
     }
+  });
 
-    // =====================
-    // OWNER ONLY
-    // =====================
-    const ownerOnly = [
-      "checkinvites",
-      "testinvite"
-    ];
+  // ==========================
+  // INTERACTIONS
+  // ==========================
+  client.on(Events.InteractionCreate, async interaction => {
 
-    if (
-      ownerOnly.includes(
-        interaction.commandName
-      )
-    ) {
+    try {
 
-      if (
-        !interaction.member.roles.cache.has(
-          OWNER_ROLE_ID
-        )
-      ) {
+      if (!interaction.isChatInputCommand()) return;
+
+      // ======================
+      // /MYINVITE
+      // ======================
+      if (interaction.commandName === "myinvite") {
+
+        const invite =
+          await interaction.channel.createInvite({
+
+            maxAge: 0,
+            maxUses: 0,
+            unique: true
+          });
+
+        personalInvites.set(
+          invite.code,
+          interaction.user.id
+        );
 
         return interaction.reply({
-          content: "❌ Tylko owner.",
+
+          embeds: [
+
+            new EmbedBuilder()
+
+              .setColor("#1b2dff")
+
+              .setTitle(
+                "🌟 StarX Exchange » TWÓJ LINK"
+              )
+
+              .setDescription(
+`👤 ${interaction.user}
+
+📨 Twój link:
+
+https://discord.gg/${invite.code}`
+              )
+          ],
+
           flags: 64
         });
       }
+
+      // ======================
+      // /INVITES
+      // ======================
+      if (interaction.commandName === "invites") {
+
+        const amount =
+          client[
+            `invites_${interaction.guild.id}_${interaction.user.id}`
+          ] || 0;
+
+        return interaction.reply({
+
+          embeds: [
+
+            new EmbedBuilder()
+
+              .setColor("#1b2dff")
+
+              .setTitle(
+                "🌟 StarX Exchange » INVITES"
+              )
+
+              .setDescription(
+`👤 ${interaction.user}
+
+Zaprosiłeś **${amount}** osób.
+
+⚠️ Promocja działa wyłącznie na zakup kont i nie obejmuje exchange.`
+              )
+          ],
+
+          flags: 64
+        });
+      }
+
+      // ======================
+      // /CHECKINVITES
+      // ======================
+      if (interaction.commandName === "checkinvites") {
+
+        if (
+          !interaction.member.roles.cache.has(
+            OWNER_ROLE_ID
+          )
+        ) {
+
+          return interaction.reply({
+
+            content: "❌ Nie masz permisji.",
+
+            flags: 64
+          });
+        }
+
+        const user =
+          interaction.options.getUser("osoba");
+
+        const amount =
+          client[
+            `invites_${interaction.guild.id}_${user.id}`
+          ] || 0;
+
+        return interaction.reply({
+
+          embeds: [
+
+            new EmbedBuilder()
+
+              .setColor("#1b2dff")
+
+              .setTitle(
+                "🌟 StarX Exchange » CHECK INVITES"
+              )
+
+              .setDescription(
+`👤 ${user}
+
+Posiada **${amount}** zaproszeń.`
+              )
+          ],
+
+          flags: 64
+        });
+      }
+
+      // ======================
+      // /TOPINVITES
+      // ======================
+      if (interaction.commandName === "topinvites") {
+
+        const members =
+          interaction.guild.members.cache
+
+            .filter(m => !m.user.bot)
+
+            .map(m => ({
+              user: m.user,
+
+              invites:
+                client[
+                  `invites_${interaction.guild.id}_${m.id}`
+                ] || 0
+            }));
+
+        const sorted = members
+
+          .filter(x => x.invites > 0)
+
+          .sort((a, b) => b.invites - a.invites)
+
+          .slice(0, 10);
+
+        let desc = "";
+
+        sorted.forEach((x, i) => {
+
+          desc +=
+            `**${i + 1}.** ${x.user} — **${x.invites} osób**\n`;
+        });
+
+        if (!desc)
+          desc = "Brak danych.";
+
+        return interaction.reply({
+
+          embeds: [
+
+            new EmbedBuilder()
+
+              .setColor("#1b2dff")
+
+              .setTitle(
+                "🌟 StarX Exchange » TOP INVITES"
+              )
+
+              .setDescription(desc)
+          ]
+        });
+      }
+
+      // ======================
+      // /TESTINVITE
+      // ======================
+      if (interaction.commandName === "testinvite") {
+
+        if (
+          !interaction.member.roles.cache.has(
+            OWNER_ROLE_ID
+          )
+        ) {
+
+          return interaction.reply({
+
+            content: "❌ Nie masz permisji.",
+
+            flags: 64
+          });
+        }
+
+        const user =
+          interaction.options.getUser("osoba");
+
+        const amount =
+          interaction.options.getInteger("ilosc");
+
+        const key =
+          `invites_${interaction.guild.id}_${user.id}`;
+
+        client[key] =
+          (client[key] || 0) + amount;
+
+        const total = client[key];
+
+        const member =
+          await interaction.guild.members
+            .fetch(user.id)
+            .catch(() => null);
+
+        await updateRewardRoles(
+          member,
+          total
+        );
+
+        return interaction.reply({
+
+          embeds: [
+
+            new EmbedBuilder()
+
+              .setColor("#1b2dff")
+
+              .setTitle(
+                "🌟 StarX Exchange » TEST INVITE"
+              )
+
+              .setDescription(
+`Dodano **${amount}** zaproszeń użytkownikowi ${user}
+
+📈 Aktualnie ma **${total}** zaproszeń.`
+              )
+          ],
+
+          flags: 64
+        });
+      }
+
+    } catch (err) {
+
+      console.log(
+        "❌ Invite Command Error:",
+        err
+      );
     }
-
-  } catch (err) {
-
-    console.log("❌ Interaction error:", err);
-  }
-});
-
-// =====================
-// SAFETY
-// =====================
-process.on("unhandledRejection", err => {
-  console.log(
-    "❌ UnhandledRejection:",
-    err
-  );
-});
-
-process.on("uncaughtException", err => {
-  console.log(
-    "❌ UncaughtException:",
-    err
-  );
-});
-
-// =====================
-// LOGIN
-// =====================
-client.login(TOKEN);
+  });
+};
