@@ -24,32 +24,37 @@ module.exports = (client) => {
         red: "<a:red:1501989543182864535>"
     };
 
-    const participants = new Map();
+    const participants = new Map(); // giveawayId -> Set(users)
+    const messages = new Map();      // giveawayId -> messageId
 
+    // =========================
+    // SLASH COMMAND
+    // =========================
     client.once(Events.ClientReady, async () => {
 
         const data = [
             new SlashCommandBuilder()
                 .setName("konkurs")
-                .setDescription("Stwórz nowy konkurs")
+                .setDescription("Stwórz giveaway")
                 .addStringOption(o =>
-                    o.setName("nagroda")
-                        .setRequired(true)
+                    o.setName("nagroda").setRequired(true)
                 )
                 .addStringOption(o =>
-                    o.setName("czas")
-                        .setRequired(true)
+                    o.setName("czas").setRequired(true)
                 )
                 .addStringOption(o =>
-                    o.setName("wymagania") // 🔥 FIX 1
-                        .setRequired(true)
+                    o.setName("wymagania").setRequired(true)
                 )
                 .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         ];
 
         await client.application.commands.set(data);
+        console.log("✅ Giveaway loaded");
     });
 
+    // =========================
+    // CREATE GIVEAWAY
+    // =========================
     client.on(Events.InteractionCreate, async interaction => {
 
         if (!interaction.isChatInputCommand()) return;
@@ -57,7 +62,7 @@ module.exports = (client) => {
 
         const nagroda = interaction.options.getString("nagroda");
         const czas = interaction.options.getString("czas");
-        const wymagania = interaction.options.getString("wymagania"); // 🔥 FIX 2
+        const wymagania = interaction.options.getString("wymagania");
 
         let timeMs = 0;
         const value = parseInt(czas);
@@ -66,8 +71,17 @@ module.exports = (client) => {
         if (czas.endsWith("h")) timeMs = value * 60 * 60 * 1000;
         if (czas.endsWith("d")) timeMs = value * 24 * 60 * 60 * 1000;
 
+        if (!timeMs || isNaN(timeMs)) {
+            return interaction.reply({
+                content: `${EMOJI.red} Nieprawidłowy czas`,
+                flags: 64
+            });
+        }
+
         const giveawayId = Date.now().toString();
-        participants.set(giveawayId, new Set());
+        const users = new Set();
+
+        participants.set(giveawayId, users);
 
         const endTimestamp = Math.floor((Date.now() + timeMs) / 1000);
 
@@ -75,10 +89,10 @@ module.exports = (client) => {
             .setColor("#2b2d31")
             .setTitle(`${EMOJI.gift} StarX Exchange » GIVEAWAY`)
             .setDescription([
-                `## ${EMOJI.green} Nagroda`,
+                `## ${EMOJI.pin} Nagroda`,
                 `\`\`\`${nagroda}\`\`\``,
                 ``,
-                `## ${EMOJI.pin} Wymagania`, // 🔥 FIX 3
+                `## ${EMOJI.pin} Wymagania`,
                 `> ${wymagania}`,
                 ``,
                 `## ${EMOJI.zap} Jak dołączyć?`,
@@ -101,37 +115,55 @@ module.exports = (client) => {
         const row = new ActionRowBuilder().addComponents(button);
 
         const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
-        const message = await channel.send({ embeds: [embed], components: [row] });
+
+        const message = await channel.send({
+            embeds: [embed],
+            components: [row]
+        });
+
+        messages.set(giveawayId, message.id);
 
         interaction.reply({
             content: `${EMOJI.green} Giveaway utworzony!`,
             flags: 64
         });
 
+        // =========================
+        // END
+        // =========================
         setTimeout(async () => {
 
-            const users = participants.get(giveawayId);
+            const list = participants.get(giveawayId);
 
-            const disabledRow = new ActionRowBuilder().addComponents(
-                ButtonBuilder.from(button).setDisabled(true)
-            );
-
-            await message.edit({ components: [disabledRow] });
-
-            if (!users || users.size === 0) {
+            if (!list || list.size === 0) {
                 return channel.send(`${EMOJI.red} Brak uczestników giveaway.`);
             }
 
-            const arr = [...users];
+            const arr = [...list];
             const winner = arr[Math.floor(Math.random() * arr.length)];
+
+            const msgId = messages.get(giveawayId);
+            const msg = await channel.messages.fetch(msgId).catch(() => null);
+
+            if (msg) {
+                const disabled = new ActionRowBuilder().addComponents(
+                    ButtonBuilder.from(button).setDisabled(true)
+                );
+
+                await msg.edit({ components: [disabled] });
+            }
 
             channel.send(`${EMOJI.gift} Gratulacje <@${winner}> wygrał **${nagroda}**!`);
 
             participants.delete(giveawayId);
+            messages.delete(giveawayId);
 
         }, timeMs);
     });
 
+    // =========================
+    // JOIN BUTTON (FIXED LIVE COUNTER)
+    // =========================
     client.on(Events.InteractionCreate, async interaction => {
 
         if (!interaction.isButton()) return;
@@ -147,8 +179,42 @@ module.exports = (client) => {
             });
         }
 
-        // 🔥 FIX 4 — DODAWANIE USERA (to brakowało!)
+        if (!interaction.member.roles.cache.has(REQUIRED_ROLE_ID)) {
+            return interaction.reply({
+                content: `${EMOJI.red} Nie masz roli.`,
+                flags: 64
+            });
+        }
+
+        if (users.has(interaction.user.id)) {
+            return interaction.reply({
+                content: `${EMOJI.red} Już bierzesz udział.`,
+                flags: 64
+            });
+        }
+
         users.add(interaction.user.id);
+
+        // =========================
+        // LIVE UPDATE EMBED (FIX LICZNIKA)
+        // =========================
+        const channel = interaction.channel;
+        const msgId = messages.get(giveawayId);
+
+        const msg = await channel.messages.fetch(msgId).catch(() => null);
+        if (msg) {
+
+            const embed = EmbedBuilder.from(msg.embeds[0]);
+
+            const newDesc = embed.data.description.replace(
+                /Uczestnicy: \*\*\d+\*\*/,
+                `Uczestnicy: **${users.size}**`
+            );
+
+            embed.setDescription(newDesc);
+
+            await msg.edit({ embeds: [embed] });
+        }
 
         return interaction.reply({
             content: `${EMOJI.green} Dołączyłeś!`,
