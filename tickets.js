@@ -18,6 +18,9 @@ module.exports = (client) => {
 
   const SUPPORT_ROLE_ID = "1499507487647338656";
 
+  // REALIZATOR
+  const REALIZATOR_ROLE_ID = "1500930428993933373";
+
   // ACCESS ROLE
   const TICKET_ACCESS_ROLE_ID = "1502020178026696744";
 
@@ -218,6 +221,18 @@ module.exports = (client) => {
                 ]
               },
 
+              // realizator
+              {
+                id: REALIZATOR_ROLE_ID,
+
+                allow: [
+                  PermissionsBitField.Flags.ViewChannel,
+                  PermissionsBitField.Flags.SendMessages,
+                  PermissionsBitField.Flags.ReadMessageHistory,
+                  PermissionsBitField.Flags.ManageMessages
+                ]
+              },
+
               // access role hidden
               {
                 id: TICKET_ACCESS_ROLE_ID,
@@ -254,14 +269,17 @@ module.exports = (client) => {
           await channel.send({
 
             content:
-              `<@&${SUPPORT_ROLE_ID}> 👋 ${interaction.user}\n` +
+              `<@&${SUPPORT_ROLE_ID}> <@&${REALIZATOR_ROLE_ID}> 👋 ${interaction.user}\n` +
               `${EMOJI.pin} Nowy ticket\n` +
               `${EMOJI.ticket} Kategoria: **${category}**`,
 
             components: [row],
 
             allowedMentions: {
-              roles: [SUPPORT_ROLE_ID]
+              roles: [
+                SUPPORT_ROLE_ID,
+                REALIZATOR_ROLE_ID
+              ]
             }
           });
 
@@ -341,13 +359,14 @@ module.exports = (client) => {
         // SUPPORT CHECK
         // =================================
         if (
-          !member.roles.cache.has(SUPPORT_ROLE_ID)
+          !member.roles.cache.has(SUPPORT_ROLE_ID) &&
+          !member.roles.cache.has(REALIZATOR_ROLE_ID)
         ) {
 
           return interaction.reply({
 
             content:
-              "❌ Nie masz permisji support.",
+              "❌ Nie masz permisji.",
 
             flags: 64
           });
