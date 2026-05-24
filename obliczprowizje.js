@@ -1,381 +1,350 @@
 const {
-  EmbedBuilder,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  Events
+    EmbedBuilder,
+    ActionRowBuilder,
+    StringSelectMenuBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    Events
 } = require("discord.js");
 
 module.exports = (client) => {
 
-  const CHANNEL_ID = "1499568863602540645";
+    const CHANNEL_ID = "1499568863602540645";
 
-  let selectedType = {};
-  let selectedFrom = {};
+    let selectedType = {};
+    let selectedFrom = {};
 
-  // =====================
-  // EMOJI
-  // =====================
-  const EMOJI_BLIK = "<:blik:1499784231608389742>";
-  const EMOJI_PAYPAL = "<:paypal:1499784258091483236>";
-  const EMOJI_CRYPTO = "<:crypto:1499784635201224724>";
-  const EMOJI_LTC = "<:ltc:1499784285211726014>";
+    // =====================
+    // CUSTOM EMOJI
+    // =====================
 
-  const EMOJI_MONEY = "<a:money:1501685438103031920>";
-  const EMOJI_ARROW = "<a:Arrow_White:1508094625984811038>";
-  const EMOJI_BOX = "<:box:1500243849535033577>";
+    const EMOJI_BLIK = "<:blik:1499784231608389742>";
+    const EMOJI_PAYPAL = "<:paypal:1499784258091483236>";
+    const EMOJI_CRYPTO = "<:crypto:1499784635201224724>";
+    const EMOJI_LTC = "<:ltc:1499784285211726014>";
 
-  // =====================
-  // PROWIZJE
-  // =====================
-  const rates = {
+    const EMOJI_MONEY = "<a:money:1501685438103031920>";
+    const EMOJI_BOX = "<:box:1500243849535033577>";
 
-    // BLIK
-    "BLIK_PAYPAL": 2,
-    "BLIK_CRYPTO": 8,
-    "BLIK_LTC": 8,
+    // =====================
+    // PROWIZJE
+    // =====================
 
-    // KOD BLIK
-    "KODBLIK_PAYPAL": 6,
-    "KODBLIK_CRYPTO": 11,
-    "KODBLIK_LTC": 11,
+    const rates = {
 
-    // PAYPAL
-    "PAYPAL_BLIK": 9,
-    "PAYPAL_CRYPTO": 9,
-    "PAYPAL_LTC": 9,
+        // BLIK
+        "BLIK_PAYPAL": 2,
+        "BLIK_CRYPTO": 8,
+        "BLIK_LTC": 8,
 
-    // CRYPTO
-    "CRYPTO_BLIK": 4,
-    "CRYPTO_KODBLIK": 4,
-    "CRYPTO_PAYPAL": 4,
-    "CRYPTO_CRYPTO": 4,
-    "CRYPTO_LTC": 4,
+        // KOD BLIK
+        "KODBLIK_PAYPAL": 6,
+        "KODBLIK_CRYPTO": 11,
+        "KODBLIK_LTC": 11,
 
-    // LTC
-    "LTC_BLIK": 4,
-    "LTC_KODBLIK": 4,
-    "LTC_PAYPAL": 4,
-    "LTC_CRYPTO": 4
-  };
+        // PAYPAL
+        "PAYPAL_BLIK": 9,
+        "PAYPAL_CRYPTO": 9,
+        "PAYPAL_LTC": 9,
 
-  // =====================
-  // FUNKCJE
-  // =====================
-  function emoji(method) {
-    if (method === "BLIK") return EMOJI_BLIK;
-    if (method === "KODBLIK") return EMOJI_BLIK;
-    if (method === "PAYPAL") return EMOJI_PAYPAL;
-    if (method === "CRYPTO") return EMOJI_CRYPTO;
-    if (method === "LTC") return EMOJI_LTC;
-    return "💸";
-  }
+        // CRYPTO
+        "CRYPTO_BLIK": 4,
+        "CRYPTO_KODBLIK": 4,
+        "CRYPTO_PAYPAL": 4,
+        "CRYPTO_CRYPTO": 4,
+        "CRYPTO_LTC": 4
+    };
 
-  function methodName(method) {
-    if (method === "KODBLIK") return "KOD BLIK";
-    return method;
-  }
+    // =====================
+    // EMOJI FUNCTION
+    // =====================
 
-  // =====================
-  // PANEL
-  // =====================
-  async function sendPanel() {
+    function emoji(method) {
+        if (method === "BLIK") return EMOJI_BLIK;
+        if (method === "KODBLIK") return EMOJI_BLIK;
+        if (method === "PAYPAL") return EMOJI_PAYPAL;
+        if (method === "CRYPTO") return EMOJI_CRYPTO;
+        if (method === "LTC") return EMOJI_LTC;
 
-    try {
+        return "💸";
+    }
 
-      const channel = await client.channels.fetch(CHANNEL_ID);
+    // =====================
+    // PANEL
+    // =====================
 
-      if (!channel) {
-        return console.log("❌ Nie znaleziono kanału.");
-      }
+    async function sendPanel() {
 
-      const embed = new EmbedBuilder()
-        .setColor("#1b2dff")
-        .setTitle("🌌 StarX Exchange × PROWIZJE WYMIANY")
-        .setDescription(`
-• ${EMOJI_CRYPTO} **CRYPTO ➔** ${EMOJI_BLIK} **BLIK** — Prowizja wynosi: **4%**
-• ${EMOJI_CRYPTO} **CRYPTO ➔** ${EMOJI_BLIK} **KOD BLIK** — Prowizja wynosi: **4%**
-• ${EMOJI_CRYPTO} **CRYPTO ➔** ${EMOJI_PAYPAL} **PAYPAL** — Prowizja wynosi: **4%**
-• ${EMOJI_CRYPTO} **CRYPTO ➔** ${EMOJI_CRYPTO} **CRYPTO** — Prowizja wynosi: **4%**
-• ${EMOJI_CRYPTO} **CRYPTO ➔** ${EMOJI_LTC} **LTC** — Prowizja wynosi: **4%**
+        const channel = await client.channels.fetch(CHANNEL_ID);
 
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${EMOJI_ARROW} Minimalna prowizja wynosi: **3 PLN**
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
+        const embed = new EmbedBuilder()
+            .setColor("#2b2d31")
+            .setTitle("🌟 StarX Exchange » OBLICZ PROWIZJĘ")
+            .setDescription(`
 ${EMOJI_MONEY} Oblicz ile dostaniesz lub ile musisz wpłacić.
-
 ${EMOJI_BOX} Kliknij menu poniżej.
-        `)
-        .setFooter({
-          text: "© 2026 StarX Exchange"
-        });
-
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId("calc_type")
-        .setPlaceholder("💸 Wybierz opcję")
-        .addOptions([
-          {
-            label: "Jaką kwotę otrzymam?",
-            value: "otrzymam"
-          },
-          {
-            label: "Ile muszę wpłacić aby dostać X?",
-            value: "wplace"
-          }
-        ]);
-
-      const row = new ActionRowBuilder().addComponents(menu);
-
-      await channel.send({
-        embeds: [embed],
-        components: [row]
-      });
-
-      console.log("✅ Kalkulator wysłany");
-
-    } catch (err) {
-      console.log("❌ Błąd:", err);
-    }
-  }
-
-  // =====================
-  // READY
-  // =====================
-  client.on(Events.ClientReady, async () => {
-    setTimeout(sendPanel, 3000);
-  });
-
-  // =====================
-  // INTERACTIONS
-  // =====================
-  client.on(Events.InteractionCreate, async interaction => {
-
-    // =====================
-    // SELECT MENU
-    // =====================
-    if (interaction.isStringSelectMenu()) {
-
-      // TYP
-      if (interaction.customId === "calc_type") {
-
-        selectedType[interaction.user.id] = interaction.values[0];
+            `)
+            .setFooter({
+                text: "© 2026 StarX Exchange x Kalkulator"
+            });
 
         const menu = new StringSelectMenuBuilder()
-          .setCustomId("calc_from")
-          .setPlaceholder("📤 Z jakiej metody?")
-          .addOptions([
-            {
-              label: "BLIK",
-              value: "BLIK",
-              emoji: {
-                id: "1499784231608389742",
-                name: "blik"
-              }
-            },
-            {
-              label: "KOD BLIK",
-              value: "KODBLIK",
-              emoji: {
-                id: "1499784231608389742",
-                name: "blik"
-              }
-            },
-            {
-              label: "PAYPAL",
-              value: "PAYPAL",
-              emoji: {
-                id: "1499784258091483236",
-                name: "paypal"
-              }
-            },
-            {
-              label: "LTC",
-              value: "LTC",
-              emoji: {
-                id: "1499784285211726014",
-                name: "ltc"
-              }
-            },
-            {
-              label: "CRYPTO",
-              value: "CRYPTO",
-              emoji: {
-                id: "1499784635201224724",
-                name: "crypto"
-              }
-            }
-          ]);
+            .setCustomId("calc_type")
+            .setPlaceholder("💸 Wybierz opcję")
+            .addOptions([
+                {
+                    label: "Jaką kwotę otrzymam?",
+                    value: "otrzymam"
+                },
+                {
+                    label: "Ile muszę wpłacić aby dostać X?",
+                    value: "wplace"
+                }
+            ]);
 
-        return interaction.reply({
-          content: "📤 Wybierz metodę Z:",
-          components: [
-            new ActionRowBuilder().addComponents(menu)
-          ],
-          flags: 64
+        const row = new ActionRowBuilder().addComponents(menu);
+
+        await channel.send({
+            embeds: [embed],
+            components: [row]
         });
-      }
 
-      // FROM
-      if (interaction.customId === "calc_from") {
-
-        selectedFrom[interaction.user.id] = interaction.values[0];
-
-        const menu = new StringSelectMenuBuilder()
-          .setCustomId("calc_to")
-          .setPlaceholder("📥 Na jaką metodę?")
-          .addOptions([
-            {
-              label: "BLIK",
-              value: "BLIK",
-              emoji: {
-                id: "1499784231608389742",
-                name: "blik"
-              }
-            },
-            {
-              label: "KOD BLIK",
-              value: "KODBLIK",
-              emoji: {
-                id: "1499784231608389742",
-                name: "blik"
-              }
-            },
-            {
-              label: "PAYPAL",
-              value: "PAYPAL",
-              emoji: {
-                id: "1499784258091483236",
-                name: "paypal"
-              }
-            },
-            {
-              label: "LTC",
-              value: "LTC",
-              emoji: {
-                id: "1499784285211726014",
-                name: "ltc"
-              }
-            },
-            {
-              label: "CRYPTO",
-              value: "CRYPTO",
-              emoji: {
-                id: "1499784635201224724",
-                name: "crypto"
-              }
-            }
-          ]);
-
-        return interaction.update({
-          content: "📥 Wybierz metodę NA:",
-          components: [
-            new ActionRowBuilder().addComponents(menu)
-          ]
-        });
-      }
-
-      // TO
-      if (interaction.customId === "calc_to") {
-
-        const modal = new ModalBuilder()
-          .setCustomId(`calc_modal_${interaction.values[0]}`)
-          .setTitle("🌌 StarX Exchange");
-
-        modal.addComponents(
-          new ActionRowBuilder().addComponents(
-            new TextInputBuilder()
-              .setCustomId("kwota")
-              .setLabel("Podaj kwotę")
-              .setPlaceholder("Np. 100")
-              .setStyle(TextInputStyle.Short)
-              .setRequired(true)
-          )
-        );
-
-        return interaction.showModal(modal);
-      }
+        console.log("✅ Kalkulator wysłany");
     }
 
     // =====================
-    // MODAL SUBMIT
+    // READY
     // =====================
-    if (interaction.isModalSubmit()) {
 
-      if (!interaction.customId.startsWith("calc_modal_")) return;
+    client.on(Events.ClientReady, async () => {
+        setTimeout(sendPanel, 3000);
+    });
 
-      const to = interaction.customId.replace("calc_modal_", "");
-      const from = selectedFrom[interaction.user.id];
-      const type = selectedType[interaction.user.id];
+    // =====================
+    // INTERACTIONS
+    // =====================
 
-      const key = `${from}_${to}`;
+    client.on(Events.InteractionCreate, async interaction => {
 
-      if (!rates[key]) {
-        return interaction.reply({
-          content: "❌ Nie można wymienić tej metody.",
-          flags: 64
-        });
-      }
+        // =====================
+        // SELECT MENU
+        // =====================
 
-      const percent = rates[key];
+        if (interaction.isStringSelectMenu()) {
 
-      const kwota = parseFloat(
-        interaction.fields
-          .getTextInputValue("kwota")
-          .replace(",", ".")
-      );
+            // WYBÓR TYPU
 
-      if (isNaN(kwota) || kwota <= 0) {
-        return interaction.reply({
-          content: "❌ Podano nieprawidłową kwotę.",
-          flags: 64
-        });
-      }
+            if (interaction.customId === "calc_type") {
 
-      // PROWIZJA
-      let prowizja = kwota * percent / 100;
+                selectedType[interaction.user.id] = interaction.values[0];
 
-      // MINIMUM 3 PLN
-      if (prowizja < 3) {
-        prowizja = 3;
-      }
+                const menu = new StringSelectMenuBuilder()
+                    .setCustomId("calc_from")
+                    .setPlaceholder("📤 Z jakiej metody?")
+                    .addOptions([
+                        {
+                            label: "BLIK",
+                            value: "BLIK",
+                            emoji: {
+                                id: "1499784231608389742",
+                                name: "blik"
+                            }
+                        },
+                        {
+                            label: "KOD BLIK",
+                            value: "KODBLIK",
+                            emoji: {
+                                id: "1499784231608389742",
+                                name: "blik"
+                            }
+                        },
+                        {
+                            label: "PAYPAL",
+                            value: "PAYPAL",
+                            emoji: {
+                                id: "1499784258091483236",
+                                name: "paypal"
+                            }
+                        },
+                        {
+                            label: "LTC",
+                            value: "LTC",
+                            emoji: {
+                                id: "1499784285211726014",
+                                name: "ltc"
+                            }
+                        },
+                        {
+                            label: "CRYPTO",
+                            value: "CRYPTO",
+                            emoji: {
+                                id: "1499784635201224724",
+                                name: "crypto"
+                            }
+                        }
+                    ]);
 
-      let wynik = 0;
+                return interaction.reply({
+                    content: "📤 Wybierz metodę Z:",
+                    components: [
+                        new ActionRowBuilder().addComponents(menu)
+                    ],
+                    flags: 64
+                });
+            }
 
-      if (type === "otrzymam") {
-        wynik = kwota - prowizja;
-      } else {
-        wynik = kwota + prowizja;
-      }
+            // WYBÓR FROM
 
-      const embed = new EmbedBuilder()
-        .setColor("#1b2dff")
-        .setTitle("🌌 StarX Exchange × WYNIK")
-        .setDescription(`
-${emoji(from)} **Z:** ${methodName(from)}
-${emoji(to)} **Na:** ${methodName(to)}
+            if (interaction.customId === "calc_from") {
+
+                selectedFrom[interaction.user.id] = interaction.values[0];
+
+                const menu = new StringSelectMenuBuilder()
+                    .setCustomId("calc_to")
+                    .setPlaceholder("📥 Na jaką metodę?")
+                    .addOptions([
+                        {
+                            label: "BLIK",
+                            value: "BLIK",
+                            emoji: {
+                                id: "1499784231608389742",
+                                name: "blik"
+                            }
+                        },
+                        {
+                            label: "KOD BLIK",
+                            value: "KODBLIK",
+                            emoji: {
+                                id: "1499784231608389742",
+                                name: "blik"
+                            }
+                        },
+                        {
+                            label: "PAYPAL",
+                            value: "PAYPAL",
+                            emoji: {
+                                id: "1499784258091483236",
+                                name: "paypal"
+                            }
+                        },
+                        {
+                            label: "LTC",
+                            value: "LTC",
+                            emoji: {
+                                id: "1499784285211726014",
+                                name: "ltc"
+                            }
+                        },
+                        {
+                            label: "CRYPTO",
+                            value: "CRYPTO",
+                            emoji: {
+                                id: "1499784635201224724",
+                                name: "crypto"
+                            }
+                        }
+                    ]);
+
+                return interaction.update({
+                    content: "📥 Wybierz metodę NA:",
+                    components: [
+                        new ActionRowBuilder().addComponents(menu)
+                    ]
+                });
+            }
+
+            // WYBÓR TO
+
+            if (interaction.customId === "calc_to") {
+
+                const modal = new ModalBuilder()
+                    .setCustomId(`calc_modal_${interaction.values[0]}`)
+                    .setTitle("🌟 StarX Exchange");
+
+                modal.addComponents(
+                    new ActionRowBuilder().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId("kwota")
+                            .setLabel("Podaj kwotę")
+                            .setStyle(TextInputStyle.Short)
+                            .setRequired(true)
+                    )
+                );
+
+                return interaction.showModal(modal);
+            }
+        }
+
+        // =====================
+        // MODAL SUBMIT
+        // =====================
+
+        if (interaction.isModalSubmit()) {
+
+            if (!interaction.customId.startsWith("calc_modal_"))
+                return;
+
+            const to = interaction.customId.replace("calc_modal_", "");
+
+            const from = selectedFrom[interaction.user.id];
+            const type = selectedType[interaction.user.id];
+
+            const key = `${from}_${to}`;
+
+            if (!rates[key]) {
+                return interaction.reply({
+                    content: "❌ Nie można wymienić tej metody.",
+                    flags: 64
+                });
+            }
+
+            const percent = rates[key];
+
+            const kwota = parseFloat(
+                interaction.fields
+                    .getTextInputValue("kwota")
+                    .replace(",", ".")
+            );
+
+            if (isNaN(kwota) || kwota <= 0) {
+                return interaction.reply({
+                    content: "❌ Podano nieprawidłową kwotę.",
+                    flags: 64
+                });
+            }
+
+            let wynik = 0;
+
+            if (type === "otrzymam") {
+
+                wynik = kwota - (kwota * percent / 100);
+
+            } else {
+
+                wynik = kwota / (1 - percent / 100);
+            }
+
+            const embed = new EmbedBuilder()
+                .setColor("#2b2d31")
+                .setTitle("🌟 StarX Exchange » WYNIK")
+                .setDescription(`
+${emoji(from)} **Z:** ${from}
+
+${emoji(to)} **Na:** ${to}
 
 💸 **Prowizja:** ${percent}%
-${EMOJI_ARROW} **Minimalna prowizja:** 3 PLN
 
-━━━━━━━━━━━━━━━━━━━━━━━
+${EMOJI_MONEY} **Wynik:** ${wynik.toFixed(2)} zł
+                `)
+                .setFooter({
+                    text: "© 2026 StarX Exchange x Kalkulator"
+                });
 
-${EMOJI_MONEY} **Wynik:** \`${wynik.toFixed(2)} PLN\`
-        `)
-        .setFooter({
-          text: "© 2026 StarX Exchange"
-        });
-
-      await interaction.reply({
-        embeds: [embed],
-        flags: 64
-      });
-    }
-
-  });
-
+            await interaction.reply({
+                embeds: [embed],
+                flags: 64
+            });
+        }
+    });
 };
