@@ -6,7 +6,10 @@ const {
   ChannelType,
   PermissionsBitField,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -32,7 +35,40 @@ module.exports = (client) => {
     support: "<:support:1500243961124618381>",
     pin: "<:pin:1501697389050986546>",
     money: "<a:money:1501685438103031920>",
-    middleman: "<:middleman:1500243884733894716>"
+    middleman: "<:middleman:1500243884733894716>",
+
+    blik: "<:blik:1499784231608389742>",
+    paypal: "<:paypal:1499784258091483236>",
+    crypto: "<:crypto:1499784635201224724>",
+    ltc: "<:ltc:1499784285211726014>"
+  };
+
+  // =====================
+  // PROWIZJE
+  // =====================
+  const PROVISIONS = {
+    "BLIK-PAYPAL": 2,
+    "BLIK-CRYPTO": 8,
+    "BLIK-LTC": 8,
+
+    "KODBLIK-PAYPAL": 6,
+    "KODBLIK-CRYPTO": 11,
+    "KODBLIK-LTC": 11,
+
+    "PAYPAL-BLIK": 9,
+    "PAYPAL-CRYPTO": 9,
+    "PAYPAL-LTC": 9,
+
+    "CRYPTO-BLIK": 4,
+    "CRYPTO-KODBLIK": 4,
+    "CRYPTO-PAYPAL": 4,
+    "CRYPTO-CRYPTO": 4,
+    "CRYPTO-LTC": 4,
+
+    "LTC-BLIK": 4,
+    "LTC-KODBLIK": 4,
+    "LTC-PAYPAL": 4,
+    "LTC-CRYPTO": 4
   };
 
   // =====================
@@ -46,21 +82,27 @@ module.exports = (client) => {
         .setPlaceholder("🎫 Wybierz kategorię")
         .addOptions([
           {
-            label: "Wymiana / Zakup",
-            description: "Kupno lub wymiana",
-            value: "Wymiana / Zakup",
+            label: "Wymiana",
+            description: "Stwórz ticket wymiany",
+            value: "wymiana",
+            emoji: { id: "1500243849535033577" }
+          },
+          {
+            label: "Zakup",
+            description: "Stwórz ticket zakupu",
+            value: "zakup",
             emoji: { id: "1500243849535033577" }
           },
           {
             label: "Pomoc",
             description: "Wsparcie administracji",
-            value: "Pomoc",
+            value: "pomoc",
             emoji: { id: "1500243961124618381" }
           },
           {
             label: "Middleman",
             description: "Usługa pośrednika",
-            value: "Middleman",
+            value: "middleman",
             emoji: { id: "1500243884733894716" }
           }
         ])
@@ -105,48 +147,69 @@ module.exports = (client) => {
   });
 
   // =====================
-  // CREATE TICKET
+  // SELECT MENU
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
 
     if (!interaction.isStringSelectMenu()) return;
     if (interaction.customId !== "ticket_select") return;
 
-    try {
+    const type = interaction.values[0];
 
-      const category = interaction.values[0];
+    // =====================
+    // WYMIANA / ZAKUP MODAL
+    // =====================
+    if (type === "wymiana" || type === "zakup") {
 
-      // =====================
-      // CHECK EXISTING
-      // =====================
-      const existing = interaction.guild.channels.cache.find(
-        c =>
-          c.name === `ticket-${interaction.user.username}`.toLowerCase()
+      const modal = new ModalBuilder()
+        .setCustomId(`exchange_modal_${type}`)
+        .setTitle("📋 Potrzebne informacje");
+
+      const amountInput = new TextInputBuilder()
+        .setCustomId("amount")
+        .setLabel("JAKA KWOTA?")
+        .setPlaceholder("Przykład: 100")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const fromInput = new TextInputBuilder()
+        .setCustomId("from")
+        .setLabel("Z CZEGO?")
+        .setPlaceholder("np. BLIK")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      const toInput = new TextInputBuilder()
+        .setCustomId("to")
+        .setLabel("NA CO?")
+        .setPlaceholder("np. PAYPAL")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(amountInput),
+        new ActionRowBuilder().addComponents(fromInput),
+        new ActionRowBuilder().addComponents(toInput)
       );
 
-      if (existing) {
-        return interaction.reply({
-          content: `${EMOJI.warning} Masz już otwarty ticket: ${existing}`,
-          flags: 64
-        });
-      }
+      return interaction.showModal(modal);
+    }
 
-      // =====================
-      // CREATE CHANNEL
-      // =====================
+    // =====================
+    // POMOC / MM
+    // =====================
+    try {
+
       const channel = await interaction.guild.channels.create({
-        name: `ticket-${interaction.user.username}`.toLowerCase(),
+        name: `${type}-${interaction.user.username}`.toLowerCase(),
         type: ChannelType.GuildText,
 
         permissionOverwrites: [
-
-          // everyone
           {
             id: interaction.guild.id,
             deny: [PermissionsBitField.Flags.ViewChannel]
           },
 
-          // owner
           {
             id: interaction.user.id,
             allow: [
@@ -157,22 +220,17 @@ module.exports = (client) => {
             ]
           },
 
-          // realizator
           {
             id: REALIZATOR_ROLE_ID,
             allow: [
               PermissionsBitField.Flags.ViewChannel,
               PermissionsBitField.Flags.SendMessages,
-              PermissionsBitField.Flags.ReadMessageHistory,
-              PermissionsBitField.Flags.ManageMessages
+              PermissionsBitField.Flags.ReadMessageHistory
             ]
           }
         ]
       });
 
-      // =====================
-      // BUTTON
-      // =====================
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId("close_ticket")
@@ -181,20 +239,125 @@ module.exports = (client) => {
           .setStyle(ButtonStyle.Danger)
       );
 
-      // =====================
-      // EMBED
-      // =====================
       const embed = new EmbedBuilder()
         .setColor("#2b2d31")
         .setTitle(`${EMOJI.ticket} Nowy Ticket`)
         .setDescription([
           `${EMOJI.pin} Użytkownik: ${interaction.user}`,
-          `${EMOJI.list} Kategoria: **${category}**`,
-          `${EMOJI.admin} Support odpowie najszybciej jak to możliwe`,
-          `${EMOJI.money} StarX Exchange`
+          `${EMOJI.list} Kategoria: **${type}**`
         ].join("\n"))
+        .setTimestamp();
+
+      await channel.send({
+        content: `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
+        embeds: [embed],
+        components: [row]
+      });
+
+      return interaction.reply({
+        content: `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
+        flags: 64
+      });
+
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  // =====================
+  // MODAL SUBMIT
+  // =====================
+  client.on(Events.InteractionCreate, async (interaction) => {
+
+    if (!interaction.isModalSubmit()) return;
+    if (!interaction.customId.startsWith("exchange_modal_")) return;
+
+    try {
+
+      const type =
+        interaction.customId.replace("exchange_modal_", "");
+
+      const amount =
+        Number(interaction.fields.getTextInputValue("amount"));
+
+      const from =
+        interaction.fields
+          .getTextInputValue("from")
+          .toUpperCase()
+          .replace(/\s+/g, "");
+
+      const to =
+        interaction.fields
+          .getTextInputValue("to")
+          .toUpperCase()
+          .replace(/\s+/g, "");
+
+      const key = `${from}-${to}`;
+
+      const provision =
+        PROVISIONS[key] || 0;
+
+      let after =
+        amount - (amount * provision / 100);
+
+      if (provision > 0 && (amount * provision / 100) < 3) {
+        after = amount - 3;
+      }
+
+      const channel = await interaction.guild.channels.create({
+        name: `${type}-${from.toLowerCase()}-${to.toLowerCase()}`,
+        type: ChannelType.GuildText,
+
+        permissionOverwrites: [
+          {
+            id: interaction.guild.id,
+            deny: [PermissionsBitField.Flags.ViewChannel]
+          },
+
+          {
+            id: interaction.user.id,
+            allow: [
+              PermissionsBitField.Flags.ViewChannel,
+              PermissionsBitField.Flags.SendMessages,
+              PermissionsBitField.Flags.ReadMessageHistory,
+              PermissionsBitField.Flags.AttachFiles
+            ]
+          },
+
+          {
+            id: REALIZATOR_ROLE_ID,
+            allow: [
+              PermissionsBitField.Flags.ViewChannel,
+              PermissionsBitField.Flags.SendMessages,
+              PermissionsBitField.Flags.ReadMessageHistory
+            ]
+          }
+        ]
+      });
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("close_ticket")
+          .setLabel("Zamknij Ticket")
+          .setEmoji("1501697222901895258")
+          .setStyle(ButtonStyle.Danger)
+      );
+
+      const embed = new EmbedBuilder()
+        .setColor("#2b2d31")
+        .setTitle(`${EMOJI.cart} StarX Exchange » ${type.toUpperCase()}`)
+        .setDescription([
+          `${EMOJI.pin} Użytkownik ${interaction.user}`,
+          ``,
+          `${EMOJI.money} Kwota wymiany wynosi **${amount.toFixed(2)} PLN**`,
+          `${EMOJI.zap} Z metody **${from}** na **${to}**`,
+          ``,
+          `${EMOJI.ticket} Prowizja: **${provision}%**`,
+          `${EMOJI.money} Po prowizji otrzymasz **${after.toFixed(2)} PLN**`
+        ].join("\n"))
+        .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
-          text: "System Ticketów"
+          text: "© 2026 StarX Exchange"
         })
         .setTimestamp();
 
@@ -204,21 +367,18 @@ module.exports = (client) => {
         components: [row]
       });
 
-      // =====================
-      // REPLY
-      // =====================
       return interaction.reply({
         content: `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
         flags: 64
       });
 
     } catch (err) {
-      console.log("❌ Create ticket error:", err);
+      console.log("❌ Modal error:", err);
     }
   });
 
   // =====================
-  // CLOSE TICKET
+  // CLOSE
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
 
@@ -227,11 +387,9 @@ module.exports = (client) => {
 
     try {
 
-      const member = await interaction.guild.members.fetch(interaction.user.id);
+      const member =
+        await interaction.guild.members.fetch(interaction.user.id);
 
-      // =====================
-      // ONLY REALIZATOR
-      // =====================
       if (!member.roles.cache.has(REALIZATOR_ROLE_ID)) {
         return interaction.reply({
           content: `${EMOJI.warning} Tylko realizator może zamknąć ticket.`,
@@ -239,9 +397,6 @@ module.exports = (client) => {
         });
       }
 
-      // =====================
-      // CLOSE EMBED
-      // =====================
       const embed = new EmbedBuilder()
         .setColor("#ED4245")
         .setDescription(
@@ -252,13 +407,8 @@ module.exports = (client) => {
         embeds: [embed]
       });
 
-      // =====================
-      // DELETE CHANNEL
-      // =====================
       setTimeout(async () => {
-
         await interaction.channel.delete().catch(() => {});
-
       }, 3000);
 
     } catch (err) {
