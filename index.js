@@ -131,7 +131,14 @@ client.once(Events.ClientReady, async () => {
 
       new SlashCommandBuilder()
         .setName("odprzyjmij")
-        .setDescription("Oddaj ticket")
+        .setDescription("Oddaj ticket"),
+
+      // =========================
+      // DODANE REROLL
+      // =========================
+      new SlashCommandBuilder()
+        .setName("reroll")
+        .setDescription("Wylosuj nowego zwycięzcę giveaway")
     ].map(c => c.toJSON());
 
     const rest = new REST({ version: "10" }).setToken(TOKEN);
