@@ -14,7 +14,7 @@ module.exports = (client) => {
         red: "<a:red:1501989543182864535>"
     };
 
-    // MUST be shared with giveaway.js
+    // MUST BE SHARED WITH GIVEAWAY.JS
     const giveaways = global.giveaways || new Map();
     global.giveaways = giveaways;
 
@@ -29,7 +29,7 @@ module.exports = (client) => {
                 .setDescription("Reroll giveaway")
                 .addStringOption(o =>
                     o.setName("giveaway_id")
-                        .setDescription("ID giveaway (np. 1700000000000)")
+                        .setDescription("ID giveaway")
                         .setRequired(true)
                 )
                 .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
@@ -41,7 +41,7 @@ module.exports = (client) => {
     });
 
     // =========================
-    // REROLL LOGIC
+    // COMMAND LOGIC
     // =========================
     client.on(Events.InteractionCreate, async (interaction) => {
 
@@ -51,6 +51,14 @@ module.exports = (client) => {
         try {
 
             const id = interaction.options.getString("giveaway_id");
+
+            if (!id) {
+                return interaction.reply({
+                    content: `${EMOJI.red} Brak ID giveaway`,
+                    ephemeral: true
+                });
+            }
+
             const g = giveaways.get(id);
 
             if (!g) {
@@ -62,7 +70,7 @@ module.exports = (client) => {
 
             const users = g.users ? [...g.users] : [];
 
-            if (users.length === 0) {
+            if (!users.length) {
                 return interaction.reply({
                     content: `${EMOJI.red} Brak uczestników`,
                     ephemeral: true
@@ -71,26 +79,26 @@ module.exports = (client) => {
 
             const winner = users[Math.floor(Math.random() * users.length)];
 
-            const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
+            const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID).catch(() => null);
 
-            await channel.send(
-                `${EMOJI.gift} 🎉 Nowy winner: <@${winner}> (reroll)`
-            );
+            if (channel) {
+                await channel.send(
+                    `${EMOJI.gift} 🎉 Nowy winner (reroll): <@${winner}>`
+                );
+            }
 
             return interaction.reply({
-                content: `${EMOJI.green} Reroll wykonany!\nWinner: <@${winner}>`,
+                content: `${EMOJI.green} Reroll wykonany!\n🎉 Winner: <@${winner}>`,
                 ephemeral: true
             });
 
         } catch (err) {
             console.log("REROLL ERROR:", err);
 
-            if (!interaction.replied) {
-                return interaction.reply({
-                    content: "❌ Błąd rerolla",
-                    ephemeral: true
-                });
-            }
+            return interaction.reply({
+                content: "❌ Błąd rerolla",
+                ephemeral: true
+            });
         }
     });
 };
