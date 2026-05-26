@@ -20,22 +20,19 @@ module.exports = (client) => {
         gift: "<:gift:1502025560606507048>",
         pin: "<:pin:1501697389050986546>",
         time: "<:time:1502030015943151868>",
-        users: "<:users:1500243884733894716>",
-        win: "<:win:1502025560606507048>",
+        users: "<:users:1500243884734206032>",
         green: "<a:green:1501990166082879538>",
         red: "<a:red:1501989543182864535>"
     };
 
     // =========================
-    // STORAGE
+    // STORAGE (GLOBAL = REROLL FIX)
     // =========================
-    const giveaways = new Map(); 
-    // giveawayId -> { users, messageId, channelId, end, reward }
-
+    const giveaways = new Map();
     global.giveaways = giveaways;
 
     // =========================
-    // REGISTER COMMANDS
+    // READY + COMMANDS
     // =========================
     client.once(Events.ClientReady, async () => {
 
@@ -43,14 +40,20 @@ module.exports = (client) => {
             new SlashCommandBuilder()
                 .setName("konkurs")
                 .setDescription("Tworzy giveaway")
-                .addStringOption(o => o.setName("nagroda").setRequired(true))
-                .addStringOption(o => o.setName("czas").setRequired(true))
-                .addStringOption(o => o.setName("wymagania").setRequired(true))
+                .addStringOption(o =>
+                    o.setName("nagroda").setRequired(true)
+                )
+                .addStringOption(o =>
+                    o.setName("czas").setRequired(true)
+                )
+                .addStringOption(o =>
+                    o.setName("wymagania").setRequired(true)
+                )
                 .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
             new SlashCommandBuilder()
                 .setName("reroll")
-                .setDescription("Reroll giveaway")
+                .setDescription("Losuje nowego zwycięzcę")
                 .addStringOption(o =>
                     o.setName("giveaway_id")
                         .setDescription("ID giveaway")
@@ -65,7 +68,7 @@ module.exports = (client) => {
     });
 
     // =========================
-    // MAIN
+    // INTERACTIONS
     // =========================
     client.on(Events.InteractionCreate, async (interaction) => {
 
@@ -87,9 +90,9 @@ module.exports = (client) => {
                 if (czas.endsWith("h")) ms = value * 60 * 60 * 1000;
                 if (czas.endsWith("d")) ms = value * 24 * 60 * 60 * 1000;
 
-                if (!ms) {
+                if (!ms || isNaN(ms)) {
                     return interaction.reply({
-                        content: `${EMOJI.red} Zły czas`,
+                        content: `${EMOJI.red} Zły format czasu`,
                         ephemeral: true
                     });
                 }
@@ -101,7 +104,7 @@ module.exports = (client) => {
                     reward: nagroda,
                     requirements: wymagania,
                     end: Date.now() + ms,
-                    channelId: GIVEAWAY_CHANNEL_ID
+                    messageId: null
                 };
 
                 giveaways.set(giveawayId, data);
@@ -123,7 +126,7 @@ module.exports = (client) => {
                         ``,
                         `## ${EMOJI.users} Uczestnicy: **0**`
                     ].join("\n"))
-                    .setImage("https://i.imgur.com/4KfOswz_d.webp")
+                    .setImage("https://i.imgur.com/4KfOswz.png") // 🔥 lepsza jakość
                     .setFooter({ text: `Giveaway ID: ${giveawayId}` })
                     .setTimestamp();
 
@@ -145,7 +148,7 @@ module.exports = (client) => {
                 data.messageId = msg.id;
 
                 await interaction.reply({
-                    content: `${EMOJI.green} Giveaway utworzony!\nID: **${giveawayId}**`,
+                    content: `${EMOJI.green} Giveaway utworzone!\nID: **${giveawayId}**`,
                     ephemeral: true
                 });
 
@@ -173,7 +176,7 @@ module.exports = (client) => {
             }
 
             // =========================
-            // JOIN BUTTON
+            // JOIN BUTTON + LIVE COUNTER
             // =========================
             if (interaction.isButton() && interaction.customId.startsWith("join_")) {
 
@@ -203,19 +206,18 @@ module.exports = (client) => {
 
                 g.users.add(interaction.user.id);
 
-                // LIVE UPDATE
                 const channel = interaction.channel;
                 const msg = await channel.messages.fetch(g.messageId).catch(() => null);
 
                 if (msg) {
                     const embed = EmbedBuilder.from(msg.embeds[0]);
 
-                    const newDesc = embed.data.description.replace(
-                        /Uczestnicy: \*\*\d+\*\*/,
-                        `Uczestnicy: **${g.users.size}**`
+                    embed.setDescription(
+                        embed.data.description.replace(
+                            /Uczestnicy: \*\*\d+\*\*/,
+                            `Uczestnicy: **${g.users.size}**`
+                        )
                     );
-
-                    embed.setDescription(newDesc);
 
                     await msg.edit({ embeds: [embed] });
                 }
@@ -227,7 +229,7 @@ module.exports = (client) => {
             }
 
             // =========================
-            // REROLL (FIXED BY GIVEAWAY ID)
+            // REROLL FIX
             // =========================
             if (interaction.isChatInputCommand() && interaction.commandName === "reroll") {
 
