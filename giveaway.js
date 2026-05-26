@@ -24,17 +24,22 @@ module.exports = (client) => {
         red: "<a:red:1501989543182864535>"
     };
 
+    // =========================
+    // STORAGE (IMPORTANT)
+    // =========================
     const participants = new Map(); // giveawayId -> Set(users)
     const messages = new Map();      // giveawayId -> messageId
+
+    global.participants = participants; // <-- WAŻNE (reroll support)
 
     let lastButton = null;
 
     // =========================
-    // SLASH COMMANDS
+    // REGISTER SLASH COMMANDS
     // =========================
     client.once(Events.ClientReady, async () => {
 
-        const data = [
+        const commands = [
             new SlashCommandBuilder()
                 .setName("konkurs")
                 .setDescription("Stwórz giveaway")
@@ -58,25 +63,23 @@ module.exports = (client) => {
                         .setRequired(true)
                 )
                 .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        ];
+        ].map(c => c.toJSON());
 
-        await client.application.commands.set(data);
-        console.log("✅ Giveaway loaded");
+        await client.application.commands.set(commands);
+        console.log("✅ Giveaway system loaded");
     });
 
     // =========================
-    // COMMANDS HANDLER
+    // INTERACTIONS
     // =========================
-    client.on(Events.InteractionCreate, async interaction => {
+    client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
-            if (!interaction.isChatInputCommand()) return;
-
-            // =========================
+            // =================================
             // CREATE GIVEAWAY
-            // =========================
-            if (interaction.commandName === "konkurs") {
+            // =================================
+            if (interaction.isChatInputCommand() && interaction.commandName === "konkurs") {
 
                 const nagroda = interaction.options.getString("nagroda");
                 const czas = interaction.options.getString("czas");
@@ -114,18 +117,18 @@ module.exports = (client) => {
                         `> ${wymagania}`,
                         ``,
                         `## ${EMOJI.zap} Jak dołączyć?`,
-                        `> Kliknij przycisk poniżej`,
+                        `> Kliknij przycisk`,
                         ``,
                         `## ${EMOJI.lock} Informacje`,
                         `> ${EMOJI.time} Koniec: <t:${endTimestamp}:R>`,
                         `> ${EMOJI.users} Uczestnicy: **0**`
                     ].join("\n"))
-                    .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
-                    .setFooter({ text: "StarX Exchange • Giveaway System" })
+                    .setImage("https://i.imgur.com/4KfOswz_d.webp")
+                    .setFooter({ text: "StarX Giveaway System" })
                     .setTimestamp();
 
                 const button = new ButtonBuilder()
-                    .setCustomId(`join_giveaway_${giveawayId}`)
+                    .setCustomId(`join_${giveawayId}`)
                     .setLabel("Dołącz")
                     .setStyle(ButtonStyle.Success)
                     .setEmoji(EMOJI.gift);
@@ -136,40 +139,41 @@ module.exports = (client) => {
 
                 const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
 
-                const message = await channel.send({
+                const msg = await channel.send({
                     embeds: [embed],
                     components: [row]
                 });
 
-                messages.set(giveawayId, message.id);
+                messages.set(giveawayId, msg.id);
 
-                interaction.reply({
+                await interaction.reply({
                     content: `${EMOJI.green} Giveaway utworzony!`,
                     ephemeral: true
                 });
 
+                // END GIVEAWAY
                 setTimeout(async () => {
 
                     const list = participants.get(giveawayId);
 
                     if (!list || list.size === 0) {
-                        return channel.send(`${EMOJI.red} Brak uczestników giveaway.`);
+                        return channel.send(`${EMOJI.red} Brak uczestników.`);
                     }
 
                     const arr = [...list];
                     const winner = arr[Math.floor(Math.random() * arr.length)];
 
-                    const msg = await channel.messages.fetch(message.id).catch(() => null);
+                    const message = await channel.messages.fetch(msg.id).catch(() => null);
 
-                    if (msg && lastButton) {
+                    if (message && lastButton) {
                         const disabled = new ActionRowBuilder().addComponents(
                             ButtonBuilder.from(lastButton).setDisabled(true)
                         );
 
-                        await msg.edit({ components: [disabled] });
+                        await message.edit({ components: [disabled] });
                     }
 
-                    channel.send(`${EMOJI.gift} Gratulacje <@${winner}> wygrał **${nagroda}**!`);
+                    channel.send(`${EMOJI.gift} 🎉 Winner: <@${winner}>`);
 
                     participants.delete(giveawayId);
                     messages.delete(giveawayId);
@@ -177,20 +181,19 @@ module.exports = (client) => {
                 }, timeMs);
             }
 
-            // =========================
-            // REROLL COMMAND
-            // =========================
-            if (interaction.commandName === "reroll") {
+            // =================================
+            // REROLL
+            // =================================
+            if (interaction.isChatInputCommand() && interaction.commandName === "reroll") {
 
                 const messageId = interaction.options.getString("message_id");
+
+                const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
 
                 let giveawayId = null;
 
                 for (const [id, msgId] of messages.entries()) {
-                    if (msgId === messageId) {
-                        giveawayId = id;
-                        break;
-                    }
+                    if (msgId === messageId) giveawayId = id;
                 }
 
                 if (!giveawayId) {
@@ -212,9 +215,7 @@ module.exports = (client) => {
                 const arr = [...users];
                 const winner = arr[Math.floor(Math.random() * arr.length)];
 
-                const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
-
-                channel.send(`${EMOJI.gift} Nowy zwycięzca: <@${winner}> 🎉`);
+                channel.send(`${EMOJI.gift} 🎉 Nowy winner: <@${winner}>`);
 
                 return interaction.reply({
                     content: `${EMOJI.green} Reroll wykonany!`,
@@ -222,55 +223,52 @@ module.exports = (client) => {
                 });
             }
 
+            // =================================
+            // JOIN BUTTON
+            // =================================
+            if (interaction.isButton() && interaction.customId.startsWith("join_")) {
+
+                const giveawayId = interaction.customId.split("join_")[1];
+                const users = participants.get(giveawayId);
+
+                if (!users) {
+                    return interaction.reply({
+                        content: `${EMOJI.red} Giveaway zakończony.`,
+                        ephemeral: true
+                    });
+                }
+
+                if (!interaction.member.roles.cache.has(REQUIRED_ROLE_ID)) {
+                    return interaction.reply({
+                        content: `${EMOJI.red} Brak roli.`,
+                        ephemeral: true
+                    });
+                }
+
+                if (users.has(interaction.user.id)) {
+                    return interaction.reply({
+                        content: `${EMOJI.red} Już bierzesz udział.`,
+                        ephemeral: true
+                    });
+                }
+
+                users.add(interaction.user.id);
+
+                return interaction.reply({
+                    content: `${EMOJI.green} Dołączyłeś!`,
+                    ephemeral: true
+                });
+            }
+
         } catch (err) {
-            console.log("Interaction error:", err);
+            console.log("Giveaway error:", err);
 
-            if (interaction.replied || interaction.deferred) return;
-
-            return interaction.reply({
-                content: `${EMOJI.red} Wystąpił błąd.`,
-                ephemeral: true
-            });
+            if (!interaction.replied) {
+                return interaction.reply({
+                    content: "❌ Błąd systemu giveaway",
+                    ephemeral: true
+                });
+            }
         }
-    });
-
-    // =========================
-    // JOIN BUTTON
-    // =========================
-    client.on(Events.InteractionCreate, async interaction => {
-
-        if (!interaction.isButton()) return;
-        if (!interaction.customId.startsWith("join_giveaway_")) return;
-
-        const giveawayId = interaction.customId.replace("join_giveaway_", "");
-        const users = participants.get(giveawayId);
-
-        if (!users) {
-            return interaction.reply({
-                content: `${EMOJI.red} Giveaway zakończony.`,
-                ephemeral: true
-            });
-        }
-
-        if (!interaction.member.roles.cache.has(REQUIRED_ROLE_ID)) {
-            return interaction.reply({
-                content: `${EMOJI.red} Nie masz roli.`,
-                ephemeral: true
-            });
-        }
-
-        if (users.has(interaction.user.id)) {
-            return interaction.reply({
-                content: `${EMOJI.red} Już bierzesz udział.`,
-                ephemeral: true
-            });
-        }
-
-        users.add(interaction.user.id);
-
-        return interaction.reply({
-            content: `${EMOJI.green} Dołączyłeś!`,
-            ephemeral: true
-        });
     });
 };
