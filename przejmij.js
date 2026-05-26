@@ -14,12 +14,26 @@ module.exports = (client) => {
     lock: "<:lock:1501697222901895258>"
   };
 
-  // przejęte tickety
+  // =====================================
+  // CLAIMED TICKETS
+  // =====================================
   const claimedTickets = new Map();
 
+  // =====================================
+  // INTERACTIONS
+  // =====================================
   client.on(Events.InteractionCreate, async (interaction) => {
 
     if (!interaction.isChatInputCommand()) return;
+
+    // =====================================
+    // CHECK TICKET
+    // =====================================
+    const validTicket =
+      interaction.channel.name.startsWith("exchange-") ||
+      interaction.channel.name.startsWith("buy-") ||
+      interaction.channel.name.startsWith("pomoc-") ||
+      interaction.channel.name.startsWith("middleman-");
 
     // =====================================
     // /PRZEJMIJ
@@ -28,6 +42,7 @@ module.exports = (client) => {
 
       try {
 
+        // realizator check
         if (!interaction.member.roles.cache.has(REALIZATOR_ROLE_ID)) {
           return interaction.reply({
             content: `${EMOJI.warning} Nie jesteś realizatorem.`,
@@ -35,16 +50,15 @@ module.exports = (client) => {
           });
         }
 
-        const user = interaction.options.getUser("uzytkownik");
-
-        if (!interaction.channel.name.startsWith("ticket-")) {
+        // ticket check
+        if (!validTicket) {
           return interaction.reply({
             content: `${EMOJI.warning} To nie jest ticket.`,
             flags: 64
           });
         }
 
-        // czy ticket już przejęty
+        // already claimed
         if (claimedTickets.has(interaction.channel.id)) {
           return interaction.reply({
             content: `${EMOJI.warning} Ticket jest już przejęty.`,
@@ -52,7 +66,9 @@ module.exports = (client) => {
           });
         }
 
-        // zabierz widoczność realizatorom
+        // =====================================
+        // HIDE REALIZATOR ROLE
+        // =====================================
         await interaction.channel.permissionOverwrites.edit(
           REALIZATOR_ROLE_ID,
           {
@@ -60,7 +76,9 @@ module.exports = (client) => {
           }
         );
 
-        // dodaj dostęp przejmującemu
+        // =====================================
+        // ADD CLAIMER ACCESS
+        // =====================================
         await interaction.channel.permissionOverwrites.edit(
           interaction.user.id,
           {
@@ -71,8 +89,13 @@ module.exports = (client) => {
           }
         );
 
-        claimedTickets.set(interaction.channel.id, interaction.user.id);
+        // save
+        claimedTickets.set(
+          interaction.channel.id,
+          interaction.user.id
+        );
 
+        // embed
         const embed = new EmbedBuilder()
           .setColor("#57F287")
           .setDescription(
@@ -95,6 +118,7 @@ module.exports = (client) => {
 
       try {
 
+        // realizator check
         if (!interaction.member.roles.cache.has(REALIZATOR_ROLE_ID)) {
           return interaction.reply({
             content: `${EMOJI.warning} Nie jesteś realizatorem.`,
@@ -102,14 +126,15 @@ module.exports = (client) => {
           });
         }
 
-        if (!interaction.channel.name.startsWith("ticket-")) {
+        // ticket check
+        if (!validTicket) {
           return interaction.reply({
             content: `${EMOJI.warning} To nie jest ticket.`,
             flags: 64
           });
         }
 
-        // przywróć rolę realizatorów
+        // restore realizator role
         await interaction.channel.permissionOverwrites.edit(
           REALIZATOR_ROLE_ID,
           {
@@ -120,13 +145,15 @@ module.exports = (client) => {
           }
         );
 
-        // usuń przejmującego
+        // remove claimer overwrite
         await interaction.channel.permissionOverwrites.delete(
           interaction.user.id
         ).catch(() => {});
 
+        // remove claim
         claimedTickets.delete(interaction.channel.id);
 
+        // embed
         const embed = new EmbedBuilder()
           .setColor("#FEE75C")
           .setDescription(
@@ -141,5 +168,7 @@ module.exports = (client) => {
         console.log("❌ /odprzyjmij error:", err);
       }
     }
+
   });
+
 };
