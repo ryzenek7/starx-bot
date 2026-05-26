@@ -14,21 +14,17 @@ const {
 
 module.exports = (client) => {
 
-  // =========================================
-  // CONFIG
-  // =========================================
   const PANEL_CHANNEL_ID = "1499512781861556314";
   const REALIZATOR_ROLE_ID = "1500930428993933373";
 
-  // =========================================
-  // TEMP DATA
-  // =========================================
   const exchangeData = new Map();
 
   // =========================================
   // EMOJI
   // =========================================
   const EMOJI = {
+
+    arrow: "<a:arrow:1508094625984811038>",
 
     list: "<:list:1501693215328440370>",
     admin: "<:admin:1501989271077388500>",
@@ -78,7 +74,7 @@ module.exports = (client) => {
   };
 
   // =========================================
-  // PANEL MENU
+  // MENU
   // =========================================
   function createMenu() {
 
@@ -128,53 +124,42 @@ module.exports = (client) => {
   // =========================================
   client.once(Events.ClientReady, async () => {
 
-    try {
+    const channel =
+      await client.channels.fetch(
+        PANEL_CHANNEL_ID
+      );
 
-      const channel =
-        await client.channels.fetch(
-          PANEL_CHANNEL_ID
-        );
+    if (!channel) return;
 
-      if (!channel) return;
+    const embed =
+      new EmbedBuilder()
 
-      const embed =
-        new EmbedBuilder()
+        .setColor("#f7c325")
 
-          .setColor("#f7c325")
+        .setTitle(
+          `${EMOJI.ticket} 🌟 StarX Exchange » System Ticketów`
+        )
 
-          .setTitle(
-            `${EMOJI.ticket} 🌟 StarX Exchange » System Ticketów`
-          )
+        .setDescription([
 
-          .setDescription([
+          `> ${EMOJI.arrow} Wybierz kategorię z menu poniżej`,
+          `> ${EMOJI.arrow} Szybka pomoc realizatorów`,
+          `> ${EMOJI.arrow} Prywatny i bezpieczny kontakt`,
+          `> ${EMOJI.arrow} Odpowiedź zwykle w kilka minut`
 
-            `> ${EMOJI.list} Wybierz kategorię z menu poniżej`,
-            `> ${EMOJI.zap} Szybka pomoc realizatorów`,
-            `> ${EMOJI.lock} Prywatny i bezpieczny kontakt`,
-            `> ${EMOJI.clock} Odpowiedź zwykle w kilka minut`
+        ].join("\n"))
 
-          ].join("\n"))
+        .setFooter({
+          text: "© 2026 StarX Exchange"
+        });
 
-          .setImage(
-            "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
-          )
+    await channel.send({
 
-          .setFooter({
-            text: "© 2026 StarX Exchange"
-          });
+      embeds: [embed],
+      components: [createMenu()]
+    });
 
-      await channel.send({
-
-        embeds: [embed],
-        components: [createMenu()]
-      });
-
-      console.log("✅ Ticket panel wysłany");
-
-    } catch (err) {
-
-      console.log(err);
-    }
+    console.log("✅ Panel ticketów wysłany.");
   });
 
   // =========================================
@@ -196,24 +181,19 @@ module.exports = (client) => {
           interaction.values[0];
 
         // =====================================
-        // EXCHANGE
+        // EXCHANGE MODAL
         // =====================================
         if (type === "exchange") {
-
-          exchangeData.set(
-            interaction.user.id,
-            {}
-          );
 
           const modal =
             new ModalBuilder()
 
               .setCustomId(
-                "exchange_amount_modal"
+                "exchange_modal"
               )
 
               .setTitle(
-                "Potrzebne informacje"
+                "Potrzebne informacje."
               );
 
           const amountInput =
@@ -224,7 +204,7 @@ module.exports = (client) => {
               )
 
               .setLabel(
-                "JAKA KWOTA"
+                "JAKA KWOTA:"
               )
 
               .setPlaceholder(
@@ -237,36 +217,92 @@ module.exports = (client) => {
 
               .setRequired(true);
 
+          const fromInput =
+            new TextInputBuilder()
+
+              .setCustomId(
+                "exchange_from"
+              )
+
+              .setLabel(
+                "Z CZEGO:"
+              )
+
+              .setPlaceholder(
+                "BLIK / PAYPAL / CRYPTO / LTC"
+              )
+
+              .setStyle(
+                TextInputStyle.Short
+              )
+
+              .setRequired(true);
+
+          const toInput =
+            new TextInputBuilder()
+
+              .setCustomId(
+                "exchange_to"
+              )
+
+              .setLabel(
+                "NA CO:"
+              )
+
+              .setPlaceholder(
+                "PAYPAL / BLIK / LTC / CRYPTO"
+              )
+
+              .setStyle(
+                TextInputStyle.Short
+              )
+
+              .setRequired(true);
+
+          const currencyInput =
+            new TextInputBuilder()
+
+              .setCustomId(
+                "exchange_currency"
+              )
+
+              .setLabel(
+                "JAKĄ WALUTĘ POSIADASZ:"
+              )
+
+              .setPlaceholder(
+                "PLN"
+              )
+
+              .setStyle(
+                TextInputStyle.Short
+              )
+
+              .setRequired(true);
+
           modal.addComponents(
 
             new ActionRowBuilder()
-              .addComponents(amountInput)
+              .addComponents(amountInput),
+
+            new ActionRowBuilder()
+              .addComponents(fromInput),
+
+            new ActionRowBuilder()
+              .addComponents(toInput),
+
+            new ActionRowBuilder()
+              .addComponents(currencyInput)
           );
 
           return interaction.showModal(modal);
         }
 
         // =====================================
-        // EXISTING
+        // OTHER TICKETS
         // =====================================
-        const existing =
-          interaction.guild.channels.cache.find(
-            c =>
-              c.topic ===
-              interaction.user.id
-          );
 
-        if (existing)
-          return interaction.reply({
-
-            content:
-              `${EMOJI.warning} Masz już ticket: ${existing}`,
-
-            ephemeral: true
-          });
-
-        let categoryName =
-          "Pomoc";
+        let categoryName = "Pomoc";
 
         if (type === "buy")
           categoryName = "Zakup";
@@ -274,9 +310,6 @@ module.exports = (client) => {
         if (type === "middleman")
           categoryName = "Middleman";
 
-        // =====================================
-        // CREATE CHANNEL
-        // =====================================
         const channel =
           await interaction.guild.channels.create({
 
@@ -328,9 +361,6 @@ module.exports = (client) => {
             ]
           });
 
-        // =====================================
-        // BUTTONS
-        // =====================================
         const row =
           new ActionRowBuilder()
             .addComponents(
@@ -343,14 +373,15 @@ module.exports = (client) => {
 
                 .setEmoji("❌")
 
+                .setLabel(
+                  "Zamknij"
+                )
+
                 .setStyle(
                   ButtonStyle.Danger
                 )
             );
 
-        // =====================================
-        // EMBED
-        // =====================================
         const embed =
           new EmbedBuilder()
 
@@ -362,12 +393,12 @@ module.exports = (client) => {
 
             .setDescription([
 
-              `❯❯ Użytkownik ${interaction.user} utworzył ticket.`,
-              `❯❯ Kategoria: **${categoryName}**`,
+              `> ${EMOJI.arrow} Użytkownik ${interaction.user} utworzył ticket`,
+              `> ${EMOJI.arrow} Kategoria: \`${categoryName}\``,
 
               "",
 
-              `❯❯ Realizator odpowie najszybciej jak to możliwe.`
+              `> ${EMOJI.arrow} Realizator odpowie najszybciej jak to możliwe`
 
             ].join("\n"))
 
@@ -388,19 +419,19 @@ module.exports = (client) => {
         return interaction.reply({
 
           content:
-            `${EMOJI.ticket} Ticket utworzony: ${channel}`,
+            `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
 
           ephemeral: true
         });
       }
 
       // =====================================
-      // MODAL SUBMIT
+      // EXCHANGE MODAL SUBMIT
       // =====================================
       if (
         interaction.isModalSubmit() &&
         interaction.customId ===
-          "exchange_amount_modal"
+          "exchange_modal"
       ) {
 
         const amount =
@@ -408,274 +439,45 @@ module.exports = (client) => {
             "exchange_amount"
           );
 
-        const data =
-          exchangeData.get(
-            interaction.user.id
-          );
-
-        data.amount = amount;
-
-        exchangeData.set(
-          interaction.user.id,
-          data
-        );
-
-        // =====================================
-        // DROPDOWNS
-        // =====================================
-        const fromMenu =
-          new StringSelectMenuBuilder()
-
-            .setCustomId(
+        const from =
+          interaction.fields
+            .getTextInputValue(
               "exchange_from"
             )
+            .toUpperCase();
 
-            .setPlaceholder(
-              "Z CZEGO"
-            )
-
-            .addOptions([
-
-              {
-                label: "BLIK",
-                value: "BLIK",
-                emoji: {
-                  id: "1499784231608389742"
-                }
-              },
-
-              {
-                label: "KOD BLIK",
-                value: "KODBLIK",
-                emoji: {
-                  id: "1499784231608389742"
-                }
-              },
-
-              {
-                label: "PAYPAL",
-                value: "PAYPAL",
-                emoji: {
-                  id: "1499784258091483236"
-                }
-              },
-
-              {
-                label: "CRYPTO",
-                value: "CRYPTO",
-                emoji: {
-                  id: "1499784635201224724"
-                }
-              },
-
-              {
-                label: "LTC",
-                value: "LTC",
-                emoji: {
-                  id: "1499784285211726014"
-                }
-              }
-            ]);
-
-        const toMenu =
-          new StringSelectMenuBuilder()
-
-            .setCustomId(
+        const to =
+          interaction.fields
+            .getTextInputValue(
               "exchange_to"
             )
+            .toUpperCase();
 
-            .setPlaceholder(
-              "NA CO"
+        const currency =
+          interaction.fields
+            .getTextInputValue(
+              "exchange_currency"
             )
+            .toUpperCase();
 
-            .addOptions([
-
-              {
-                label: "BLIK",
-                value: "BLIK",
-                emoji: {
-                  id: "1499784231608389742"
-                }
-              },
-
-              {
-                label: "KOD BLIK",
-                value: "KODBLIK",
-                emoji: {
-                  id: "1499784231608389742"
-                }
-              },
-
-              {
-                label: "PAYPAL",
-                value: "PAYPAL",
-                emoji: {
-                  id: "1499784258091483236"
-                }
-              },
-
-              {
-                label: "CRYPTO",
-                value: "CRYPTO",
-                emoji: {
-                  id: "1499784635201224724"
-                }
-              },
-
-              {
-                label: "LTC",
-                value: "LTC",
-                emoji: {
-                  id: "1499784285211726014"
-                }
-              }
-            ]);
-
-        const createButton =
-          new ButtonBuilder()
-
-            .setCustomId(
-              "create_exchange_ticket"
-            )
-
-            .setLabel(
-              "Utwórz ticket"
-            )
-
-            .setEmoji("1501697124734206032")
-
-            .setStyle(
-              ButtonStyle.Success
-            );
-
-        return interaction.reply({
-
-          embeds: [
-
-            new EmbedBuilder()
-
-              .setColor("#f7c325")
-
-              .setTitle(
-                `${EMOJI.money} Potrzebne informacje`
-              )
-
-              .setDescription([
-
-                `## JAKA KWOTA`,
-                `> **${amount} PLN**`,
-
-                "",
-
-                `## Z CZEGO`,
-                `> Wybierz metodę poniżej`,
-
-                "",
-
-                `## NA CO`,
-                `> Wybierz metodę poniżej`
-
-              ].join("\n"))
-          ],
-
-          components: [
-
-            new ActionRowBuilder()
-              .addComponents(fromMenu),
-
-            new ActionRowBuilder()
-              .addComponents(toMenu),
-
-            new ActionRowBuilder()
-              .addComponents(createButton)
-          ],
-
-          ephemeral: true
-        });
-      }
-
-      // =====================================
-      // FROM SELECT
-      // =====================================
-      if (
-        interaction.isStringSelectMenu() &&
-        interaction.customId ===
-          "exchange_from"
-      ) {
-
-        const data =
-          exchangeData.get(
-            interaction.user.id
-          );
-
-        data.from =
-          interaction.values[0];
-
-        exchangeData.set(
-          interaction.user.id,
-          data
-        );
-
-        return interaction.deferUpdate();
-      }
-
-      // =====================================
-      // TO SELECT
-      // =====================================
-      if (
-        interaction.isStringSelectMenu() &&
-        interaction.customId ===
-          "exchange_to"
-      ) {
-
-        const data =
-          exchangeData.get(
-            interaction.user.id
-          );
-
-        data.to =
-          interaction.values[0];
-
-        exchangeData.set(
-          interaction.user.id,
-          data
-        );
-
-        return interaction.deferUpdate();
-      }
-
-      // =====================================
-      // CREATE EXCHANGE TICKET
-      // =====================================
-      if (
-        interaction.isButton() &&
-        interaction.customId ===
-          "create_exchange_ticket"
-      ) {
-
-        const data =
-          exchangeData.get(
-            interaction.user.id
-          );
-
-        if (!data?.from || !data?.to)
+        if (isNaN(amount))
           return interaction.reply({
 
             content:
-              "❌ Wybierz obie metody.",
+              `${EMOJI.warning} Kwota musi być liczbą.`,
 
             ephemeral: true
           });
 
         const exchange =
-          `${data.from}->${data.to}`;
+          `${from}->${to}`;
 
         const percent =
           rates[exchange] || 4;
 
         const afterFee =
           (
-            Number(data.amount) *
+            Number(amount) *
             (1 - percent / 100)
           ).toFixed(2);
 
@@ -683,7 +485,7 @@ module.exports = (client) => {
           await interaction.guild.channels.create({
 
             name:
-              `${data.from.toLowerCase()}-${data.to.toLowerCase()}`,
+              `${from.toLowerCase()}-${to.toLowerCase()}`,
 
             topic:
               interaction.user.id,
@@ -742,6 +544,10 @@ module.exports = (client) => {
 
                 .setEmoji("❌")
 
+                .setLabel(
+                  "Zamknij"
+                )
+
                 .setStyle(
                   ButtonStyle.Danger
                 )
@@ -753,19 +559,23 @@ module.exports = (client) => {
             .setColor("#f7c325")
 
             .setTitle(
-              `🌟 StarX Exchange × WYMIANA`
+              `${EMOJI.money} 🌟 StarX Exchange × WYMIANA WALUTY`
             )
 
             .setDescription([
 
-              `❯❯ Użytkownik ${interaction.user} jest nowym klientem.`,
-              `❯❯ Dokonał on u nas żadnych wymian.`,
+              `> ${EMOJI.arrow} Klient: ${interaction.user}`,
+              `> ${EMOJI.arrow} Status: \`Oczekiwanie na realizatora\``,
 
               "",
 
-              `❯❯ Kwota wymiany wynosi **${data.amount} PLN** z metody **${data.from}** na **${data.to}**.`,
+              `## ${EMOJI.money} INFORMACJE O WYMIANIE`,
 
-              `❯❯ Po prowizji otrzymasz **${afterFee} PLN**.`
+              `> ${EMOJI.arrow} Kwota: \`${amount} ${currency}\``,
+              `> ${EMOJI.arrow} Z czego: \`${from}\``,
+              `> ${EMOJI.arrow} Na co: \`${to}\``,
+              `> ${EMOJI.arrow} Prowizja: \`${percent}%\``,
+              `> ${EMOJI.arrow} Po prowizji: \`${afterFee} ${currency}\``
 
             ].join("\n"))
 
@@ -783,22 +593,17 @@ module.exports = (client) => {
           components: [row]
         });
 
-        exchangeData.delete(
-          interaction.user.id
-        );
-
-        return interaction.update({
+        return interaction.reply({
 
           content:
-            `✅ Ticket utworzony: ${channel}`,
+            `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
 
-          embeds: [],
-          components: []
+          ephemeral: true
         });
       }
 
       // =====================================
-      // CLOSE
+      // CLOSE TICKET
       // =====================================
       if (
         interaction.isButton() &&
