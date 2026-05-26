@@ -24,8 +24,8 @@ module.exports = (client) => {
         red: "<a:red:1501989543182864535>"
     };
 
-    const participants = new Map(); // giveawayId -> Set(users)
-    const messages = new Map();      // giveawayId -> messageId
+    const participants = new Map();
+    const messages = new Map();
 
     // =========================
     // SLASH COMMAND
@@ -37,13 +37,19 @@ module.exports = (client) => {
                 .setName("konkurs")
                 .setDescription("Stwórz giveaway")
                 .addStringOption(o =>
-                    o.setName("nagroda").setRequired(true)
+                    o.setName("nagroda")
+                        .setDescription("Nagroda giveaway")
+                        .setRequired(true)
                 )
                 .addStringOption(o =>
-                    o.setName("czas").setRequired(true)
+                    o.setName("czas")
+                        .setDescription("np. 10m / 1h / 1d")
+                        .setRequired(true)
                 )
                 .addStringOption(o =>
-                    o.setName("wymagania").setRequired(true)
+                    o.setName("wymagania")
+                        .setDescription("Wymagania do udziału")
+                        .setRequired(true)
                 )
                 .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         ];
@@ -129,7 +135,7 @@ module.exports = (client) => {
         });
 
         // =========================
-        // END
+        // END GIVEAWAY
         // =========================
         setTimeout(async () => {
 
@@ -146,6 +152,7 @@ module.exports = (client) => {
             const msg = await channel.messages.fetch(msgId).catch(() => null);
 
             if (msg) {
+
                 const disabled = new ActionRowBuilder().addComponents(
                     ButtonBuilder.from(button).setDisabled(true)
                 );
@@ -162,7 +169,7 @@ module.exports = (client) => {
     });
 
     // =========================
-    // JOIN BUTTON (FIXED LIVE COUNTER)
+    // JOIN BUTTON
     // =========================
     client.on(Events.InteractionCreate, async interaction => {
 
@@ -195,13 +202,11 @@ module.exports = (client) => {
 
         users.add(interaction.user.id);
 
-        // =========================
-        // LIVE UPDATE EMBED (FIX LICZNIKA)
-        // =========================
         const channel = interaction.channel;
         const msgId = messages.get(giveawayId);
 
         const msg = await channel.messages.fetch(msgId).catch(() => null);
+
         if (msg) {
 
             const embed = EmbedBuilder.from(msg.embeds[0]);
