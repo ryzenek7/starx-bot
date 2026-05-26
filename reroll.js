@@ -1,5 +1,7 @@
 const {
-    Events
+    Events,
+    SlashCommandBuilder,
+    PermissionFlagsBits
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -8,67 +10,75 @@ module.exports = (client) => {
 
     const EMOJI = {
         gift: "<:gift:1502025560606507048>",
-        red: "<a:red:1501989543182864535>",
-        green: "<a:green:1501990166082879538>"
+        green: "<a:green:1501990166082879538>",
+        red: "<a:red:1501989543182864535>"
     };
 
-    const participants = new Map(); // jeśli masz już w giveaway.js → MUSI BYĆ SHARED (ważne!)
+    // MUST be shared with giveaway.js
+    const giveaways = global.giveaways || new Map();
+    global.giveaways = giveaways;
 
+    // =========================
+    // REGISTER COMMAND
+    // =========================
+    client.once(Events.ClientReady, async () => {
+
+        const commands = [
+            new SlashCommandBuilder()
+                .setName("reroll")
+                .setDescription("Reroll giveaway")
+                .addStringOption(o =>
+                    o.setName("giveaway_id")
+                        .setDescription("ID giveaway (np. 1700000000000)")
+                        .setRequired(true)
+                )
+                .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+        ].map(c => c.toJSON());
+
+        await client.application.commands.set(commands);
+
+        console.log("✅ Reroll loaded");
+    });
+
+    // =========================
+    // REROLL LOGIC
+    // =========================
     client.on(Events.InteractionCreate, async (interaction) => {
+
+        if (!interaction.isChatInputCommand()) return;
+        if (interaction.commandName !== "reroll") return;
 
         try {
 
-            if (!interaction.isChatInputCommand()) return;
-            if (interaction.commandName !== "reroll") return;
+            const id = interaction.options.getString("giveaway_id");
+            const g = giveaways.get(id);
 
-            const messageId = interaction.options.getString("message_id");
+            if (!g) {
+                return interaction.reply({
+                    content: `${EMOJI.red} Nie znaleziono giveaway`,
+                    ephemeral: true
+                });
+            }
+
+            const users = g.users ? [...g.users] : [];
+
+            if (users.length === 0) {
+                return interaction.reply({
+                    content: `${EMOJI.red} Brak uczestników`,
+                    ephemeral: true
+                });
+            }
+
+            const winner = users[Math.floor(Math.random() * users.length)];
 
             const channel = await client.channels.fetch(GIVEAWAY_CHANNEL_ID);
-            if (!channel) {
-                return interaction.reply({
-                    content: `${EMOJI.red} Nie znaleziono kanału.`,
-                    ephemeral: true
-                });
-            }
-
-            const messages = await channel.messages.fetch(messageId).catch(() => null);
-
-            if (!messages) {
-                return interaction.reply({
-                    content: `${EMOJI.red} Nie znaleziono giveaway.`,
-                    ephemeral: true
-                });
-            }
-
-            // znajdź giveawayId po messageId
-            let giveawayId = null;
-
-            for (const file of require.cache) {} // ignor
-
-            // PROSTE REROLL (bez DB)
-            let users = null;
-
-            // jeśli masz participants globalnie w giveaway.js → ten system zadziała tylko jeśli przerzucisz Mapę do global
-            if (global.participants) {
-                users = global.participants.get(messageId);
-            }
-
-            if (!users || users.size === 0) {
-                return interaction.reply({
-                    content: `${EMOJI.red} Brak uczestników.`,
-                    ephemeral: true
-                });
-            }
-
-            const arr = [...users];
-            const winner = arr[Math.floor(Math.random() * arr.length)];
 
             await channel.send(
-                `${EMOJI.gift} 🎉 Nowy zwycięzca: <@${winner}>`
+                `${EMOJI.gift} 🎉 Nowy winner: <@${winner}> (reroll)`
             );
 
             return interaction.reply({
-                content: `${EMOJI.green} Reroll wykonany!`,
+                content: `${EMOJI.green} Reroll wykonany!\nWinner: <@${winner}>`,
                 ephemeral: true
             });
 
