@@ -6,7 +6,10 @@ const {
   ChannelType,
   PermissionsBitField,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -21,6 +24,7 @@ module.exports = (client) => {
   // EMOJI
   // =====================
   const EMOJI = {
+
     list: "<:list:1501693215328440370>",
     admin: "<:admin:1501989271077388500>",
     warning: "<:warning:1501693444030992395>",
@@ -44,6 +48,7 @@ module.exports = (client) => {
   // PROWIZJE
   // =====================
   const rates = {
+
     "BLIK->PAYPAL": "2%",
     "BLIK->CRYPTO": "8%",
     "BLIK->LTC": "8%",
@@ -68,33 +73,38 @@ module.exports = (client) => {
   };
 
   // =====================
-  // MENU GŁÓWNE
+  // MENU
   // =====================
   function createMenu() {
 
     return new ActionRowBuilder().addComponents(
+
       new StringSelectMenuBuilder()
         .setCustomId("ticket_select")
         .setPlaceholder("🎫 Wybierz kategorię")
         .addOptions([
+
           {
             label: "Wymiana",
             description: "Wymiana walut / metod",
             value: "exchange",
             emoji: { id: "1500243849535033577" }
           },
+
           {
             label: "Zakup",
             description: "Kupno produktu/usługi",
             value: "buy",
             emoji: { id: "1500243849535033577" }
           },
+
           {
             label: "Pomoc",
             description: "Wsparcie administracji",
             value: "help",
             emoji: { id: "1500243961124618381" }
           },
+
           {
             label: "Middleman",
             description: "Usługa pośrednika",
@@ -106,75 +116,7 @@ module.exports = (client) => {
   }
 
   // =====================
-  // MENU WYMIANY
-  // =====================
-  function createExchangeMenu() {
-
-    return new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId("exchange_select")
-        .setPlaceholder("💸 Wybierz wymianę")
-        .addOptions([
-
-          {
-            label: "BLIK ➜ PAYPAL",
-            value: "BLIK->PAYPAL",
-            emoji: { id: "1499784231608389742" }
-          },
-
-          {
-            label: "BLIK ➜ CRYPTO",
-            value: "BLIK->CRYPTO",
-            emoji: { id: "1499784231608389742" }
-          },
-
-          {
-            label: "BLIK ➜ LTC",
-            value: "BLIK->LTC",
-            emoji: { id: "1499784231608389742" }
-          },
-
-          {
-            label: "PAYPAL ➜ BLIK",
-            value: "PAYPAL->BLIK",
-            emoji: { id: "1499784258091483236" }
-          },
-
-          {
-            label: "PAYPAL ➜ CRYPTO",
-            value: "PAYPAL->CRYPTO",
-            emoji: { id: "1499784258091483236" }
-          },
-
-          {
-            label: "PAYPAL ➜ LTC",
-            value: "PAYPAL->LTC",
-            emoji: { id: "1499784258091483236" }
-          },
-
-          {
-            label: "CRYPTO ➜ BLIK",
-            value: "CRYPTO->BLIK",
-            emoji: { id: "1499784635201224724" }
-          },
-
-          {
-            label: "CRYPTO ➜ PAYPAL",
-            value: "CRYPTO->PAYPAL",
-            emoji: { id: "1499784635201224724" }
-          },
-
-          {
-            label: "LTC ➜ BLIK",
-            value: "LTC->BLIK",
-            emoji: { id: "1499784285211726014" }
-          }
-        ])
-    );
-  }
-
-  // =====================
-  // PANEL
+  // READY
   // =====================
   client.once(Events.ClientReady, async () => {
 
@@ -186,19 +128,26 @@ module.exports = (client) => {
       if (!channel) return;
 
       const embed = new EmbedBuilder()
+
         .setColor("#2b2d31")
+
         .setTitle(
           `${EMOJI.ticket} StarX Exchange » System Ticketów`
         )
+
         .setDescription([
+
           `> ${EMOJI.list} Wybierz kategorię z menu poniżej`,
           `> ${EMOJI.zap} Szybka pomoc realizatorów`,
           `> ${EMOJI.lock} Prywatny i bezpieczny kontakt`,
           `> ${EMOJI.clock} Odpowiedź zwykle w kilka minut`
+
         ].join("\n"))
+
         .setImage(
           "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
         )
+
         .setFooter({
           text: "© 2026 StarX Exchange"
         });
@@ -211,12 +160,13 @@ module.exports = (client) => {
       console.log("✅ Ticket panel wysłany");
 
     } catch (err) {
+
       console.log("❌ Ticket panel error:", err);
     }
   });
 
   // =====================
-  // CREATE TICKET
+  // INTERACTION
   // =====================
   client.on(Events.InteractionCreate, async (interaction) => {
 
@@ -233,27 +183,62 @@ module.exports = (client) => {
         const type = interaction.values[0];
 
         // =====================
-        // WYMIANA
+        // WYMIANA MODAL
         // =====================
         if (type === "exchange") {
 
-          return interaction.reply({
-            content: `${EMOJI.money} Wybierz wymianę poniżej`,
-            components: [createExchangeMenu()],
-            flags: 64
-          });
+          const modal = new ModalBuilder()
+
+            .setCustomId("exchange_modal")
+            .setTitle("Potrzebne informacje");
+
+          const amountInput =
+            new TextInputBuilder()
+
+              .setCustomId("exchange_amount")
+              .setLabel("JAKA KWOTA")
+              .setPlaceholder("Przykład: 100")
+              .setStyle(TextInputStyle.Short)
+              .setRequired(true);
+
+          const fromInput =
+            new TextInputBuilder()
+
+              .setCustomId("exchange_from")
+              .setLabel("Z CZEGO")
+              .setPlaceholder("BLIK / PAYPAL / CRYPTO / LTC")
+              .setStyle(TextInputStyle.Short)
+              .setRequired(true);
+
+          const toInput =
+            new TextInputBuilder()
+
+              .setCustomId("exchange_to")
+              .setLabel("NA CO")
+              .setPlaceholder("BLIK / PAYPAL / CRYPTO / LTC")
+              .setStyle(TextInputStyle.Short)
+              .setRequired(true);
+
+          modal.addComponents(
+
+            new ActionRowBuilder().addComponents(amountInput),
+            new ActionRowBuilder().addComponents(fromInput),
+            new ActionRowBuilder().addComponents(toInput)
+          );
+
+          return interaction.showModal(modal);
         }
 
         // =====================
-        // NORMALNE TICKETY
+        // SPRAWDZANIE TICKETA
         // =====================
         const existing =
           interaction.guild.channels.cache.find(
-            c =>
-              c.topic === interaction.user.id
+            c => c.topic === interaction.user.id
           );
 
         if (existing) {
+
           return interaction.reply({
             content:
               `${EMOJI.warning} Masz już ticket: ${existing}`,
@@ -261,6 +246,9 @@ module.exports = (client) => {
           });
         }
 
+        // =====================
+        // KATEGORIA
+        // =====================
         let categoryName = "Pomoc";
 
         if (type === "buy")
@@ -269,6 +257,9 @@ module.exports = (client) => {
         if (type === "middleman")
           categoryName = "Middleman";
 
+        // =====================
+        // CREATE CHANNEL
+        // =====================
         const channel =
           await interaction.guild.channels.create({
 
@@ -310,6 +301,9 @@ module.exports = (client) => {
             ]
           });
 
+        // =====================
+        // BUTTON
+        // =====================
         const row =
           new ActionRowBuilder().addComponents(
 
@@ -320,6 +314,9 @@ module.exports = (client) => {
               .setStyle(ButtonStyle.Danger)
           );
 
+        // =====================
+        // EMBED
+        // =====================
         const embed =
           new EmbedBuilder()
 
@@ -330,10 +327,12 @@ module.exports = (client) => {
             )
 
             .setDescription([
+
               `${EMOJI.pin} Użytkownik: ${interaction.user}`,
               `${EMOJI.list} Kategoria: **${categoryName}**`,
               `${EMOJI.admin} Realizator odpowie najszybciej jak to możliwe`,
               `${EMOJI.money} StarX Exchange`
+
             ].join("\n"))
 
             .setFooter({
@@ -341,43 +340,70 @@ module.exports = (client) => {
             });
 
         await channel.send({
+
           content:
             `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
+
           embeds: [embed],
           components: [row]
         });
 
         return interaction.reply({
+
           content:
             `${EMOJI.ticket} Ticket utworzony: ${channel}`,
+
           flags: 64
         });
 
       } catch (err) {
+
         console.log("❌ Ticket error:", err);
       }
     }
 
     // =================================
-    // WYMIANA SELECT
+    // EXCHANGE MODAL
     // =================================
     if (
-      interaction.isStringSelectMenu() &&
-      interaction.customId === "exchange_select"
+      interaction.isModalSubmit() &&
+      interaction.customId === "exchange_modal"
     ) {
 
       try {
 
-        const exchange =
-          interaction.values[0];
+        const amount =
+          interaction.fields.getTextInputValue(
+            "exchange_amount"
+          );
 
+        const from =
+          interaction.fields
+            .getTextInputValue("exchange_from")
+            .toUpperCase()
+            .replace(/\s+/g, "");
+
+        const to =
+          interaction.fields
+            .getTextInputValue("exchange_to")
+            .toUpperCase()
+            .replace(/\s+/g, "");
+
+        const exchange = `${from}->${to}`;
+
+        const commission =
+          rates[exchange] || "Nie ustalono";
+
+        // =====================
+        // SPRAWDZANIE
+        // =====================
         const existing =
           interaction.guild.channels.cache.find(
-            c =>
-              c.topic === interaction.user.id
+            c => c.topic === interaction.user.id
           );
 
         if (existing) {
+
           return interaction.reply({
             content:
               `${EMOJI.warning} Masz już ticket: ${existing}`,
@@ -385,6 +411,9 @@ module.exports = (client) => {
           });
         }
 
+        // =====================
+        // CREATE CHANNEL
+        // =====================
         const channel =
           await interaction.guild.channels.create({
 
@@ -426,6 +455,9 @@ module.exports = (client) => {
             ]
           });
 
+        // =====================
+        // BUTTON
+        // =====================
         const row =
           new ActionRowBuilder().addComponents(
 
@@ -436,6 +468,9 @@ module.exports = (client) => {
               .setStyle(ButtonStyle.Danger)
           );
 
+        // =====================
+        // EMBED
+        // =====================
         const embed =
           new EmbedBuilder()
 
@@ -446,11 +481,15 @@ module.exports = (client) => {
             )
 
             .setDescription([
+
               `${EMOJI.pin} Użytkownik: ${interaction.user}`,
-              `${EMOJI.list} Wymiana: **${exchange.replace("->", " ➜ ")}**`,
-              `${EMOJI.zap} Prowizja: **${rates[exchange]}**`,
+              `${EMOJI.money} Kwota: **${amount} PLN**`,
+              `${EMOJI.list} Z czego: **${from}**`,
+              `${EMOJI.list} Na co: **${to}**`,
+              `${EMOJI.zap} Prowizja: **${commission}**`,
               `${EMOJI.warning} Minimalna prowizja: **3 PLN**`,
               `${EMOJI.admin} Realizator odpowie najszybciej jak to możliwe`
+
             ].join("\n"))
 
             .setFooter({
@@ -458,25 +497,30 @@ module.exports = (client) => {
             });
 
         await channel.send({
+
           content:
             `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
+
           embeds: [embed],
           components: [row]
         });
 
         return interaction.reply({
+
           content:
             `${EMOJI.ticket} Ticket wymiany utworzony: ${channel}`,
+
           flags: 64
         });
 
       } catch (err) {
-        console.log("❌ Exchange error:", err);
+
+        console.log("❌ Exchange modal error:", err);
       }
     }
 
     // =================================
-    // CLOSE
+    // CLOSE TICKET
     // =================================
     if (
       interaction.isButton() &&
@@ -492,8 +536,10 @@ module.exports = (client) => {
         ) {
 
           return interaction.reply({
+
             content:
               `${EMOJI.warning} Tylko realizator może zamknąć ticket.`,
+
             flags: 64
           });
         }
@@ -520,6 +566,7 @@ module.exports = (client) => {
         }, 3000);
 
       } catch (err) {
+
         console.log("❌ Close ticket error:", err);
       }
     }
