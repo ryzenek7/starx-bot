@@ -59,7 +59,7 @@ module.exports = (client) => {
             "<a:nitro:1501684762601848963>",
 
         confetti:
-            "<a:confetti:1502025560606507048>",
+            "<:confetti:1502025560606507048>",
 
         green:
             "<a:yes:1499784353012514917>",
@@ -143,7 +143,7 @@ module.exports = (client) => {
     }
 
     // =====================================
-    // UPDATE LIVE EMBED
+    // UPDATE EMBED
     // =====================================
 
     async function updateGiveawayMessage(id) {
@@ -228,9 +228,7 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                             "DOŁĄCZ"
                         )
 
-                        .setEmoji(
-                            "<a:confetti:1502025560606507048>"
-                        )
+                        .setEmoji("🎉")
 
                         .setStyle(
                             ButtonStyle.Success
@@ -265,9 +263,7 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                     g.endAt
                 ) {
 
-                    await endGiveaway(
-                        id
-                    );
+                    await endGiveaway(id);
                 }
             }
 
@@ -362,9 +358,7 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
         const embed =
             new EmbedBuilder()
 
-                .setColor(
-                    "#0f1014"
-                )
+                .setColor("#0f1014")
 
                 .setTitle(
                     `${EMOJI.confetti} GIVEAWAY ZAKOŃCZONY`
@@ -436,7 +430,7 @@ ${EMOJI.ticket} **ID**
         async interaction => {
 
             // =====================================
-            // GIVEAWAY COMMAND
+            // CREATE GIVEAWAY
             // =====================================
 
             if (
@@ -529,9 +523,7 @@ ${EMOJI.ticket} **ID**
 
                 saveData();
 
-                await updateGiveawayMessage(
-                    id
-                );
+                await updateGiveawayMessage(id);
 
                 return interaction.reply({
 
@@ -554,9 +546,7 @@ ${EMOJI.ticket} **ID**
             ) {
 
                 const id =
-                    interaction.customId.split(
-                        "_"
-                    )[1];
+                    interaction.customId.split("_")[1];
 
                 const g =
                     giveaways[id];
@@ -611,9 +601,7 @@ ${EMOJI.ticket} **ID**
 
                 saveData();
 
-                await updateGiveawayMessage(
-                    id
-                );
+                await updateGiveawayMessage(id);
 
                 return interaction.reply({
 
@@ -651,9 +639,7 @@ ${EMOJI.ticket} **ID**
                 }
 
                 const id =
-                    interaction.customId.split(
-                        "_"
-                    )[1];
+                    interaction.customId.split("_")[1];
 
                 const g =
                     giveaways[id];
