@@ -6,8 +6,7 @@ const {
     TextInputStyle,
     ActionRowBuilder,
     StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    PermissionsBitField
+    StringSelectMenuOptionBuilder
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -218,16 +217,9 @@ module.exports = (client) => {
                 }
 
                 // =====================================
-                // SEND MESSAGE
+                // EMBED NA KANAŁ
                 // =====================================
-                await channel.send({
-                    content: finalText
-                });
-
-                // =====================================
-                // EMBED
-                // =====================================
-                const embed =
+                const legitEmbed =
                     new EmbedBuilder()
                         .setColor("#1b2dff")
                         .setTitle(
@@ -249,12 +241,27 @@ ${finalText}
 ${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
                         )
                         .setFooter({
-                            text: "© 2026 StarX Exchange"
+                            text:
+                                `© 2026 StarX Exchange • Dziś o ${new Date().toLocaleTimeString("pl-PL", {
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                })}`
                         })
                         .setTimestamp();
 
+                // =====================================
+                // SEND EMBED
+                // =====================================
+                await channel.send({
+                    embeds: [legitEmbed]
+                });
+
+                // =====================================
+                // RESPONSE
+                // =====================================
                 return interaction.reply({
-                    embeds: [embed],
+                    content:
+                        `${EMOJI.money} Legit został wysłany.`,
                     ephemeral: true
                 });
             }
@@ -277,7 +284,7 @@ ${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
                     interaction.fields.getTextInputValue("amount");
 
                 const finalText =
-                    `+rep ${interaction.user} exchange ${from} to ${to} ${amount}PLN`;
+                    `+rep ${interaction.user} Exchange ${from} to ${to} ${amount}PLN`;
 
                 // =====================================
                 // CHANNEL
@@ -294,16 +301,9 @@ ${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
                 }
 
                 // =====================================
-                // SEND MESSAGE
+                // EMBED NA KANAŁ
                 // =====================================
-                await channel.send({
-                    content: finalText
-                });
-
-                // =====================================
-                // EMBED
-                // =====================================
-                const embed =
+                const legitEmbed =
                     new EmbedBuilder()
                         .setColor("#1b2dff")
                         .setTitle(
@@ -325,12 +325,27 @@ ${finalText}
 ${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
                         )
                         .setFooter({
-                            text: "© 2026 StarX Exchange"
+                            text:
+                                `© 2026 StarX Exchange • Dziś o ${new Date().toLocaleTimeString("pl-PL", {
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                })}`
                         })
                         .setTimestamp();
 
+                // =====================================
+                // SEND EMBED
+                // =====================================
+                await channel.send({
+                    embeds: [legitEmbed]
+                });
+
+                // =====================================
+                // RESPONSE
+                // =====================================
                 return interaction.reply({
-                    embeds: [embed],
+                    content:
+                        `${EMOJI.money} Legit został wysłany.`,
                     ephemeral: true
                 });
             }
