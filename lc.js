@@ -6,7 +6,11 @@ const {
     TextInputStyle,
     ActionRowBuilder,
     StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder
+    StringSelectMenuOptionBuilder,
+    PermissionsBitField,
+    ChannelType,
+    ButtonBuilder,
+    ButtonStyle
 } = require("discord.js");
 
 module.exports = (client) => {
@@ -16,439 +20,214 @@ module.exports = (client) => {
     // =====================================
     const STAFF_ROLE_ID = "1500930428993933373";
     const REP_CHANNEL_ID = "1500893110048133253";
+    const CLIENT_ROLE_ID = "1499572498604363918";
 
     // =====================================
     // EMOJI
     // =====================================
     const EMOJI = {
-
-        // =========================
-        // TICKETY / SYSTEM
-        // =========================
         ticket: "<:TICKET:1501697124734206032>",
         pin: "<:PIN:1501697389050986546>",
         zap: "<:PIORUN:1501697151737139350>",
         lock: "<:ZAMKNIETE:1501697222901895258>",
         warning: "<:PILNE:1501693444030992395>",
-        support: "<:WSPARCIE:1500243961124618381>",
-        admin: "<:ADM:1501989271077388500>",
-        list: "<:LIST:1501693215328440370>",
-        clock: "<:CZAS:1502030015943151868>",
-
-        // =========================
-        // MONEY / ANIMOWANE
-        // =========================
         money: "<a:m_:1501685438103031920>",
-        arrow: "<a:Arrow_White:1508094625984811038>",
-        nitro: "<a:nitro:1501684762601848963>",
-
-        // =========================
-        // PAYMENT METHODS
-        // =========================
-        blik: "<:blik:1499784231608389742>",
-        paypal: "<:paypal:1499784258091483236>",
-        crypto: "<:crypto:1499784635201224724>",
-        ltc: "<:ltc:1499784285211726014>",
-
-        // =========================
-        // SHOP / STREAMING
-        // =========================
-        spotify: "<:Spotify:1500238701718933627>",
-        netflix: "<:Netflix:1500238788306403398>",
-        ytpremium: "<:ytpremium:1500239415937859605>",
-        hbomax: "<:HBOmax:1500239251143524464>",
-        crunchyroll: "<:CRUNCHYROLL:1501686424158605463>",
-        disney: "<:DISNEY:1501686870025699449>",
-        primevideo: "<:primevideo:1502001410311716984>",
-        chatgpt: "<:521605chatgpt:1502001751019094097>",
-        capcut: "<:Capcut:1502002116405887039>",
-        cda: "<:CDA:1508077411873325076>",
-
-        // =========================
-        // VPN
-        // =========================
-        nordvpn: "<:NORDVPN:1501999409343369400>",
-        mullvad: "<:mullvad:1501999834159255712>",
-        tunnelbear: "<:TUNNELBEARVPN:1502000450009042984>",
-
-        // =========================
-        // MIDDLEMAN / SHOP
-        // =========================
-        middleman: "<:LUDZIE:1500243884733894716>",
-        cart: "<:SKLEP:1500243849535033577>",
-        box: "<:SKLEP:1500243849535033577>",
-
-        // =========================
-        // INNE
-        // =========================
-        prime: "<:primevideo:1502001410311716984>"
+        arrow: "<a:Arrow_White:1508094625984811038>"
     };
 
     // =====================================
-    // INTERACTION CREATE
+    // LC COMMAND
     // =====================================
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
-            // =====================================
-            // /LC COMMAND
-            // =====================================
-            if (
-                interaction.isChatInputCommand() &&
-                interaction.commandName === "lc"
-            ) {
+            // =========================
+            // /LC
+            // =========================
+            if (interaction.isChatInputCommand() && interaction.commandName === "lc") {
 
-                // =====================================
-                // STAFF CHECK
-                // =====================================
-                if (
-                    !interaction.member.roles.cache.has(STAFF_ROLE_ID)
-                ) {
-
+                if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
                     return interaction.reply({
-                        content:
-                            `${EMOJI.warning} Nie masz permisji.`,
+                        content: `${EMOJI.warning} Brak permisji`,
                         ephemeral: true
                     });
                 }
 
-                // =====================================
-                // SELECT MENU
-                // =====================================
-                const menu =
-                    new StringSelectMenuBuilder()
-                        .setCustomId("lc_type")
-                        .setPlaceholder("Wybierz typ legit check")
-                        .addOptions(
-
-                            new StringSelectMenuOptionBuilder()
-                                .setLabel("Purchased")
-                                .setDescription("Zakup produktu")
-                                .setValue("purchased"),
-
-                            new StringSelectMenuOptionBuilder()
-                                .setLabel("Exchange")
-                                .setDescription("Wymiana metod")
-                                .setValue("exchange"),
-
-                            new StringSelectMenuOptionBuilder()
-                                .setLabel("Konkurs")
-                                .setDescription("Legit konkurs")
-                                .setValue("contest")
-                        );
-
-                const row =
-                    new ActionRowBuilder()
-                        .addComponents(menu);
+                const menu = new StringSelectMenuBuilder()
+                    .setCustomId("lc_type")
+                    .setPlaceholder("Wybierz typ LC")
+                    .addOptions(
+                        new StringSelectMenuOptionBuilder().setLabel("Purchased").setValue("purchased"),
+                        new StringSelectMenuOptionBuilder().setLabel("Exchange").setValue("exchange"),
+                        new StringSelectMenuOptionBuilder().setLabel("Contest").setValue("contest")
+                    );
 
                 return interaction.reply({
-                    content:
-                        `${EMOJI.money} Wybierz typ legit check`,
-                    components: [row],
+                    content: `${EMOJI.money} Wybierz typ`,
+                    components: [new ActionRowBuilder().addComponents(menu)],
                     ephemeral: true
                 });
             }
 
-            // =====================================
+            // =========================
             // SELECT MENU
-            // =====================================
-            if (
-                interaction.isStringSelectMenu() &&
-                interaction.customId === "lc_type"
-            ) {
+            // =========================
+            if (interaction.isStringSelectMenu() && interaction.customId === "lc_type") {
 
                 const type = interaction.values[0];
 
-                // =====================================
-                // PURCHASED
-                // =====================================
-                if (type === "purchased") {
+                const existing = interaction.guild.channels.cache.find(c =>
+                    c.topic?.startsWith(interaction.user.id)
+                );
 
-                    const modal =
-                        new ModalBuilder()
-                            .setCustomId("lc_purchased")
-                            .setTitle("StarX Exchange • Purchased");
-
-                    const product =
-                        new TextInputBuilder()
-                            .setCustomId("product")
-                            .setLabel("Produkt")
-                            .setPlaceholder("Netflix Premium")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    const price =
-                        new TextInputBuilder()
-                            .setCustomId("price")
-                            .setLabel("Kwota")
-                            .setPlaceholder("20")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    const payment =
-                        new TextInputBuilder()
-                            .setCustomId("payment")
-                            .setLabel("Metoda płatności")
-                            .setPlaceholder("BLIK")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    modal.addComponents(
-                        new ActionRowBuilder().addComponents(product),
-                        new ActionRowBuilder().addComponents(price),
-                        new ActionRowBuilder().addComponents(payment)
-                    );
-
-                    return interaction.showModal(modal);
-                }
-
-                // =====================================
-                // EXCHANGE
-                // =====================================
-                if (type === "exchange") {
-
-                    const modal =
-                        new ModalBuilder()
-                            .setCustomId("lc_exchange")
-                            .setTitle("StarX Exchange • Exchange");
-
-                    const from =
-                        new TextInputBuilder()
-                            .setCustomId("from")
-                            .setLabel("Z czego")
-                            .setPlaceholder("LTC")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    const to =
-                        new TextInputBuilder()
-                            .setCustomId("to")
-                            .setLabel("Na co")
-                            .setPlaceholder("BLIK")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    const amount =
-                        new TextInputBuilder()
-                            .setCustomId("amount")
-                            .setLabel("Kwota")
-                            .setPlaceholder("300")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    modal.addComponents(
-                        new ActionRowBuilder().addComponents(from),
-                        new ActionRowBuilder().addComponents(to),
-                        new ActionRowBuilder().addComponents(amount)
-                    );
-
-                    return interaction.showModal(modal);
-                }
-
-                // =====================================
-                // CONTEST
-                // =====================================
-                if (type === "contest") {
-
-                    const finalText =
-                        `+rep ${interaction.user} konkurs`;
-
-                    const embed =
-                        new EmbedBuilder()
-                            .setColor("#1b2dff")
-                            .setTitle(
-                                `${EMOJI.money} StarX Exchange » Legit Check`
-                            )
-                            .setDescription(
-`${EMOJI.pin} **Legit utworzony**
-
-${EMOJI.zap} \`\`\`
-${finalText}
-\`\`\`
-
-${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
-                            )
-                            .setFooter({
-                                text: "© 2026 StarX Exchange"
-                            })
-                            .setTimestamp();
-
-                    await interaction.channel.send({
-                        embeds: [embed]
-                    });
-
+                if (existing) {
                     return interaction.reply({
-                        content:
-                            `${EMOJI.money} Legit został wysłany.`,
+                        content: `${EMOJI.warning} Masz już ticket`,
                         ephemeral: true
                     });
                 }
+
+                // =========================
+                // CONTEST (bez ticketa)
+                // =========================
+                if (type === "contest") {
+
+                    const member = interaction.guild.members.cache.get(interaction.user.id);
+                    if (member) await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
+
+                    const text = `+rep ${interaction.user} konkurs`;
+
+                    return interaction.reply({
+                        content: `${EMOJI.money} Skopiuj i wklej na <#${REP_CHANNEL_ID}>:\n\`\`\`${text}\`\`\``,
+                        ephemeral: true
+                    });
+                }
+
+                // =========================
+                // MODAL
+                // =========================
+                const modal = new ModalBuilder()
+                    .setCustomId(`lc_${type}`)
+                    .setTitle("StarX LC");
+
+                const input = new TextInputBuilder()
+                    .setCustomId("data")
+                    .setLabel("Wpisz dane")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(true);
+
+                modal.addComponents(new ActionRowBuilder().addComponents(input));
+
+                return interaction.showModal(modal);
             }
 
-            // =====================================
-            // PURCHASED SUBMIT
-            // =====================================
-            if (
-                interaction.isModalSubmit() &&
-                interaction.customId === "lc_purchased"
-            ) {
+            // =========================
+            // MODAL SUBMIT
+            // =========================
+            if (interaction.isModalSubmit()) {
 
-                const product =
-                    interaction.fields.getTextInputValue("product");
+                const type = interaction.customId.split("_")[1];
+                const data = interaction.fields.getTextInputValue("data");
 
-                const price =
-                    interaction.fields.getTextInputValue("price");
+                const channel = await interaction.guild.channels.create({
+                    name: `lc-${interaction.user.username}`.toLowerCase(),
+                    topic: `${interaction.user.id}:${type}`,
+                    type: ChannelType.GuildText,
+                    permissionOverwrites: [
+                        {
+                            id: interaction.guild.id,
+                            deny: [PermissionsBitField.Flags.ViewChannel]
+                        },
+                        {
+                            id: interaction.user.id,
+                            allow: [
+                                PermissionsBitField.Flags.ViewChannel,
+                                PermissionsBitField.Flags.SendMessages
+                            ]
+                        },
+                        {
+                            id: STAFF_ROLE_ID,
+                            allow: [PermissionsBitField.Flags.ViewChannel]
+                        }
+                    ]
+                });
 
-                const payment =
-                    interaction.fields.getTextInputValue("payment");
+                const member = interaction.guild.members.cache.get(interaction.user.id);
+                if (member) await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
 
-                const finalText =
-                    `+rep ${interaction.user} Purchased ${product} ${price}PLN [${payment}]`;
+                const text = `+rep ${interaction.user} ${type} ${data}`;
 
-                const embed =
-                    new EmbedBuilder()
-                        .setColor("#1b2dff")
-                        .setTitle(
-                            `${EMOJI.money} StarX Exchange » Legit Check`
-                        )
-                        .setDescription(
-`${EMOJI.pin} **Legit utworzony**
+                const embed = new EmbedBuilder()
+                    .setColor("#1b2dff")
+                    .setTitle(`${EMOJI.ticket} LC SYSTEM`)
+                    .setDescription(`\`\`\`${text}\`\`\`\nSkopiuj i wklej na <#${REP_CHANNEL_ID}>`);
 
-${EMOJI.zap} \`\`\`
-${finalText}
-\`\`\`
+                const row = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("close_ticket")
+                        .setLabel("Zamknij")
+                        .setStyle(ButtonStyle.Danger)
+                );
 
-${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
-                        )
-                        .setFooter({
-                            text: "© 2026 StarX Exchange"
-                        })
-                        .setTimestamp();
-
-                await interaction.channel.send({
-                    embeds: [embed]
+                await channel.send({
+                    content: `${interaction.user} <@&${STAFF_ROLE_ID}>`,
+                    embeds: [embed],
+                    components: [row]
                 });
 
                 return interaction.reply({
-                    content:
-                        `${EMOJI.money} Legit został wysłany.`,
+                    content: `${EMOJI.ticket} Ticket: ${channel}`,
                     ephemeral: true
                 });
             }
 
-            // =====================================
-            // EXCHANGE SUBMIT
-            // =====================================
-            if (
-                interaction.isModalSubmit() &&
-                interaction.customId === "lc_exchange"
-            ) {
+            // =========================
+            // CLOSE TICKET
+            // =========================
+            if (interaction.isButton() && interaction.customId === "close_ticket") {
 
-                const from =
-                    interaction.fields.getTextInputValue("from");
+                if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+                    return interaction.reply({
+                        content: `${EMOJI.warning} Brak permisji`,
+                        ephemeral: true
+                    });
+                }
 
-                const to =
-                    interaction.fields.getTextInputValue("to");
-
-                const amount =
-                    interaction.fields.getTextInputValue("amount");
-
-                const finalText =
-                    `+rep ${interaction.user} Exchange ${from} to ${to} ${amount}PLN`;
-
-                const embed =
-                    new EmbedBuilder()
-                        .setColor("#1b2dff")
-                        .setTitle(
-                            `${EMOJI.money} StarX Exchange » Legit Check`
-                        )
-                        .setDescription(
-`${EMOJI.pin} **Legit utworzony**
-
-${EMOJI.zap} \`\`\`
-${finalText}
-\`\`\`
-
-${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
-                        )
-                        .setFooter({
-                            text: "© 2026 StarX Exchange"
-                        })
-                        .setTimestamp();
-
-                await interaction.channel.send({
-                    embeds: [embed]
-                });
-
-                return interaction.reply({
-                    content:
-                        `${EMOJI.money} Legit został wysłany.`,
-                    ephemeral: true
-                });
+                return interaction.channel.delete().catch(() => {});
             }
 
         } catch (err) {
-
-            console.log("❌ LC ERROR:", err);
-
-            try {
-
-                if (
-                    !interaction.replied &&
-                    !interaction.deferred
-                ) {
-
-                    await interaction.reply({
-                        content:
-                            `${EMOJI.warning} Wystąpił błąd.`,
-                        ephemeral: true
-                    });
-                }
-
-            } catch {}
+            console.log(err);
         }
     });
 
     // =====================================
-    // AUTO REMOVE TICKET ACCESS
+    // REP AUTO REMOVE ACCESS
     // =====================================
     client.on(Events.MessageCreate, async (message) => {
 
         try {
 
             if (message.author.bot) return;
+            if (message.channel.id !== REP_CHANNEL_ID) return;
 
-            if (message.channel.id !== REP_CHANNEL_ID)
-                return;
-
-            const guild = message.guild;
-
-            const ticket =
-                guild.channels.cache.find(c =>
-                    c.topic?.startsWith(message.author.id)
-                );
+            const ticket = message.guild.channels.cache.find(c =>
+                c.topic?.startsWith(message.author.id)
+            );
 
             if (!ticket) return;
 
-            await ticket.permissionOverwrites.edit(
-                message.author.id,
-                {
-                    ViewChannel: false
-                }
-            );
+            await ticket.permissionOverwrites.edit(message.author.id, {
+                ViewChannel: false
+            });
 
             await ticket.send({
-                content:
-                    `${EMOJI.lock} Dostęp do ticketa został automatycznie usunięty po wysłaniu repa.`
+                content: `${EMOJI.lock} Dostęp odebrany po rep`
             });
 
         } catch (err) {
-
-            console.log("AUTO REMOVE ERROR:", err);
+            console.log(err);
         }
     });
 };
