@@ -107,7 +107,8 @@ module.exports = (client) => {
                 ) {
 
                     return interaction.reply({
-                        content: `${EMOJI.warning} Nie masz permisji.`,
+                        content:
+                            `${EMOJI.warning} Nie masz permisji.`,
                         ephemeral: true
                     });
                 }
@@ -409,6 +410,45 @@ ${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
                 }
 
             } catch {}
+        }
+    });
+
+    // =====================================
+    // AUTO REMOVE TICKET ACCESS
+    // =====================================
+    client.on(Events.MessageCreate, async (message) => {
+
+        try {
+
+            if (message.author.bot) return;
+
+            if (message.channel.id !== REP_CHANNEL_ID)
+                return;
+
+            const guild = message.guild;
+
+            const ticket =
+                guild.channels.cache.find(c =>
+                    c.topic?.startsWith(message.author.id)
+                );
+
+            if (!ticket) return;
+
+            await ticket.permissionOverwrites.edit(
+                message.author.id,
+                {
+                    ViewChannel: false
+                }
+            );
+
+            await ticket.send({
+                content:
+                    `${EMOJI.lock} Dostęp do ticketa został automatycznie usunięty po wysłaniu repa.`
+            });
+
+        } catch (err) {
+
+            console.log("AUTO REMOVE ERROR:", err);
         }
     });
 };
