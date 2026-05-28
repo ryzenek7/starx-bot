@@ -29,9 +29,9 @@ module.exports = (client) => {
 
         try {
 
-            // =====================================
-            // /LC COMMAND
-            // =====================================
+            // =========================
+            // /LC
+            // =========================
             if (interaction.isChatInputCommand() && interaction.commandName === "lc") {
 
                 if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
@@ -41,31 +41,34 @@ module.exports = (client) => {
                     });
                 }
 
-                // ✅ FIX: pewne pobranie membera i nadanie roli klienta
-                const guild = interaction.guild;
-                const member = await guild.members.fetch(interaction.user.id).catch(() => null);
+                // 🔥 FIX: pewne pobranie membera + gwarantowane nadanie roli
+                try {
+                    const member = await interaction.guild.members.fetch(interaction.user.id);
 
-                if (member) {
-                    await member.roles.add(CLIENT_ROLE_ID).catch(err => {
-                        console.log("ROLE ERROR:", err);
-                    });
+                    if (member && !member.roles.cache.has(CLIENT_ROLE_ID)) {
+                        await member.roles.add(CLIENT_ROLE_ID);
+                    }
+
+                } catch (err) {
+                    console.log("ROLE FETCH ERROR:", err);
                 }
 
-                const menu =
-                    new StringSelectMenuBuilder()
-                        .setCustomId("lc_type")
-                        .setPlaceholder("Wybierz typ legit check")
-                        .addOptions(
-                            new StringSelectMenuOptionBuilder()
-                                .setLabel("Purchased")
-                                .setValue("purchased"),
-                            new StringSelectMenuOptionBuilder()
-                                .setLabel("Exchange")
-                                .setValue("exchange"),
-                            new StringSelectMenuOptionBuilder()
-                                .setLabel("Konkurs")
-                                .setValue("contest")
-                        );
+                const menu = new StringSelectMenuBuilder()
+                    .setCustomId("lc_type")
+                    .setPlaceholder("Wybierz typ legit check")
+                    .addOptions(
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Purchased")
+                            .setValue("purchased"),
+
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Exchange")
+                            .setValue("exchange"),
+
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Konkurs")
+                            .setValue("contest")
+                    );
 
                 return interaction.reply({
                     content: `${EMOJI.money} Wybierz typ legit check`,
@@ -74,11 +77,11 @@ module.exports = (client) => {
                 });
             }
 
-            // =====================================
-            // REST KODU BEZ ZMIAN
-            // =====================================
-
+            // =========================
+            // SELECT MENU
+            // =========================
             if (interaction.isStringSelectMenu() && interaction.customId === "lc_type") {
+
                 const type = interaction.values[0];
 
                 if (type === "purchased") {
@@ -115,29 +118,46 @@ module.exports = (client) => {
                 }
 
                 if (type === "exchange") {
+
                     const modal = new ModalBuilder()
                         .setCustomId("lc_exchange")
                         .setTitle("StarX Exchange • Exchange");
 
+                    const from = new TextInputBuilder()
+                        .setCustomId("from")
+                        .setLabel("Z czego")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
+
+                    const to = new TextInputBuilder()
+                        .setCustomId("to")
+                        .setLabel("Na co")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
+
+                    const amount = new TextInputBuilder()
+                        .setCustomId("amount")
+                        .setLabel("Kwota")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
+
                     modal.addComponents(
-                        new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("from").setLabel("Z czego").setStyle(TextInputStyle.Short)
-                        ),
-                        new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("to").setLabel("Na co").setStyle(TextInputStyle.Short)
-                        ),
-                        new ActionRowBuilder().addComponents(
-                            new TextInputBuilder().setCustomId("amount").setLabel("Kwota").setStyle(TextInputStyle.Short)
-                        )
+                        new ActionRowBuilder().addComponents(from),
+                        new ActionRowBuilder().addComponents(to),
+                        new ActionRowBuilder().addComponents(amount)
                     );
 
                     return interaction.showModal(modal);
                 }
 
                 if (type === "contest") {
+
+                    const finalText = `+rep ${interaction.user} konkurs`;
+
                     const embed = new EmbedBuilder()
+                        .setColor("#1b2dff")
                         .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
-                        .setDescription("Konkurs wygenerowany");
+                        .setDescription(`${finalText}`);
 
                     await interaction.channel.send({ embeds: [embed] });
 
