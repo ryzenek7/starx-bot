@@ -11,46 +11,32 @@ const {
 
 module.exports = (client) => {
 
-    // =========================
-    // CONFIG
-    // =========================
     const STAFF_ROLE_ID = "1500930428993933373";
     const REP_CHANNEL_ID = "1500893110048133253";
-    const CLIENT_ROLE_ID = "1499572498604363918";
-    const RYZEN_ID = "1330652001075335300";
 
-    // =========================
-    // EMOJI
-    // =========================
     const EMOJI = {
+
         ticket: "<:TICKET:1501697124734206032>",
         pin: "<:PIN:1501697389050986546>",
         zap: "<:PIORUN:1501697151737139350>",
         lock: "<:ZAMKNIETE:1501697222901895258>",
         warning: "<:PILNE:1501693444030992395>",
+
         money: "<a:m_:1501685438103031920>",
-        arrow: "<a:Arrow_White:1508094625984811038>"
+        arrow: "<a:Arrow_White:1508094625984811038>",
+
+        blik: "<:blik:1499784231608389742>",
+        paypal: "<:paypal:1499784258091483236>",
+        crypto: "<:crypto:1499784635201224724>",
+        ltc: "<:ltc:1499784285211726014>"
     };
 
-    // =========================
-    // ROLE FUNCTION
-    // =========================
-    async function giveClientRole(interaction) {
-        const member = interaction.guild.members.cache.get(interaction.user.id);
-        if (member) {
-            await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
-        }
-    }
-
-    // =========================
-    // MAIN EVENT
-    // =========================
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
             // =========================
-            // /LC COMMAND
+            // /LC
             // =========================
             if (interaction.isChatInputCommand() && interaction.commandName === "lc") {
 
@@ -65,17 +51,18 @@ module.exports = (client) => {
                     .setCustomId("lc_type")
                     .setPlaceholder("Wybierz typ LC")
                     .addOptions(
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel("Purchased")
-                            .setValue("purchased"),
-
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel("Exchange")
-                            .setValue("exchange"),
-
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel("Contest")
-                            .setValue("contest")
+                        {
+                            label: "Purchased",
+                            value: "purchased"
+                        },
+                        {
+                            label: "Exchange",
+                            value: "exchange"
+                        },
+                        {
+                            label: "Konkurs",
+                            value: "contest"
+                        }
                     );
 
                 return interaction.reply({
@@ -86,7 +73,7 @@ module.exports = (client) => {
             }
 
             // =========================
-            // SELECT MENU
+            // MENU
             // =========================
             if (interaction.isStringSelectMenu() && interaction.customId === "lc_type") {
 
@@ -104,22 +91,8 @@ module.exports = (client) => {
                     modal.addComponents(
                         new ActionRowBuilder().addComponents(
                             new TextInputBuilder()
-                                .setCustomId("product")
-                                .setLabel("Produkt")
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true)
-                        ),
-                        new ActionRowBuilder().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId("price")
-                                .setLabel("Kwota")
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true)
-                        ),
-                        new ActionRowBuilder().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId("payment")
-                                .setLabel("Metoda płatności")
+                                .setCustomId("data")
+                                .setLabel("Produkt / Dane")
                                 .setStyle(TextInputStyle.Short)
                                 .setRequired(true)
                         )
@@ -129,9 +102,23 @@ module.exports = (client) => {
                 }
 
                 // =========================
-                // EXCHANGE
+                // EXCHANGE (FIX: BLIK itd)
                 // =========================
                 if (type === "exchange") {
+
+                    const embed = new EmbedBuilder()
+                        .setColor("#1b2dff")
+                        .setTitle(`${EMOJI.money} EXCHANGE LC`)
+                        .setDescription(
+`${EMOJI.arrow} Dostępne metody:
+
+- ${EMOJI.blik} BLIK  
+- ${EMOJI.paypal} PAYPAL  
+- ${EMOJI.crypto} CRYPTO  
+- ${EMOJI.ltc} LTC  
+
+👉 Uzupełnij dane w kolejnym kroku`
+                        );
 
                     const modal = new ModalBuilder()
                         .setCustomId("lc_exchange")
@@ -140,53 +127,41 @@ module.exports = (client) => {
                     modal.addComponents(
                         new ActionRowBuilder().addComponents(
                             new TextInputBuilder()
-                                .setCustomId("from")
-                                .setLabel("Z czego")
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true)
-                        ),
-                        new ActionRowBuilder().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId("to")
-                                .setLabel("Na co")
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true)
-                        ),
-                        new ActionRowBuilder().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId("amount")
-                                .setLabel("Kwota")
+                                .setCustomId("data")
+                                .setLabel("Z czego -> Na co / Kwota")
                                 .setStyle(TextInputStyle.Short)
                                 .setRequired(true)
                         )
                     );
 
+                    await interaction.reply({
+                        embeds: [embed],
+                        ephemeral: true
+                    });
+
                     return interaction.showModal(modal);
                 }
 
                 // =========================
-                // CONTEST
+                // CONTEST (FIX: KONKURS + BOT SEND)
                 // =========================
                 if (type === "contest") {
 
-                    await giveClientRole(interaction);
+                    const text = `+rep <@${interaction.user.id}> konkurs`;
 
-                    const text = `+rep <@${RYZEN_ID}> konkurs`;
-
-                    const embed = new EmbedBuilder()
-                        .setColor("#1b2dff")
-                        .setTitle(`${EMOJI.money} LC CONTEST`)
-                        .setDescription(
-`${EMOJI.pin} Skopiuj i wklej na <#${REP_CHANNEL_ID}>
+                    await interaction.channel.send({
+                        content:
+`${EMOJI.money} KONKURS
 
 \`\`\`
 ${text}
 \`\`\`
-`
-                        );
+
+👉 Wklej na <#${REP_CHANNEL_ID}>`
+                    });
 
                     return interaction.reply({
-                        embeds: [embed],
+                        content: `${EMOJI.money} Konkurs wysłany`,
                         ephemeral: true
                     });
                 }
@@ -197,35 +172,47 @@ ${text}
             // =========================
             if (interaction.isModalSubmit() && interaction.customId === "lc_purchased") {
 
-                const product = interaction.fields.getTextInputValue("product");
-                const price = interaction.fields.getTextInputValue("price");
-                const payment = interaction.fields.getTextInputValue("payment");
+                const data = interaction.fields.getTextInputValue("data");
 
-                const text = `+rep ${interaction.user} Purchased ${product} ${price}PLN [${payment}]`;
+                const text = `+rep ${interaction.user} Purchased ${data}`;
 
-                await giveClientRole(interaction);
+                await interaction.channel.send({
+                    content:
+`${EMOJI.money} PURCHASED
+
+\`\`\`
+${text}
+\`\`\``
+                });
 
                 return interaction.reply({
-                    content: `${EMOJI.money} Skopiuj i wklej:\n\`\`\`${text}\`\`\``,
+                    content: "Wysłano LC",
                     ephemeral: true
                 });
             }
 
             // =========================
-            // EXCHANGE SUBMIT
+            // EXCHANGE SUBMIT (FIX + BLIK INFO)
             // =========================
             if (interaction.isModalSubmit() && interaction.customId === "lc_exchange") {
 
-                const from = interaction.fields.getTextInputValue("from");
-                const to = interaction.fields.getTextInputValue("to");
-                const amount = interaction.fields.getTextInputValue("amount");
+                const data = interaction.fields.getTextInputValue("data");
 
-                const text = `+rep ${interaction.user} Exchange ${from} to ${to} ${amount}PLN`;
+                const text = `+rep ${interaction.user} Exchange ${data}`;
 
-                await giveClientRole(interaction);
+                await interaction.channel.send({
+                    content:
+`${EMOJI.money} EXCHANGE
+
+${EMOJI.blik} BLIK | ${EMOJI.paypal} PAYPAL | ${EMOJI.crypto} CRYPTO | ${EMOJI.ltc} LTC
+
+\`\`\`
+${text}
+\`\`\``
+                });
 
                 return interaction.reply({
-                    content: `${EMOJI.money} Skopiuj i wklej:\n\`\`\`${text}\`\`\``,
+                    content: "Wysłano LC",
                     ephemeral: true
                 });
             }
