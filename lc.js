@@ -22,23 +22,37 @@ module.exports = (client) => {
     // EMOJI
     // =========================
     const EMOJI = {
+        ticket: "<:TICKET:1501697124734206032>",
         money: "<a:m_:1501685438103031920>",
         arrow: "<a:Arrow_White:1508094625984811038>",
-        ticket: "<:TICKET:1501697124734206032>",
+        zap: "<:PIORUN:1501697151737139350>",
         lock: "<:ZAMKNIETE:1501697222901895258>",
-        warning: "<:PILNE:1501693444030992395>",
-        zap: "<:PIORUN:1501697151737139350>"
+        warning: "<:PILNE:1501693444030992395>"
     };
 
     // =========================
-    // MENU LC
+    // FIND OWNER FROM TICKET NAME
+    // buy-hogasty444 -> hogasty444
+    // =========================
+    function getOwnerFromTicket(channel) {
+        const name = channel.name; 
+        const parts = name.split("-");
+        const username = parts.slice(1).join("-");
+
+        return channel.guild.members.cache.find(m =>
+            m.user.username.toLowerCase() === username.toLowerCase()
+        );
+    }
+
+    // =========================
+    // MAIN HANDLER
     // =========================
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
             // =========================
-            // /LC
+            // /LC COMMAND
             // =========================
             if (interaction.isChatInputCommand() && interaction.commandName === "lc") {
 
@@ -53,18 +67,9 @@ module.exports = (client) => {
                     .setCustomId("lc_type")
                     .setPlaceholder("Wybierz typ LC")
                     .addOptions([
-                        {
-                            label: "Purchased",
-                            value: "purchased"
-                        },
-                        {
-                            label: "Exchange",
-                            value: "exchange"
-                        },
-                        {
-                            label: "Konkurs",
-                            value: "contest"
-                        }
+                        { label: "Purchased", value: "purchased" },
+                        { label: "Exchange", value: "exchange" },
+                        { label: "Konkurs", value: "contest" }
                     ]);
 
                 return interaction.reply({
@@ -85,70 +90,52 @@ module.exports = (client) => {
                     .setCustomId(`lc_${type}`)
                     .setTitle("Legit Check");
 
-                const input = new TextInputBuilder()
-                    .setCustomId("data")
-                    .setLabel("Wpisz dane")
-                    .setStyle(TextInputStyle.Paragraph)
-                    .setRequired(true);
-
                 modal.addComponents(
-                    new ActionRowBuilder().addComponents(input)
+                    new ActionRowBuilder().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId("data")
+                            .setLabel("Wpisz dane")
+                            .setStyle(TextInputStyle.Paragraph)
+                            .setRequired(true)
+                    )
                 );
 
                 return interaction.showModal(modal);
             }
 
             // =========================
-            // FIND OWNER BY CHANNEL NAME
-            // buy-hogasty444 -> hogasty444
+            // HANDLE LC
             // =========================
-            function getOwnerFromChannel(channel) {
-
-                const name = channel.name; // buy-hogasty444
-
-                const parts = name.split("-");
-
-                const username = parts.slice(1).join("-");
-
-                return channel.guild.members.cache.find(
-                    m => m.user.username.toLowerCase() === username.toLowerCase()
-                );
-            }
-
-            // =========================
-            // SEND REP + CLOSE ACCESS
-            // =========================
-            async function handleLC(interaction, type, data) {
+            async function handleLC(type, data) {
 
                 const repChannel = interaction.guild.channels.cache.get(REP_CHANNEL_ID);
-                if (!repChannel) return;
 
-                const content =
-                    `+rep ${interaction.user.username} ${type} ${data}`;
+                const content = `+rep ${interaction.user.username} ${type} ${data}`;
 
-                // PUBLIC EMBED (na ticket)
-                const embed = new EmbedBuilder()
-                    .setColor("#1b2dff")
-                    .setTitle(`${EMOJI.money} LEGIT CHECK`)
-                    .setDescription(
-                        `${EMOJI.zap} Wysłano LC\n\n` +
-                        `${EMOJI.arrow} Typ: **${type}**\n` +
-                        `${EMOJI.arrow} Dane:\n\`\`\`${data}\`\`\``
-                    );
+                // PUBLIC EMBED (ticket)
+                await interaction.channel.send({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor("#1b2dff")
+                            .setTitle(`${EMOJI.money} LEGIT CHECK`)
+                            .setDescription(
+`${EMOJI.zap} Typ: **${type}**
 
-                await interaction.channel.send({ embeds: [embed] });
-
-                // REP CHANNEL (publiczny)
-                await repChannel.send({
-                    content
+${EMOJI.arrow} Dane:
+\`\`\`${data}\`\`\``
+                            )
+                    ]
                 });
 
+                // REP CHANNEL
+                await repChannel.send({ content });
+
                 // OWNER FROM NAME
-                const owner = getOwnerFromChannel(interaction.channel);
+                const owner = getOwnerFromTicket(interaction.channel);
 
                 if (owner) {
 
-                    // GIVE CLIENT ROLE
+                    // GIVE ROLE
                     await owner.roles.add(CLIENT_ROLE_ID).catch(() => {});
 
                     // REMOVE ACCESS
@@ -159,8 +146,7 @@ module.exports = (client) => {
                     });
 
                     await interaction.channel.send({
-                        content:
-                            `${EMOJI.lock} Dostęp odebrany dla ${owner}`
+                        content: `${EMOJI.lock} Dostęp odebrany: ${owner}`
                     });
                 }
 
@@ -178,15 +164,15 @@ module.exports = (client) => {
                 const data = interaction.fields.getTextInputValue("data");
 
                 if (interaction.customId === "lc_purchased") {
-                    return handleLC(interaction, "PURCHASED", data);
+                    return handleLC("PURCHASED", data);
                 }
 
                 if (interaction.customId === "lc_exchange") {
-                    return handleLC(interaction, "EXCHANGE", data);
+                    return handleLC("EXCHANGE", data);
                 }
 
                 if (interaction.customId === "lc_contest") {
-                    return handleLC(interaction, "CONTEST", data);
+                    return handleLC("CONTEST", data);
                 }
             }
 
