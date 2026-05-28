@@ -129,7 +129,12 @@ module.exports = (client) => {
                             new StringSelectMenuOptionBuilder()
                                 .setLabel("Exchange")
                                 .setDescription("Wymiana metod")
-                                .setValue("exchange")
+                                .setValue("exchange"),
+
+                            new StringSelectMenuOptionBuilder()
+                                .setLabel("Konkurs")
+                                .setDescription("Legit konkurs")
+                                .setValue("contest")
                         );
 
                 const row =
@@ -238,6 +243,46 @@ module.exports = (client) => {
                     );
 
                     return interaction.showModal(modal);
+                }
+
+                // =====================================
+                // CONTEST
+                // =====================================
+                if (type === "contest") {
+
+                    const finalText =
+                        `+rep <@1330652001075335300> konkurs`;
+
+                    const embed =
+                        new EmbedBuilder()
+                            .setColor("#1b2dff")
+                            .setTitle(
+                                `${EMOJI.money} StarX Exchange » Legit Check`
+                            )
+                            .setDescription(
+`${EMOJI.pin} **Legit utworzony**
+
+${EMOJI.zap} \`\`\`
+${finalText}
+\`\`\`
+
+${EMOJI.arrow} **Skopiuj wiadomość**
+${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
+                            )
+                            .setFooter({
+                                text: "© 2026 StarX Exchange"
+                            })
+                            .setTimestamp();
+
+                    await interaction.channel.send({
+                        embeds: [embed]
+                    });
+
+                    return interaction.reply({
+                        content:
+                            `${EMOJI.money} Legit został wysłany.`,
+                        ephemeral: true
+                    });
                 }
             }
 
