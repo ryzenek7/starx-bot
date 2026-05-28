@@ -16,6 +16,7 @@ module.exports = (client) => {
     const REP_CHANNEL_ID = "1500893110048133253";
 
     const EMOJI = {
+
         ticket: "<:TICKET:1501697124734206032>",
         pin: "<:PIN:1501697389050986546>",
         zap: "<:PIORUN:1501697151737139350>",
@@ -33,26 +34,41 @@ module.exports = (client) => {
         blik: "<:blik:1499784231608389742>",
         paypal: "<:paypal:1499784258091483236>",
         crypto: "<:crypto:1499784635201224724>",
-        ltc: "<:ltc:1499784285211726014>"
-    };
+        ltc: "<:ltc:1499784285211726014>",
 
-    // =========================
-    // helper: extract username like buy-hogasty444 -> hogasty444
-    // =========================
-    function extractUsername(tag) {
-        if (!tag) return null;
-        const match = tag.match(/buy-([a-zA-Z0-9]+)/);
-        return match ? match[1] : null;
-    }
+        spotify: "<:Spotify:1500238701718933627>",
+        netflix: "<:Netflix:1500238788306403398>",
+        ytpremium: "<:ytpremium:1500239415937859605>",
+        hbomax: "<:HBOmax:1500239251143524464>",
+        crunchyroll: "<:CRUNCHYROLL:1501686424158605463>",
+        disney: "<:DISNEY:1501686870025699449>",
+        primevideo: "<:primevideo:1502001410311716984>",
+        chatgpt: "<:521605chatgpt:1502001751019094097>",
+        capcut: "<:Capcut:1502002116405887039>",
+        cda: "<:CDA:1508077411873325076>",
+
+        nordvpn: "<:NORDVPN:1501999409343369400>",
+        mullvad: "<:mullvad:1501999834159255712>",
+        tunnelbear: "<:TUNNELBEARVPN:1502000450009042984>",
+
+        middleman: "<:LUDZIE:1500243884733894716>",
+        cart: "<:SKLEP:1500243849535033577>",
+        box: "<:SKLEP:1500243849535033577>",
+
+        prime: "<:primevideo:1502001410311716984>"
+    };
 
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
-            // =========================
-            // /LC
-            // =========================
-            if (interaction.isChatInputCommand() && interaction.commandName === "lc") {
+            // =====================================
+            // /LC COMMAND
+            // =====================================
+            if (
+                interaction.isChatInputCommand() &&
+                interaction.commandName === "lc"
+            ) {
 
                 if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
                     return interaction.reply({
@@ -61,98 +77,130 @@ module.exports = (client) => {
                     });
                 }
 
-                // ✅ GIVE CLIENT ROLE (USER WHO USED /LC)
+                // 🔥 DODANIE RANGI CLIENT (PO /LC)
                 const member = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
                 if (member) {
                     await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
                 }
 
-                const menu = new StringSelectMenuBuilder()
-                    .setCustomId("lc_type")
-                    .setPlaceholder("Wybierz typ legit check")
-                    .addOptions(
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel("Purchased")
-                            .setValue("purchased"),
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel("Exchange")
-                            .setValue("exchange"),
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel("Konkurs")
-                            .setValue("contest")
-                    );
+                const menu =
+                    new StringSelectMenuBuilder()
+                        .setCustomId("lc_type")
+                        .setPlaceholder("Wybierz typ legit check")
+                        .addOptions(
+                            new StringSelectMenuOptionBuilder()
+                                .setLabel("Purchased")
+                                .setDescription("Zakup produktu")
+                                .setValue("purchased"),
+
+                            new StringSelectMenuOptionBuilder()
+                                .setLabel("Exchange")
+                                .setDescription("Wymiana metod")
+                                .setValue("exchange"),
+
+                            new StringSelectMenuOptionBuilder()
+                                .setLabel("Konkurs")
+                                .setDescription("Legit konkurs")
+                                .setValue("contest")
+                        );
+
+                const row = new ActionRowBuilder().addComponents(menu);
 
                 return interaction.reply({
                     content: `${EMOJI.money} Wybierz typ legit check`,
-                    components: [new ActionRowBuilder().addComponents(menu)],
+                    components: [row],
                     ephemeral: true
                 });
             }
 
-            // =========================
-            // SELECT MENU
-            // =========================
+            // ===== RESZTA BEZ ZMIAN =====
+
             if (interaction.isStringSelectMenu() && interaction.customId === "lc_type") {
 
                 const type = interaction.values[0];
 
                 if (type === "purchased") {
+
                     const modal = new ModalBuilder()
                         .setCustomId("lc_purchased")
-                        .setTitle("Purchased LC");
+                        .setTitle("StarX Exchange • Purchased");
 
                     const product = new TextInputBuilder()
                         .setCustomId("product")
                         .setLabel("Produkt")
-                        .setStyle(TextInputStyle.Short);
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
                     const price = new TextInputBuilder()
                         .setCustomId("price")
                         .setLabel("Kwota")
-                        .setStyle(TextInputStyle.Short);
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
                     const payment = new TextInputBuilder()
                         .setCustomId("payment")
-                        .setLabel("Metoda")
-                        .setStyle(TextInputStyle.Short);
+                        .setLabel("Metoda płatności")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
-                    return interaction.showModal(
-                        modal.addComponents(
-                            new ActionRowBuilder().addComponents(product),
-                            new ActionRowBuilder().addComponents(price),
-                            new ActionRowBuilder().addComponents(payment)
-                        )
+                    modal.addComponents(
+                        new ActionRowBuilder().addComponents(product),
+                        new ActionRowBuilder().addComponents(price),
+                        new ActionRowBuilder().addComponents(payment)
                     );
+
+                    return interaction.showModal(modal);
                 }
 
                 if (type === "exchange") {
+
                     const modal = new ModalBuilder()
                         .setCustomId("lc_exchange")
-                        .setTitle("Exchange LC");
+                        .setTitle("StarX Exchange • Exchange");
 
-                    const from = new TextInputBuilder().setCustomId("from").setLabel("Z").setStyle(TextInputStyle.Short);
-                    const to = new TextInputBuilder().setCustomId("to").setLabel("Na").setStyle(TextInputStyle.Short);
-                    const amount = new TextInputBuilder().setCustomId("amount").setLabel("Kwota").setStyle(TextInputStyle.Short);
+                    const from = new TextInputBuilder()
+                        .setCustomId("from")
+                        .setLabel("Z czego")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
-                    return interaction.showModal(
-                        modal.addComponents(
-                            new ActionRowBuilder().addComponents(from),
-                            new ActionRowBuilder().addComponents(to),
-                            new ActionRowBuilder().addComponents(amount)
-                        )
+                    const to = new TextInputBuilder()
+                        .setCustomId("to")
+                        .setLabel("Na co")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
+
+                    const amount = new TextInputBuilder()
+                        .setCustomId("amount")
+                        .setLabel("Kwota")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
+
+                    modal.addComponents(
+                        new ActionRowBuilder().addComponents(from),
+                        new ActionRowBuilder().addComponents(to),
+                        new ActionRowBuilder().addComponents(amount)
                     );
+
+                    return interaction.showModal(modal);
                 }
 
                 if (type === "contest") {
 
-                    const text = `+rep ${interaction.user} konkurs`;
+                    const finalText = `+rep ${interaction.user} konkurs`;
 
                     await interaction.channel.send({
                         embeds: [
                             new EmbedBuilder()
                                 .setColor("#1b2dff")
                                 .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
-                                .setDescription(`${EMOJI.pin} **Legit utworzony**\n\`\`\`${text}\`\`\``)
+                                .setDescription(
+`${EMOJI.pin} **Legit utworzony**
+
+\`\`\`
+${finalText}
+\`\`\``
+                                )
                         ]
                     });
 
@@ -163,9 +211,6 @@ module.exports = (client) => {
                 }
             }
 
-            // =========================
-            // PURCHASED
-            // =========================
             if (interaction.isModalSubmit() && interaction.customId === "lc_purchased") {
 
                 const product = interaction.fields.getTextInputValue("product");
@@ -179,7 +224,7 @@ module.exports = (client) => {
                         new EmbedBuilder()
                             .setColor("#1b2dff")
                             .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
-                            .setDescription(`${EMOJI.pin} **Legit utworzony**\n\`\`\`${text}\`\`\``)
+                            .setDescription(`\`\`\`${text}\`\`\``)
                     ]
                 });
 
@@ -189,9 +234,6 @@ module.exports = (client) => {
                 });
             }
 
-            // =========================
-            // EXCHANGE
-            // =========================
             if (interaction.isModalSubmit() && interaction.customId === "lc_exchange") {
 
                 const from = interaction.fields.getTextInputValue("from");
@@ -205,7 +247,7 @@ module.exports = (client) => {
                         new EmbedBuilder()
                             .setColor("#1b2dff")
                             .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
-                            .setDescription(`${EMOJI.pin} **Legit utworzony**\n\`\`\`${text}\`\`\``)
+                            .setDescription(`\`\`\`${text}\`\`\``)
                     ]
                 });
 
@@ -216,31 +258,7 @@ module.exports = (client) => {
             }
 
         } catch (err) {
-            console.log(err);
+            console.log("❌ LC ERROR:", err);
         }
-    });
-
-    // =========================
-    // REMOVE TICKET ACCESS AFTER REP
-    // =========================
-    client.on(Events.MessageCreate, async (message) => {
-
-        if (message.author.bot) return;
-        if (message.channel.id !== REP_CHANNEL_ID) return;
-
-        const guild = message.guild;
-
-        // find ticket by topic (buy-hogasty444 etc)
-        const ticket = guild.channels.cache.find(c =>
-            c.topic && c.topic.includes(message.author.id)
-        );
-
-        if (!ticket) return;
-
-        await ticket.permissionOverwrites.edit(message.author.id, {
-            ViewChannel: false,
-            SendMessages: false,
-            ReadMessageHistory: false
-        }).catch(() => {});
     });
 };
