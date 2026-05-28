@@ -54,6 +54,9 @@ module.exports = (client) => {
         nitro:
             "<a:nitro:1501684762601848963>",
 
+        confetti:
+            "<a:confetti:1502025560606507048>",
+
         green: "✅",
         red: "❌"
     };
@@ -112,7 +115,7 @@ module.exports = (client) => {
     );
 
     // =====================================
-    // PARSE TIME
+    // TIME PARSER
     // =====================================
 
     function parseTime(time) {
@@ -153,9 +156,7 @@ module.exports = (client) => {
                     g.endAt
                 ) {
 
-                    await endGiveaway(
-                        id
-                    );
+                    await endGiveaway(id);
                 }
             }
 
@@ -191,11 +192,11 @@ module.exports = (client) => {
 
         if (!msg) return;
 
-        let users =
-            [...g.entries];
+        let users = [];
 
-        // bonus entries
         for (const userId of g.entries) {
+
+            users.push(userId);
 
             for (
                 let i = 0;
@@ -241,9 +242,10 @@ module.exports = (client) => {
                 winners.push(random);
             }
 
-            users = users.filter(
-                x => x !== random
-            );
+            users =
+                users.filter(
+                    x => x !== random
+                );
         }
 
         const embed =
@@ -254,7 +256,7 @@ module.exports = (client) => {
                 )
 
                 .setTitle(
-                    `${EMOJI.nitro} GIVEAWAY ZAKOŃCZONY`
+                    `${EMOJI.confetti} GIVEAWAY ZAKOŃCZONY`
                 )
 
                 .setDescription(
@@ -263,6 +265,9 @@ module.exports = (client) => {
 
 ${EMOJI.admin} **Winnerzy**
 > ${winners.map(x => `<@${x}>`).join(", ")}
+
+${EMOJI.ticket} **Uczestnicy**
+> ${g.entries.length}
 
 ${EMOJI.clock} **Koniec**
 > <t:${Math.floor(Date.now() / 1000)}:R>
@@ -291,7 +296,9 @@ ${EMOJI.ticket} **ID**
                             "REROLL"
                         )
 
-                        .setEmoji("🔄")
+                        .setEmoji(
+                            "1502025560606507048"
+                        )
 
                         .setStyle(
                             ButtonStyle.Secondary
@@ -307,7 +314,7 @@ ${EMOJI.ticket} **ID**
         await channel.send({
 
             content:
-                `🎉 Gratulacje ${winners.map(x => `<@${x}>`).join(", ")}`
+                `${EMOJI.confetti} Gratulacje ${winners.map(x => `<@${x}>`).join(", ")}`
         });
     }
 
@@ -319,9 +326,9 @@ ${EMOJI.ticket} **ID**
         Events.InteractionCreate,
         async interaction => {
 
-            // =========================
+            // =====================================
             // GIVEAWAY COMMAND
-            // =========================
+            // =====================================
 
             if (
                 interaction.isChatInputCommand() &&
@@ -401,6 +408,9 @@ ${EMOJI.lock} **Rola**
 ${EMOJI.zap} **Bonus Entries**
 > +${bonus}
 
+${EMOJI.ticket} **Uczestnicy**
+> 0
+
 ━━━━━━━━━━━━━━━━━━━━━━━
 
 ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
@@ -432,7 +442,9 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                                     "DOŁĄCZ"
                                 )
 
-                                .setEmoji("🎉")
+                                .setEmoji(
+                                    "1502025560606507048"
+                                )
 
                                 .setStyle(
                                     ButtonStyle.Success
@@ -462,6 +474,7 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                             : null,
 
                     bonus,
+
                     entries: [],
 
                     messageId:
@@ -471,6 +484,7 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                         channel.id,
 
                     endAt,
+
                     ended: false
                 };
 
@@ -485,9 +499,9 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                 });
             }
 
-            // =========================
+            // =====================================
             // JOIN BUTTON
-            // =========================
+            // =====================================
 
             if (
                 interaction.isButton() &&
@@ -517,7 +531,6 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                     });
                 }
 
-                // role requirement
                 if (
                     g.roleId &&
                     !interaction.member.roles.cache.has(
@@ -534,7 +547,6 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                     });
                 }
 
-                // anti duplicate
                 if (
                     g.entries.includes(
                         interaction.user.id
@@ -556,6 +568,51 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
 
                 saveData();
 
+                const channel =
+                    await client.channels.fetch(
+                        g.channelId
+                    );
+
+                const msg =
+                    await channel.messages.fetch(
+                        g.messageId
+                    );
+
+                const embed =
+                    EmbedBuilder.from(
+                        msg.embeds[0]
+                    );
+
+                embed.setDescription(
+`${EMOJI.pin} **Nagroda**
+> ${g.reward}
+
+${EMOJI.admin} **Winnerzy**
+> ${g.winners}
+
+${EMOJI.clock} **Koniec**
+> <t:${Math.floor(g.endAt / 1000)}:R>
+
+${EMOJI.lock} **Rola**
+> ${g.roleId ? `<@&${g.roleId}>` : "Brak"}
+
+${EMOJI.zap} **Bonus Entries**
+> +${g.bonus}
+
+${EMOJI.ticket} **Uczestnicy**
+> ${g.entries.length}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
+`
+                );
+
+                await msg.edit({
+
+                    embeds: [embed]
+                });
+
                 return interaction.reply({
 
                     content:
@@ -565,9 +622,9 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                 });
             }
 
-            // =========================
+            // =====================================
             // REROLL BUTTON
-            // =========================
+            // =====================================
 
             if (
                 interaction.isButton() &&
@@ -601,19 +658,6 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
 
                 if (!g) return;
 
-                if (
-                    !g.entries.length
-                ) {
-
-                    return interaction.reply({
-
-                        content:
-                            `${EMOJI.red} Brak uczestników`,
-
-                        ephemeral: true
-                    });
-                }
-
                 const winner =
                     g.entries[
                         Math.floor(
@@ -622,7 +666,7 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                         )
                     ];
 
-                await interaction.reply({
+                return interaction.reply({
 
                     content:
                         `🔄 Nowy winner: <@${winner}>`
