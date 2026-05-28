@@ -1,5 +1,5 @@
 // =====================================
-// GIVEAWAY SYSTEM FINAL
+// GIVEAWAY SYSTEM FINAL FIXED
 // =====================================
 
 const {
@@ -140,6 +140,108 @@ module.exports = (client) => {
             return value * 86400000;
 
         return null;
+    }
+
+    // =====================================
+    // UPDATE LIVE EMBED
+    // =====================================
+
+    async function updateGiveawayMessage(id) {
+
+        const g =
+            giveaways[id];
+
+        if (!g) return;
+
+        const channel =
+            await client.channels.fetch(
+                g.channelId
+            ).catch(() => null);
+
+        if (!channel) return;
+
+        const msg =
+            await channel.messages.fetch(
+                g.messageId
+            ).catch(() => null);
+
+        if (!msg) return;
+
+        const embed =
+            new EmbedBuilder()
+
+                .setColor(
+                    "#0f1014"
+                )
+
+                .setTitle(
+                    `${EMOJI.nitro} PREMIUM GIVEAWAY`
+                )
+
+                .setDescription(
+`${EMOJI.pin} **Nagroda**
+> ${g.reward}
+
+${EMOJI.admin} **Winnerzy**
+> ${g.winners}
+
+${EMOJI.clock} **Koniec**
+> <t:${Math.floor(g.endAt / 1000)}:R>
+
+${EMOJI.lock} **Rola**
+> ${g.roleId ? `<@&${g.roleId}>` : "Brak"}
+
+${EMOJI.zap} **Bonus Entries**
+> +${g.bonus}
+
+${EMOJI.ticket} **Uczestnicy**
+> ${g.entries.length}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
+`
+                )
+
+                .setImage(
+                    "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+                )
+
+                .setFooter({
+
+                    text:
+                        `Giveaway ID: ${id}`
+                });
+
+        const row =
+            new ActionRowBuilder()
+
+                .addComponents(
+
+                    new ButtonBuilder()
+
+                        .setCustomId(
+                            `join_${id}`
+                        )
+
+                        .setLabel(
+                            "DOŁĄCZ"
+                        )
+
+                        .setEmoji(
+                            "<a:confetti:1502025560606507048>"
+                        )
+
+                        .setStyle(
+                            ButtonStyle.Success
+                        )
+                );
+
+        await msg.edit({
+
+            embeds: [embed],
+            components: [row]
+        });
     }
 
     // =====================================
@@ -388,76 +490,6 @@ ${EMOJI.ticket} **ID**
                 const endAt =
                     Date.now() + ms;
 
-                const embed =
-                    new EmbedBuilder()
-
-                        .setColor(
-                            "#0f1014"
-                        )
-
-                        .setTitle(
-                            `${EMOJI.nitro} PREMIUM GIVEAWAY`
-                        )
-
-                        .setDescription(
-`${EMOJI.pin} **Nagroda**
-> ${reward}
-
-${EMOJI.admin} **Winnerzy**
-> ${winners}
-
-${EMOJI.clock} **Koniec**
-> <t:${Math.floor(endAt / 1000)}:R>
-
-${EMOJI.lock} **Rola**
-> ${role ? `<@&${role.id}>` : "Brak"}
-
-${EMOJI.zap} **Bonus Entries**
-> +${bonus}
-
-${EMOJI.ticket} **Uczestnicy**
-> 0
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
-`
-                        )
-
-                        .setImage(
-                            "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
-                        )
-
-                        .setFooter({
-
-                            text:
-                                `Giveaway ID: ${id}`
-                        });
-
-                const row =
-                    new ActionRowBuilder()
-
-                        .addComponents(
-
-                            new ButtonBuilder()
-
-                                .setCustomId(
-                                    `join_${id}`
-                                )
-
-                                .setLabel(
-                                    "DOŁĄCZ"
-                                )
-
-                                .setEmoji(
-                                    "1502025560606507048"
-                                )
-
-                                .setStyle(
-                                    ButtonStyle.Success
-                                )
-                        );
-
                 const channel =
                     await client.channels.fetch(
                         GIVEAWAY_CHANNEL_ID
@@ -466,8 +498,8 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                 const msg =
                     await channel.send({
 
-                        embeds: [embed],
-                        components: [row]
+                        content:
+                            `${EMOJI.confetti} Tworzenie giveaway...`
                     });
 
                 giveaways[id] = {
@@ -496,6 +528,10 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                 };
 
                 saveData();
+
+                await updateGiveawayMessage(
+                    id
+                );
 
                 return interaction.reply({
 
@@ -575,50 +611,9 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
 
                 saveData();
 
-                const channel =
-                    await client.channels.fetch(
-                        g.channelId
-                    );
-
-                const msg =
-                    await channel.messages.fetch(
-                        g.messageId
-                    );
-
-                const embed =
-                    EmbedBuilder.from(
-                        msg.embeds[0]
-                    );
-
-                embed.setDescription(
-`${EMOJI.pin} **Nagroda**
-> ${g.reward}
-
-${EMOJI.admin} **Winnerzy**
-> ${g.winners}
-
-${EMOJI.clock} **Koniec**
-> <t:${Math.floor(g.endAt / 1000)}:R>
-
-${EMOJI.lock} **Rola**
-> ${g.roleId ? `<@&${g.roleId}>` : "Brak"}
-
-${EMOJI.zap} **Bonus Entries**
-> +${g.bonus}
-
-${EMOJI.ticket} **Uczestnicy**
-> ${g.entries.length}
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
-`
+                await updateGiveawayMessage(
+                    id
                 );
-
-                await msg.edit({
-
-                    embeds: [embed]
-                });
 
                 return interaction.reply({
 
@@ -626,117 +621,6 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                         `${EMOJI.green} Dołączono do giveaway`,
 
                     ephemeral: true
-                });
-            }
-
-            // =====================================
-            // REROLL COMMAND
-            // =====================================
-
-            if (
-                interaction.isChatInputCommand() &&
-                interaction.commandName ===
-                    "reroll"
-            ) {
-
-                if (
-                    !interaction.member.permissions.has(
-                        PermissionFlagsBits.Administrator
-                    )
-                ) {
-
-                    return interaction.reply({
-
-                        content:
-                            `${EMOJI.red} Brak permisji`,
-
-                        ephemeral: true
-                    });
-                }
-
-                const id =
-                    interaction.options.getString(
-                        "id"
-                    );
-
-                const g =
-                    giveaways[id];
-
-                if (!g) {
-
-                    return interaction.reply({
-
-                        content:
-                            `${EMOJI.red} Giveaway nie istnieje`,
-
-                        ephemeral: true
-                    });
-                }
-
-                if (
-                    !g.entries.length
-                ) {
-
-                    return interaction.reply({
-
-                        content:
-                            `${EMOJI.red} Brak uczestników`,
-
-                        ephemeral: true
-                    });
-                }
-
-                let users = [];
-
-                for (const userId of g.entries) {
-
-                    users.push(userId);
-
-                    for (
-                        let i = 0;
-                        i < g.bonus;
-                        i++
-                    ) {
-
-                        users.push(userId);
-                    }
-                }
-
-                const winners = [];
-
-                while (
-                    winners.length <
-                    g.winners &&
-                    users.length > 0
-                ) {
-
-                    const random =
-                        users[
-                            Math.floor(
-                                Math.random() *
-                                users.length
-                            )
-                        ];
-
-                    if (
-                        !winners.includes(
-                            random
-                        )
-                    ) {
-
-                        winners.push(random);
-                    }
-
-                    users =
-                        users.filter(
-                            x => x !== random
-                        );
-                }
-
-                return interaction.reply({
-
-                    content:
-                        `🔄 Nowi winnerzy: ${winners.map(x => `<@${x}>`).join(", ")}`
                 });
             }
 
@@ -775,6 +659,19 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                     giveaways[id];
 
                 if (!g) return;
+
+                if (
+                    !g.entries.length
+                ) {
+
+                    return interaction.reply({
+
+                        content:
+                            `${EMOJI.red} Brak uczestników`,
+
+                        ephemeral: true
+                    });
+                }
 
                 let users = [];
 
