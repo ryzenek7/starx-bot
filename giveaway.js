@@ -1,3 +1,7 @@
+// =====================================
+// GIVEAWAY SYSTEM FINAL
+// =====================================
+
 const {
     EmbedBuilder,
     ActionRowBuilder,
@@ -57,8 +61,11 @@ module.exports = (client) => {
         confetti:
             "<a:confetti:1502025560606507048>",
 
-        green: "✅",
-        red: "❌"
+        green:
+            "<a:yes:1499784353012514917>",
+
+        red:
+            "<a:no:1499784378992295956>"
     };
 
     // =====================================
@@ -136,7 +143,7 @@ module.exports = (client) => {
     }
 
     // =====================================
-    // CHECKER
+    // AUTO END
     // =====================================
 
     function startChecker() {
@@ -156,7 +163,9 @@ module.exports = (client) => {
                     g.endAt
                 ) {
 
-                    await endGiveaway(id);
+                    await endGiveaway(
+                        id
+                    );
                 }
             }
 
@@ -296,9 +305,7 @@ ${EMOJI.ticket} **ID**
                             "REROLL"
                         )
 
-                        .setEmoji(
-                            "1502025560606507048"
-                        )
+                        .setEmoji("🔄")
 
                         .setStyle(
                             ButtonStyle.Secondary
@@ -623,6 +630,117 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
             }
 
             // =====================================
+            // REROLL COMMAND
+            // =====================================
+
+            if (
+                interaction.isChatInputCommand() &&
+                interaction.commandName ===
+                    "reroll"
+            ) {
+
+                if (
+                    !interaction.member.permissions.has(
+                        PermissionFlagsBits.Administrator
+                    )
+                ) {
+
+                    return interaction.reply({
+
+                        content:
+                            `${EMOJI.red} Brak permisji`,
+
+                        ephemeral: true
+                    });
+                }
+
+                const id =
+                    interaction.options.getString(
+                        "id"
+                    );
+
+                const g =
+                    giveaways[id];
+
+                if (!g) {
+
+                    return interaction.reply({
+
+                        content:
+                            `${EMOJI.red} Giveaway nie istnieje`,
+
+                        ephemeral: true
+                    });
+                }
+
+                if (
+                    !g.entries.length
+                ) {
+
+                    return interaction.reply({
+
+                        content:
+                            `${EMOJI.red} Brak uczestników`,
+
+                        ephemeral: true
+                    });
+                }
+
+                let users = [];
+
+                for (const userId of g.entries) {
+
+                    users.push(userId);
+
+                    for (
+                        let i = 0;
+                        i < g.bonus;
+                        i++
+                    ) {
+
+                        users.push(userId);
+                    }
+                }
+
+                const winners = [];
+
+                while (
+                    winners.length <
+                    g.winners &&
+                    users.length > 0
+                ) {
+
+                    const random =
+                        users[
+                            Math.floor(
+                                Math.random() *
+                                users.length
+                            )
+                        ];
+
+                    if (
+                        !winners.includes(
+                            random
+                        )
+                    ) {
+
+                        winners.push(random);
+                    }
+
+                    users =
+                        users.filter(
+                            x => x !== random
+                        );
+                }
+
+                return interaction.reply({
+
+                    content:
+                        `🔄 Nowi winnerzy: ${winners.map(x => `<@${x}>`).join(", ")}`
+                });
+            }
+
+            // =====================================
             // REROLL BUTTON
             // =====================================
 
@@ -658,11 +776,27 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
 
                 if (!g) return;
 
+                let users = [];
+
+                for (const userId of g.entries) {
+
+                    users.push(userId);
+
+                    for (
+                        let i = 0;
+                        i < g.bonus;
+                        i++
+                    ) {
+
+                        users.push(userId);
+                    }
+                }
+
                 const winner =
-                    g.entries[
+                    users[
                         Math.floor(
                             Math.random() *
-                            g.entries.length
+                            users.length
                         )
                     ];
 
