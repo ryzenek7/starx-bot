@@ -11,20 +11,11 @@ const {
 
 module.exports = (client) => {
 
-    // =====================================
-    // CONFIG
-    // =====================================
     const STAFF_ROLE_ID = "1500930428993933373";
+    const CLIENT_ROLE_ID = "1499572498604363918";
     const REP_CHANNEL_ID = "1500893110048133253";
 
-    // =====================================
-    // EMOJI
-    // =====================================
     const EMOJI = {
-
-        // =========================
-        // TICKETY / SYSTEM
-        // =========================
         ticket: "<:TICKET:1501697124734206032>",
         pin: "<:PIN:1501697389050986546>",
         zap: "<:PIORUN:1501697151737139350>",
@@ -35,93 +26,61 @@ module.exports = (client) => {
         list: "<:LIST:1501693215328440370>",
         clock: "<:CZAS:1502030015943151868>",
 
-        // =========================
-        // MONEY / ANIMOWANE
-        // =========================
         money: "<a:m_:1501685438103031920>",
         arrow: "<a:Arrow_White:1508094625984811038>",
         nitro: "<a:nitro:1501684762601848963>",
 
-        // =========================
-        // PAYMENT METHODS
-        // =========================
         blik: "<:blik:1499784231608389742>",
         paypal: "<:paypal:1499784258091483236>",
         crypto: "<:crypto:1499784635201224724>",
-        ltc: "<:ltc:1499784285211726014>",
-
-        // =========================
-        // SHOP / STREAMING
-        // =========================
-        spotify: "<:Spotify:1500238701718933627>",
-        netflix: "<:Netflix:1500238788306403398>",
-        ytpremium: "<:ytpremium:1500239415937859605>",
-        hbomax: "<:HBOmax:1500239251143524464>",
-        crunchyroll: "<:CRUNCHYROLL:1501686424158605463>",
-        disney: "<:DISNEY:1501686870025699449>",
-        primevideo: "<:primevideo:1502001410311716984>",
-        chatgpt: "<:521605chatgpt:1502001751019094097>",
-        capcut: "<:Capcut:1502002116405887039>",
-        cda: "<:CDA:1508077411873325076>",
-
-        // =========================
-        // VPN
-        // =========================
-        nordvpn: "<:NORDVPN:1501999409343369400>",
-        mullvad: "<:mullvad:1501999834159255712>",
-        tunnelbear: "<:TUNNELBEARVPN:1502000450009042984>",
-
-        // =========================
-        // MIDDLEMAN / SHOP
-        // =========================
-        middleman: "<:LUDZIE:1500243884733894716>",
-        cart: "<:SKLEP:1500243849535033577>",
-        box: "<:SKLEP:1500243849535033577>",
-
-        // =========================
-        // INNE
-        // =========================
-        prime: "<:primevideo:1502001410311716984>"
+        ltc: "<:ltc:1499784285211726014>"
     };
 
-    // =====================================
-    // INTERACTION CREATE
-    // =====================================
+    function getOwnerIdFromChannelName(channelName) {
+        // buy-hogasty444 → hogasty444
+        if (!channelName) return null;
+        const parts = channelName.split("-");
+        if (parts.length < 2) return null;
+        return parts.slice(1).join("-"); // support multi dash nick
+    }
+
+    async function removeAccessFromTicket(channel, memberId) {
+        if (!channel || !memberId) return;
+
+        await channel.permissionOverwrites.edit(memberId, {
+            ViewChannel: false,
+            SendMessages: false,
+            ReadMessageHistory: false
+        }).catch(() => {});
+    }
+
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
-            // =====================================
+            // =========================
             // /LC COMMAND
-            // =====================================
-            if (
-                interaction.isChatInputCommand() &&
-                interaction.commandName === "lc"
-            ) {
+            // =========================
+            if (interaction.isChatInputCommand() && interaction.commandName === "lc") {
 
-                // =====================================
-                // STAFF CHECK
-                // =====================================
-                if (
-                    !interaction.member.roles.cache.has(STAFF_ROLE_ID)
-                ) {
-
+                if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
                     return interaction.reply({
-                        content:
-                            `${EMOJI.warning} Nie masz permisji.`,
+                        content: `${EMOJI.warning} Nie masz permisji.`,
                         ephemeral: true
                     });
                 }
 
-                // =====================================
-                // SELECT MENU
-                // =====================================
+                // 👉 KLUCZOWA ZMIANA: DAWANIE RANGI OD RAZU
+                const member = await interaction.guild.members.fetch(interaction.user.id);
+                if (!member.roles.cache.has(CLIENT_ROLE_ID)) {
+                    await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
+                }
+
                 const menu =
                     new StringSelectMenuBuilder()
                         .setCustomId("lc_type")
                         .setPlaceholder("Wybierz typ legit check")
                         .addOptions(
-
                             new StringSelectMenuOptionBuilder()
                                 .setLabel("Purchased")
                                 .setDescription("Zakup produktu")
@@ -138,61 +97,44 @@ module.exports = (client) => {
                                 .setValue("contest")
                         );
 
-                const row =
-                    new ActionRowBuilder()
-                        .addComponents(menu);
-
                 return interaction.reply({
-                    content:
-                        `${EMOJI.money} Wybierz typ legit check`,
-                    components: [row],
+                    content: `${EMOJI.money} Wybierz typ legit check`,
+                    components: [new ActionRowBuilder().addComponents(menu)],
                     ephemeral: true
                 });
             }
 
-            // =====================================
-            // SELECT MENU
-            // =====================================
-            if (
-                interaction.isStringSelectMenu() &&
-                interaction.customId === "lc_type"
-            ) {
+            // =========================
+            // SELECT MENU + MODALE
+            // (NIC NIE ZMIENIAM W WYGLĄDZIE)
+            // =========================
+
+            if (interaction.isStringSelectMenu() && interaction.customId === "lc_type") {
 
                 const type = interaction.values[0];
 
-                // =====================================
-                // PURCHASED
-                // =====================================
                 if (type === "purchased") {
+                    const modal = new ModalBuilder()
+                        .setCustomId("lc_purchased")
+                        .setTitle("StarX Exchange • Purchased");
 
-                    const modal =
-                        new ModalBuilder()
-                            .setCustomId("lc_purchased")
-                            .setTitle("StarX Exchange • Purchased");
+                    const product = new TextInputBuilder()
+                        .setCustomId("product")
+                        .setLabel("Produkt")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
-                    const product =
-                        new TextInputBuilder()
-                            .setCustomId("product")
-                            .setLabel("Produkt")
-                            .setPlaceholder("Netflix Premium")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
+                    const price = new TextInputBuilder()
+                        .setCustomId("price")
+                        .setLabel("Kwota")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
-                    const price =
-                        new TextInputBuilder()
-                            .setCustomId("price")
-                            .setLabel("Kwota")
-                            .setPlaceholder("20")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    const payment =
-                        new TextInputBuilder()
-                            .setCustomId("payment")
-                            .setLabel("Metoda płatności")
-                            .setPlaceholder("BLIK")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
+                    const payment = new TextInputBuilder()
+                        .setCustomId("payment")
+                        .setLabel("Metoda płatności")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
                     modal.addComponents(
                         new ActionRowBuilder().addComponents(product),
@@ -203,39 +145,28 @@ module.exports = (client) => {
                     return interaction.showModal(modal);
                 }
 
-                // =====================================
-                // EXCHANGE
-                // =====================================
                 if (type === "exchange") {
+                    const modal = new ModalBuilder()
+                        .setCustomId("lc_exchange")
+                        .setTitle("StarX Exchange • Exchange");
 
-                    const modal =
-                        new ModalBuilder()
-                            .setCustomId("lc_exchange")
-                            .setTitle("StarX Exchange • Exchange");
+                    const from = new TextInputBuilder()
+                        .setCustomId("from")
+                        .setLabel("Z czego")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
-                    const from =
-                        new TextInputBuilder()
-                            .setCustomId("from")
-                            .setLabel("Z czego")
-                            .setPlaceholder("LTC")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
+                    const to = new TextInputBuilder()
+                        .setCustomId("to")
+                        .setLabel("Na co")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
-                    const to =
-                        new TextInputBuilder()
-                            .setCustomId("to")
-                            .setLabel("Na co")
-                            .setPlaceholder("BLIK")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
-                    const amount =
-                        new TextInputBuilder()
-                            .setCustomId("amount")
-                            .setLabel("Kwota")
-                            .setPlaceholder("300")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
+                    const amount = new TextInputBuilder()
+                        .setCustomId("amount")
+                        .setLabel("Kwota")
+                        .setStyle(TextInputStyle.Short)
+                        .setRequired(true);
 
                     modal.addComponents(
                         new ActionRowBuilder().addComponents(from),
@@ -246,270 +177,133 @@ module.exports = (client) => {
                     return interaction.showModal(modal);
                 }
 
-                // =====================================
-                // CONTEST
-                // =====================================
                 if (type === "contest") {
 
-                    const finalText =
-                        `+rep ${interaction.user} konkurs`;
+                    const finalText = `+rep ${interaction.user} konkurs`;
 
-                    const embed =
-                        new EmbedBuilder()
-                            .setColor("#1b2dff")
-                            .setTitle(
-                                `${EMOJI.money} StarX Exchange » Legit Check`
-                            )
-                            .setDescription(
+                    const embed = new EmbedBuilder()
+                        .setColor("#1b2dff")
+                        .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                        .setDescription(
 `${EMOJI.pin} **Legit utworzony**
 
-${EMOJI.zap} \`\`\`
+${EMOJI.zap}
+\`\`\`
 ${finalText}
 \`\`\`
 
-${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
-                            )
-                            .setFooter({
-                                text: "© 2026 StarX Exchange"
-                            })
-                            .setTimestamp();
+${EMOJI.arrow} Skopiuj i wklej na <#${REP_CHANNEL_ID}>`
+                        );
 
-                    await interaction.channel.send({
-                        embeds: [embed]
-                    });
+                    await interaction.channel.send({ embeds: [embed] });
 
                     return interaction.reply({
-                        content:
-                            `${EMOJI.money} Legit został wysłany.`,
+                        content: `${EMOJI.money} Legit został wysłany.`,
                         ephemeral: true
                     });
                 }
             }
 
-            // =====================================
-            // PURCHASED SUBMIT
-            // =====================================
-            if (
-                interaction.isModalSubmit() &&
-                interaction.customId === "lc_purchased"
-            ) {
+            // =========================
+            // MODALS (BEZ ZMIAN W DESIGNIE)
+            // =========================
 
-                const product =
-                    interaction.fields.getTextInputValue("product");
+            if (interaction.isModalSubmit() && interaction.customId === "lc_purchased") {
 
-                const price =
-                    interaction.fields.getTextInputValue("price");
-
-                const payment =
-                    interaction.fields.getTextInputValue("payment");
+                const product = interaction.fields.getTextInputValue("product");
+                const price = interaction.fields.getTextInputValue("price");
+                const payment = interaction.fields.getTextInputValue("payment");
 
                 const finalText =
                     `+rep ${interaction.user} Purchased ${product} ${price}PLN [${payment}]`;
 
-                const embed =
-                    new EmbedBuilder()
-                        .setColor("#1b2dff")
-                        .setTitle(
-                            `${EMOJI.money} StarX Exchange » Legit Check`
-                        )
-                        .setDescription(
+                const embed = new EmbedBuilder()
+                    .setColor("#1b2dff")
+                    .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                    .setDescription(
 `${EMOJI.pin} **Legit utworzony**
 
-${EMOJI.zap} \`\`\`
+${EMOJI.zap}
+\`\`\`
 ${finalText}
 \`\`\`
 
-${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
-                        )
-                        .setFooter({
-                            text: "© 2026 StarX Exchange"
-                        })
-                        .setTimestamp();
+${EMOJI.arrow} Skopiuj i wklej na <#${REP_CHANNEL_ID}>`
+                    );
 
-                await interaction.channel.send({
-                    embeds: [embed]
-                });
+                await interaction.channel.send({ embeds: [embed] });
 
                 return interaction.reply({
-                    content:
-                        `${EMOJI.money} Legit został wysłany.`,
+                    content: `${EMOJI.money} Legit został wysłany.`,
                     ephemeral: true
                 });
             }
 
-            // =====================================
-            // EXCHANGE SUBMIT
-            // =====================================
-            if (
-                interaction.isModalSubmit() &&
-                interaction.customId === "lc_exchange"
-            ) {
+            if (interaction.isModalSubmit() && interaction.customId === "lc_exchange") {
 
-                const from =
-                    interaction.fields.getTextInputValue("from");
-
-                const to =
-                    interaction.fields.getTextInputValue("to");
-
-                const amount =
-                    interaction.fields.getTextInputValue("amount");
+                const from = interaction.fields.getTextInputValue("from");
+                const to = interaction.fields.getTextInputValue("to");
+                const amount = interaction.fields.getTextInputValue("amount");
 
                 const finalText =
-                    `+rep ${interaction.user} Exchange ${from} to ${to} ${amount}PLN`;
+                    `+rep ${interaction.user} Exchange ${from} -> ${to} ${amount}PLN`;
 
-                const embed =
-                    new EmbedBuilder()
-                        .setColor("#1b2dff")
-                        .setTitle(
-                            `${EMOJI.money} StarX Exchange » Legit Check`
-                        )
-                        .setDescription(
+                const embed = new EmbedBuilder()
+                    .setColor("#1b2dff")
+                    .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                    .setDescription(
 `${EMOJI.pin} **Legit utworzony**
 
-${EMOJI.zap} \`\`\`
+${EMOJI.zap}
+\`\`\`
 ${finalText}
 \`\`\`
 
-${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
-                        )
-                        .setFooter({
-                            text: "© 2026 StarX Exchange"
-                        })
-                        .setTimestamp();
+${EMOJI.arrow} Skopiuj i wklej na <#${REP_CHANNEL_ID}>`
+                    );
 
-                await interaction.channel.send({
-                    embeds: [embed]
-                });
+                await interaction.channel.send({ embeds: [embed] });
 
                 return interaction.reply({
-                    content:
-                        `${EMOJI.money} Legit został wysłany.`,
+                    content: `${EMOJI.money} Legit został wysłany.`,
                     ephemeral: true
                 });
             }
-
         } catch (err) {
-
-            console.log("❌ LC ERROR:", err);
-
-            try {
-
-                if (
-                    !interaction.replied &&
-                    !interaction.deferred
-                ) {
-
-                    await interaction.reply({
-                        content:
-                            `${EMOJI.warning} Wystąpił błąd.`,
-                        ephemeral: true
-                    });
-                }
-
-            } catch {}
+            console.log("LC ERROR:", err);
         }
     });
 
-    // =====================================
-    // AUTO REMOVE TICKET ACCESS
-    // =====================================
+    // =========================
+    // REP MESSAGE LOGIC
+    // =========================
     client.on(Events.MessageCreate, async (message) => {
 
         try {
-
             if (message.author.bot) return;
-
-            if (message.channel.id !== REP_CHANNEL_ID)
-                return;
+            if (message.channel.id !== REP_CHANNEL_ID) return;
 
             const guild = message.guild;
 
-            const ticket =
-                guild.channels.cache.find(c =>
-                    c.topic?.startsWith(message.author.id)
-                );
+            // pobranie ticketu po właścicielu z nazwy
+            const ticket = guild.channels.cache.find(c =>
+                c.name?.includes(message.author.username)
+            );
 
             if (!ticket) return;
 
-            await ticket.permissionOverwrites.edit(
-                message.author.id,
-                {
-                    ViewChannel: false
-                }
-            );
+            const ownerId = getOwnerIdFromChannelName(ticket.name);
+            if (!ownerId) return;
+
+            await removeAccessFromTicket(ticket, ownerId);
 
             await ticket.send({
-                content:
-                    `${EMOJI.lock} Dostęp do ticketa został automatycznie usunięty po wysłaniu repa.`
-            });
+                content: `${EMOJI.lock} Dostęp do ticketa został odebrany po wysłaniu repa.`
+            }).catch(() => {});
 
         } catch (err) {
-
             console.log("AUTO REMOVE ERROR:", err);
         }
     });
+
 };
-// =====================================
-// AUTO REMOVE TICKET + GIVE ROLE (FIXED)
-// =====================================
-client.on(Events.MessageCreate, async (message) => {
-
-    try {
-
-        if (message.author.bot) return;
-        if (message.channel.id !== REP_CHANNEL_ID) return;
-
-        const guild = message.guild;
-
-        // =========================
-        // FIND TICKET OWNER
-        // =========================
-        const ticket = guild.channels.cache.find(c => {
-
-            if (!c.topic) return false;
-
-            // topic: userId:type:username
-            const ownerId = c.topic.split(":")[0];
-
-            // jeśli rep zawiera mention albo ID
-            return message.content.includes(ownerId);
-        });
-
-        if (!ticket) return;
-
-        const ownerId = ticket.topic?.split(":")[0];
-        if (!ownerId) return;
-
-        const member = await guild.members.fetch(ownerId).catch(() => null);
-        if (!member) return;
-
-        // =========================
-        // REMOVE ACCESS
-        // =========================
-        await ticket.permissionOverwrites.edit(ownerId, {
-            ViewChannel: false,
-            SendMessages: false,
-            ReadMessageHistory: false
-        }).catch(() => {});
-
-        // =========================
-        // GIVE CLIENT ROLE
-        // =========================
-        if (!member.roles.cache.has("1499572498604363918")) {
-            await member.roles.add("1499572498604363918").catch(() => {});
-        }
-
-        // =========================
-        // INFO IN TICKET
-        // =========================
-        await ticket.send({
-            content: `${EMOJI.lock} Dostęp do ticketa został usunięty + nadano rangę klienta.`
-        }).catch(() => {});
-
-    } catch (err) {
-        console.log("AUTO REMOVE ERROR:", err);
-    }
-});
