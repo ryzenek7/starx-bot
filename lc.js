@@ -118,7 +118,7 @@ module.exports = (client) => {
                 const menu =
                     new StringSelectMenuBuilder()
                         .setCustomId("lc_type")
-                        .setPlaceholder("📌 Wybierz typ legit check")
+                        .setPlaceholder("Wybierz typ legit check")
                         .addOptions(
 
                             new StringSelectMenuOptionBuilder()
@@ -167,7 +167,7 @@ module.exports = (client) => {
                     const product =
                         new TextInputBuilder()
                             .setCustomId("product")
-                            .setLabel("📦 Produkt")
+                            .setLabel("Produkt")
                             .setPlaceholder("Netflix Premium")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -175,7 +175,7 @@ module.exports = (client) => {
                     const price =
                         new TextInputBuilder()
                             .setCustomId("price")
-                            .setLabel("💸 Kwota")
+                            .setLabel("Kwota")
                             .setPlaceholder("20")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -183,7 +183,7 @@ module.exports = (client) => {
                     const payment =
                         new TextInputBuilder()
                             .setCustomId("payment")
-                            .setLabel("💳 Metoda płatności")
+                            .setLabel("Metoda płatności")
                             .setPlaceholder("BLIK")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -210,7 +210,7 @@ module.exports = (client) => {
                     const from =
                         new TextInputBuilder()
                             .setCustomId("from")
-                            .setLabel("📤 Z czego")
+                            .setLabel("Z czego")
                             .setPlaceholder("LTC")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -218,7 +218,7 @@ module.exports = (client) => {
                     const to =
                         new TextInputBuilder()
                             .setCustomId("to")
-                            .setLabel("📥 Na co")
+                            .setLabel("Na co")
                             .setPlaceholder("BLIK")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -226,7 +226,7 @@ module.exports = (client) => {
                     const amount =
                         new TextInputBuilder()
                             .setCustomId("amount")
-                            .setLabel("💸 Kwota")
+                            .setLabel("Kwota")
                             .setPlaceholder("300")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -261,9 +261,6 @@ module.exports = (client) => {
                 const finalText =
                     `+rep ${interaction.user} Purchased ${product} ${price}PLN [${payment}]`;
 
-                // =====================================
-                // EMBED
-                // =====================================
                 const embed =
                     new EmbedBuilder()
                         .setColor("#1b2dff")
@@ -271,31 +268,20 @@ module.exports = (client) => {
                             `${EMOJI.money} StarX Exchange » Legit Check`
                         )
                         .setDescription(
-`${EMOJI.pin} **Legit został utworzony**
+`${EMOJI.pin} **Legit utworzony**
 
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${EMOJI.zap} **Treść wiadomości:**
-
-\`\`\`
+${EMOJI.zap} \`\`\`
 ${finalText}
 \`\`\`
 
-━━━━━━━━━━━━━━━━━━━━━━━
-
 ${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**
-`
+${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
                         )
                         .setFooter({
-                            text:
-                                `© 2026 StarX Exchange`
+                            text: "© 2026 StarX Exchange"
                         })
                         .setTimestamp();
 
-                // =====================================
-                // SEND
-                // =====================================
                 await interaction.channel.send({
                     embeds: [embed]
                 });
@@ -327,9 +313,6 @@ ${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**
                 const finalText =
                     `+rep ${interaction.user} Exchange ${from} to ${to} ${amount}PLN`;
 
-                // =====================================
-                // EMBED
-                // =====================================
                 const embed =
                     new EmbedBuilder()
                         .setColor("#1b2dff")
@@ -337,31 +320,20 @@ ${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**
                             `${EMOJI.money} StarX Exchange » Legit Check`
                         )
                         .setDescription(
-`${EMOJI.pin} **Legit został utworzony**
+`${EMOJI.pin} **Legit utworzony**
 
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${EMOJI.zap} **Treść wiadomości:**
-
-\`\`\`
+${EMOJI.zap} \`\`\`
 ${finalText}
 \`\`\`
 
-━━━━━━━━━━━━━━━━━━━━━━━
-
 ${EMOJI.arrow} **Skopiuj wiadomość**
-${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**
-`
+${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**`
                         )
                         .setFooter({
-                            text:
-                                `© 2026 StarX Exchange`
+                            text: "© 2026 StarX Exchange"
                         })
                         .setTimestamp();
 
-                // =====================================
-                // SEND
-                // =====================================
                 await interaction.channel.send({
                     embeds: [embed]
                 });
