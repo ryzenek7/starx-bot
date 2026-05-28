@@ -23,11 +23,12 @@ module.exports = (client) => {
         pin: "<:pin:1501697389050986546>",
         zap: "<:zap:1501697151737139350>",
         lock: "<:lock:1501697222901895258>",
-        money: "<a:money:1501685438103031920>"
+        money: "<a:money:1501685438103031920>",
+        warning: "<:warning:1501693444030992395>"
     };
 
     // =====================================
-    // INTERACTIONS
+    // INTERACTION CREATE
     // =====================================
     client.on(Events.InteractionCreate, async interaction => {
 
@@ -40,8 +41,9 @@ module.exports = (client) => {
 
             // tylko realizator
             if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
+
                 return interaction.reply({
-                    content: "❌ Brak permisji.",
+                    content: `${EMOJI.warning} Brak permisji.`,
                     flags: 64
                 });
             }
@@ -53,13 +55,10 @@ module.exports = (client) => {
                 .setCustomId(`lc_modal_${interaction.user.id}`)
                 .setTitle("StarX Exchange • Legit Check");
 
-            // =====================================
-            // INPUT
-            // =====================================
             const input = new TextInputBuilder()
                 .setCustomId("lc_text")
                 .setLabel("Wpisz produkt/usługę")
-                .setValue("+rep @seller Purchased ")
+                .setPlaceholder("np. Netflix Lifetime")
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(true);
 
@@ -75,42 +74,60 @@ module.exports = (client) => {
         // =====================================
         if (interaction.isModalSubmit()) {
 
-            if (!interaction.customId.startsWith("lc_modal_")) return;
+            if (!interaction.customId.startsWith("lc_modal_"))
+                return;
 
-            let text = interaction.fields.getTextInputValue("lc_text");
+            try {
 
-            // usuń template
-            text = text.replace("+rep @seller Purchased", "").trim();
+                const text =
+                    interaction.fields.getTextInputValue("lc_text");
 
-            // finalny tekst
-            const finalText =
-                `+rep ${interaction.user} Purchased ${text}`;
+                // =====================================
+                // FINAL MESSAGE
+                // =====================================
+                const finalText =
+                    `+rep ${interaction.user} Purchased ${text}`;
 
-            // =====================================
-            // EMBED
-            // =====================================
-            const embed = new EmbedBuilder()
-                .setColor("#2b2d31")
-                .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
-                .setDescription([
-                    `> ${EMOJI.pin} Legit check przygotowany`,
-                    "",
-                    `## ${EMOJI.zap} Treść`,
-                    "```",
-                    finalText,
-                    "```",
-                    "",
-                    `${EMOJI.lock} Wyślij wiadomość na <#${LEGIT_CHANNEL_ID}>`
-                ].join("\n"))
-                .setFooter({
-                    text: "StarX Exchange • Legit System"
-                })
-                .setTimestamp();
+                // =====================================
+                // EMBED
+                // =====================================
+                const embed = new EmbedBuilder()
+                    .setColor("#2b2d31")
+                    .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                    .setDescription([
+                        `> ${EMOJI.pin} Legit check został przygotowany`,
+                        "",
+                        `## ${EMOJI.zap} Treść`,
+                        "```",
+                        finalText,
+                        "```",
+                        "",
+                        `${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
+                    ].join("\n"))
+                    .setFooter({
+                        text: "StarX Exchange • Legit System"
+                    })
+                    .setTimestamp();
 
-            return interaction.reply({
-                embeds: [embed],
-                flags: 64
-            });
+                // =====================================
+                // PUBLIC MESSAGE
+                // =====================================
+                await interaction.reply({
+                    embeds: [embed]
+                });
+
+            } catch (err) {
+
+                console.log("❌ LC modal error:", err);
+
+                if (!interaction.replied) {
+
+                    await interaction.reply({
+                        content: `${EMOJI.warning} Wystąpił błąd.`,
+                        flags: 64
+                    });
+                }
+            }
         }
     });
 
@@ -122,31 +139,37 @@ module.exports = (client) => {
         try {
 
             if (message.author.bot) return;
-            if (message.channel.id !== LEGIT_CHANNEL_ID) return;
+
+            if (message.channel.id !== LEGIT_CHANNEL_ID)
+                return;
 
             // tylko +rep
-            if (!message.content.toLowerCase().includes("+rep")) return;
+            if (!message.content.toLowerCase().includes("+rep"))
+                return;
 
             const guild = message.guild;
 
             // =====================================
             // FIND TICKET
             // =====================================
-            const ticketChannel = guild.channels.cache.find(c =>
-                c.isTextBased() &&
-                c.name.includes("ticket")
-            );
+            const ticketChannel =
+                guild.channels.cache.find(c =>
+                    c.isTextBased() &&
+                    c.name.startsWith("ticket-")
+                );
 
             if (!ticketChannel) return;
 
             // =====================================
             // REMOVE ACCESS ROLE
             // =====================================
-            const accessRole = guild.roles.cache.get(TICKET_ACCESS_ROLE_ID);
+            const accessRole =
+                guild.roles.cache.get(TICKET_ACCESS_ROLE_ID);
 
             if (accessRole) {
 
-                const members = [...accessRole.members.values()];
+                const members =
+                    [...accessRole.members.values()];
 
                 for (const member of members) {
 
@@ -174,11 +197,14 @@ module.exports = (client) => {
             // =====================================
             setTimeout(async () => {
 
-                await ticketChannel.delete().catch(() => {});
+                await ticketChannel
+                    .delete()
+                    .catch(() => {});
 
             }, 3000);
 
         } catch (err) {
+
             console.log("❌ Auto close error:", err);
         }
     });
