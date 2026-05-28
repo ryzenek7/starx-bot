@@ -82,7 +82,7 @@ for (const mod of modules) {
 
     console.log(
       `❌ Błąd modułu ${mod}:`,
-      err.message
+      err
     );
   }
 }
@@ -304,6 +304,29 @@ client.once(
               )
 
               .setRequired(false)
+          ),
+
+        // =====================================
+        // REROLL
+        // =====================================
+
+        new SlashCommandBuilder()
+
+          .setName("reroll")
+
+          .setDescription(
+            "Reroll giveaway"
+          )
+
+          .addStringOption(o =>
+
+            o.setName("id")
+
+              .setDescription(
+                "ID giveaway"
+              )
+
+              .setRequired(true)
           )
 
       ].map(c => c.toJSON());
@@ -353,6 +376,8 @@ client.on(
         !interaction.isChatInputCommand()
       ) return;
 
+      // RESET
+
       if (
         interaction.commandName ===
         "reset"
@@ -369,7 +394,7 @@ client.on(
             content:
               "❌ Brak permisji.",
 
-            flags: 64
+            ephemeral: true
           });
         }
 
@@ -378,7 +403,7 @@ client.on(
           content:
             "🔄 Restart bota...",
 
-          flags: 64
+          ephemeral: true
         });
 
         setTimeout(
