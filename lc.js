@@ -12,9 +12,8 @@ const {
 module.exports = (client) => {
 
     // =====================================
-    // CONFIG
+    // STAFF ROLE
     // =====================================
-    const LEGIT_CHANNEL_ID = "1500893110048133253";
     const STAFF_ROLE_ID = "1500930428993933373";
 
     // =====================================
@@ -29,21 +28,23 @@ module.exports = (client) => {
     };
 
     // =====================================
-    // INTERACTION CREATE
+    // INTERACTION
     // =====================================
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
             // =====================================
-            // /LC COMMAND
+            // /LC
             // =====================================
             if (
                 interaction.isChatInputCommand() &&
                 interaction.commandName === "lc"
             ) {
 
+                // =====================================
                 // STAFF CHECK
+                // =====================================
                 if (
                     !interaction.member.roles.cache.has(STAFF_ROLE_ID)
                 ) {
@@ -55,7 +56,7 @@ module.exports = (client) => {
                 }
 
                 // =====================================
-                // SELECT MENU
+                // MENU
                 // =====================================
                 const menu =
                     new StringSelectMenuBuilder()
@@ -203,23 +204,9 @@ module.exports = (client) => {
                     `+rep ${interaction.user} Purchased ${product} ${price}PLN [${payment}]`;
 
                 // =====================================
-                // CHANNEL
+                // EMBED
                 // =====================================
-                const channel =
-                    client.channels.cache.get(LEGIT_CHANNEL_ID);
-
-                if (!channel) {
-                    return interaction.reply({
-                        content:
-                            `${EMOJI.warning} Nie znaleziono kanału.`,
-                        ephemeral: true
-                    });
-                }
-
-                // =====================================
-                // EMBED NA KANAŁ
-                // =====================================
-                const legitEmbed =
+                const embed =
                     new EmbedBuilder()
                         .setColor("#1b2dff")
                         .setTitle(
@@ -238,7 +225,7 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
+${EMOJI.lock} Wysłano na ${interaction.channel}`
                         )
                         .setFooter({
                             text:
@@ -250,10 +237,10 @@ ${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
                         .setTimestamp();
 
                 // =====================================
-                // SEND EMBED
+                // WYŚLIJ NA TEN SAM KANAŁ
                 // =====================================
-                await channel.send({
-                    embeds: [legitEmbed]
+                await interaction.channel.send({
+                    embeds: [embed]
                 });
 
                 // =====================================
@@ -287,23 +274,9 @@ ${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
                     `+rep ${interaction.user} Exchange ${from} to ${to} ${amount}PLN`;
 
                 // =====================================
-                // CHANNEL
+                // EMBED
                 // =====================================
-                const channel =
-                    client.channels.cache.get(LEGIT_CHANNEL_ID);
-
-                if (!channel) {
-                    return interaction.reply({
-                        content:
-                            `${EMOJI.warning} Nie znaleziono kanału.`,
-                        ephemeral: true
-                    });
-                }
-
-                // =====================================
-                // EMBED NA KANAŁ
-                // =====================================
-                const legitEmbed =
+                const embed =
                     new EmbedBuilder()
                         .setColor("#1b2dff")
                         .setTitle(
@@ -322,7 +295,7 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
+${EMOJI.lock} Wysłano na ${interaction.channel}`
                         )
                         .setFooter({
                             text:
@@ -334,10 +307,10 @@ ${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
                         .setTimestamp();
 
                 // =====================================
-                // SEND EMBED
+                // WYŚLIJ NA TEN SAM KANAŁ
                 // =====================================
-                await channel.send({
-                    embeds: [legitEmbed]
+                await interaction.channel.send({
+                    embeds: [embed]
                 });
 
                 // =====================================
