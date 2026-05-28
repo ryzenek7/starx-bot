@@ -1,3 +1,4 @@
+````js
 const {
     Events,
     EmbedBuilder,
@@ -28,7 +29,7 @@ module.exports = (client) => {
     };
 
     // =====================================
-    // INTERACTION CREATE
+    // INTERACTIONS
     // =====================================
     client.on(Events.InteractionCreate, async interaction => {
 
@@ -37,9 +38,12 @@ module.exports = (client) => {
         // =====================================
         if (interaction.isChatInputCommand()) {
 
-            if (interaction.commandName !== "lc") return;
+            if (interaction.commandName !== "lc")
+                return;
 
-            // tylko realizator
+            // =====================================
+            // PERMS
+            // =====================================
             if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
 
                 return interaction.reply({
@@ -57,8 +61,8 @@ module.exports = (client) => {
 
             const input = new TextInputBuilder()
                 .setCustomId("lc_text")
-                .setLabel("Wpisz produkt/usługę")
-                .setPlaceholder("np. Netflix Lifetime")
+                .setLabel("Produkt / exchange")
+                .setPlaceholder("Netflix Lifetime 10PLN [BLIK]")
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(true);
 
@@ -80,20 +84,38 @@ module.exports = (client) => {
             try {
 
                 const text =
-                    interaction.fields.getTextInputValue("lc_text");
+                    interaction.fields
+                        .getTextInputValue("lc_text");
 
                 // =====================================
-                // FINAL MESSAGE
+                // AUTO FORMAT
                 // =====================================
-                const finalText =
-                    `+rep ${interaction.user} Purchased ${text}`;
+                let finalText = "";
+
+                // jeśli wpisano własne +rep
+                if (
+                    text
+                        .toLowerCase()
+                        .startsWith("+rep")
+                ) {
+
+                    finalText = text;
+
+                } else {
+
+                    // auto purchased
+                    finalText =
+                        `+rep ${interaction.user} Purchased ${text}`;
+                }
 
                 // =====================================
                 // EMBED
                 // =====================================
                 const embed = new EmbedBuilder()
                     .setColor("#2b2d31")
-                    .setTitle(`${EMOJI.money} StarX Exchange » Legit Check`)
+                    .setTitle(
+                        `${EMOJI.money} StarX Exchange » Legit Check`
+                    )
                     .setDescription([
                         `> ${EMOJI.pin} Legit check został przygotowany`,
                         "",
@@ -110,7 +132,7 @@ module.exports = (client) => {
                     .setTimestamp();
 
                 // =====================================
-                // PUBLIC MESSAGE
+                // PUBLIC REPLY
                 // =====================================
                 await interaction.reply({
                     embeds: [embed]
@@ -123,7 +145,8 @@ module.exports = (client) => {
                 if (!interaction.replied) {
 
                     await interaction.reply({
-                        content: `${EMOJI.warning} Wystąpił błąd.`,
+                        content:
+                            `${EMOJI.warning} Wystąpił błąd.`,
                         flags: 64
                     });
                 }
@@ -138,14 +161,20 @@ module.exports = (client) => {
 
         try {
 
-            if (message.author.bot) return;
+            if (message.author.bot)
+                return;
 
             if (message.channel.id !== LEGIT_CHANNEL_ID)
                 return;
 
-            // tylko +rep
-            if (!message.content.toLowerCase().includes("+rep"))
-                return;
+            // =====================================
+            // ONLY +REP
+            // =====================================
+            if (
+                !message.content
+                    .toLowerCase()
+                    .includes("+rep")
+            ) return;
 
             const guild = message.guild;
 
@@ -158,13 +187,16 @@ module.exports = (client) => {
                     c.name.startsWith("ticket-")
                 );
 
-            if (!ticketChannel) return;
+            if (!ticketChannel)
+                return;
 
             // =====================================
             // REMOVE ACCESS ROLE
             // =====================================
             const accessRole =
-                guild.roles.cache.get(TICKET_ACCESS_ROLE_ID);
+                guild.roles.cache.get(
+                    TICKET_ACCESS_ROLE_ID
+                );
 
             if (accessRole) {
 
@@ -174,7 +206,9 @@ module.exports = (client) => {
                 for (const member of members) {
 
                     await member.roles
-                        .remove(TICKET_ACCESS_ROLE_ID)
+                        .remove(
+                            TICKET_ACCESS_ROLE_ID
+                        )
                         .catch(() => {});
                 }
             }
@@ -182,18 +216,19 @@ module.exports = (client) => {
             // =====================================
             // CLOSE EMBED
             // =====================================
-            const closeEmbed = new EmbedBuilder()
-                .setColor("#57F287")
-                .setDescription(
-                    `${EMOJI.lock} Legit check wykryty — zamykam ticket...`
-                );
+            const closeEmbed =
+                new EmbedBuilder()
+                    .setColor("#57F287")
+                    .setDescription(
+                        `${EMOJI.lock} Legit check wykryty — zamykam ticket...`
+                    );
 
             await ticketChannel.send({
                 embeds: [closeEmbed]
             });
 
             // =====================================
-            // DELETE TICKET
+            // DELETE
             // =====================================
             setTimeout(async () => {
 
@@ -205,7 +240,11 @@ module.exports = (client) => {
 
         } catch (err) {
 
-            console.log("❌ Auto close error:", err);
+            console.log(
+                "❌ Auto close error:",
+                err
+            );
         }
     });
 };
+````
