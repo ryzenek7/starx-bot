@@ -6,25 +6,22 @@ const {
     TextInputStyle,
     ActionRowBuilder,
     StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    PermissionsBitField,
-    ChannelType,
-    ButtonBuilder,
-    ButtonStyle
+    StringSelectMenuOptionBuilder
 } = require("discord.js");
 
 module.exports = (client) => {
 
-    // =====================================
+    // =========================
     // CONFIG
-    // =====================================
+    // =========================
     const STAFF_ROLE_ID = "1500930428993933373";
     const REP_CHANNEL_ID = "1500893110048133253";
     const CLIENT_ROLE_ID = "1499572498604363918";
+    const RYZEN_ID = "1330652001075335300";
 
-    // =====================================
+    // =========================
     // EMOJI
-    // =====================================
+    // =========================
     const EMOJI = {
         ticket: "<:TICKET:1501697124734206032>",
         pin: "<:PIN:1501697389050986546>",
@@ -35,15 +32,25 @@ module.exports = (client) => {
         arrow: "<a:Arrow_White:1508094625984811038>"
     };
 
-    // =====================================
-    // LC COMMAND
-    // =====================================
+    // =========================
+    // ROLE FUNCTION
+    // =========================
+    async function giveClientRole(interaction) {
+        const member = interaction.guild.members.cache.get(interaction.user.id);
+        if (member) {
+            await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
+        }
+    }
+
+    // =========================
+    // MAIN EVENT
+    // =========================
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
             // =========================
-            // /LC
+            // /LC COMMAND
             // =========================
             if (interaction.isChatInputCommand() && interaction.commandName === "lc") {
 
@@ -58,13 +65,21 @@ module.exports = (client) => {
                     .setCustomId("lc_type")
                     .setPlaceholder("Wybierz typ LC")
                     .addOptions(
-                        new StringSelectMenuOptionBuilder().setLabel("Purchased").setValue("purchased"),
-                        new StringSelectMenuOptionBuilder().setLabel("Exchange").setValue("exchange"),
-                        new StringSelectMenuOptionBuilder().setLabel("Contest").setValue("contest")
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Purchased")
+                            .setValue("purchased"),
+
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Exchange")
+                            .setValue("exchange"),
+
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Contest")
+                            .setValue("contest")
                     );
 
                 return interaction.reply({
-                    content: `${EMOJI.money} Wybierz typ`,
+                    content: `${EMOJI.money} Wybierz typ LC`,
                     components: [new ActionRowBuilder().addComponents(menu)],
                     ephemeral: true
                 });
@@ -77,157 +92,146 @@ module.exports = (client) => {
 
                 const type = interaction.values[0];
 
-                const existing = interaction.guild.channels.cache.find(c =>
-                    c.topic?.startsWith(interaction.user.id)
-                );
+                // =========================
+                // PURCHASED
+                // =========================
+                if (type === "purchased") {
 
-                if (existing) {
-                    return interaction.reply({
-                        content: `${EMOJI.warning} Masz już ticket`,
-                        ephemeral: true
-                    });
+                    const modal = new ModalBuilder()
+                        .setCustomId("lc_purchased")
+                        .setTitle("Purchased LC");
+
+                    modal.addComponents(
+                        new ActionRowBuilder().addComponents(
+                            new TextInputBuilder()
+                                .setCustomId("product")
+                                .setLabel("Produkt")
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(true)
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new TextInputBuilder()
+                                .setCustomId("price")
+                                .setLabel("Kwota")
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(true)
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new TextInputBuilder()
+                                .setCustomId("payment")
+                                .setLabel("Metoda płatności")
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(true)
+                        )
+                    );
+
+                    return interaction.showModal(modal);
                 }
 
                 // =========================
-                // CONTEST (bez ticketa)
+                // EXCHANGE
+                // =========================
+                if (type === "exchange") {
+
+                    const modal = new ModalBuilder()
+                        .setCustomId("lc_exchange")
+                        .setTitle("Exchange LC");
+
+                    modal.addComponents(
+                        new ActionRowBuilder().addComponents(
+                            new TextInputBuilder()
+                                .setCustomId("from")
+                                .setLabel("Z czego")
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(true)
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new TextInputBuilder()
+                                .setCustomId("to")
+                                .setLabel("Na co")
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(true)
+                        ),
+                        new ActionRowBuilder().addComponents(
+                            new TextInputBuilder()
+                                .setCustomId("amount")
+                                .setLabel("Kwota")
+                                .setStyle(TextInputStyle.Short)
+                                .setRequired(true)
+                        )
+                    );
+
+                    return interaction.showModal(modal);
+                }
+
+                // =========================
+                // CONTEST
                 // =========================
                 if (type === "contest") {
 
-                    const member = interaction.guild.members.cache.get(interaction.user.id);
-                    if (member) await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
+                    await giveClientRole(interaction);
 
-                    const text = `+rep ${interaction.user} konkurs`;
+                    const text = `+rep <@${RYZEN_ID}> konkurs`;
+
+                    const embed = new EmbedBuilder()
+                        .setColor("#1b2dff")
+                        .setTitle(`${EMOJI.money} LC CONTEST`)
+                        .setDescription(
+`${EMOJI.pin} Skopiuj i wklej na <#${REP_CHANNEL_ID}>
+
+\`\`\`
+${text}
+\`\`\`
+`
+                        );
 
                     return interaction.reply({
-                        content: `${EMOJI.money} Skopiuj i wklej na <#${REP_CHANNEL_ID}>:\n\`\`\`${text}\`\`\``,
+                        embeds: [embed],
                         ephemeral: true
                     });
                 }
-
-                // =========================
-                // MODAL
-                // =========================
-                const modal = new ModalBuilder()
-                    .setCustomId(`lc_${type}`)
-                    .setTitle("StarX LC");
-
-                const input = new TextInputBuilder()
-                    .setCustomId("data")
-                    .setLabel("Wpisz dane")
-                    .setStyle(TextInputStyle.Short)
-                    .setRequired(true);
-
-                modal.addComponents(new ActionRowBuilder().addComponents(input));
-
-                return interaction.showModal(modal);
             }
 
             // =========================
-            // MODAL SUBMIT
+            // PURCHASED SUBMIT
             // =========================
-            if (interaction.isModalSubmit()) {
+            if (interaction.isModalSubmit() && interaction.customId === "lc_purchased") {
 
-                const type = interaction.customId.split("_")[1];
-                const data = interaction.fields.getTextInputValue("data");
+                const product = interaction.fields.getTextInputValue("product");
+                const price = interaction.fields.getTextInputValue("price");
+                const payment = interaction.fields.getTextInputValue("payment");
 
-                const channel = await interaction.guild.channels.create({
-                    name: `lc-${interaction.user.username}`.toLowerCase(),
-                    topic: `${interaction.user.id}:${type}`,
-                    type: ChannelType.GuildText,
-                    permissionOverwrites: [
-                        {
-                            id: interaction.guild.id,
-                            deny: [PermissionsBitField.Flags.ViewChannel]
-                        },
-                        {
-                            id: interaction.user.id,
-                            allow: [
-                                PermissionsBitField.Flags.ViewChannel,
-                                PermissionsBitField.Flags.SendMessages
-                            ]
-                        },
-                        {
-                            id: STAFF_ROLE_ID,
-                            allow: [PermissionsBitField.Flags.ViewChannel]
-                        }
-                    ]
-                });
+                const text = `+rep ${interaction.user} Purchased ${product} ${price}PLN [${payment}]`;
 
-                const member = interaction.guild.members.cache.get(interaction.user.id);
-                if (member) await member.roles.add(CLIENT_ROLE_ID).catch(() => {});
-
-                const text = `+rep ${interaction.user} ${type} ${data}`;
-
-                const embed = new EmbedBuilder()
-                    .setColor("#1b2dff")
-                    .setTitle(`${EMOJI.ticket} LC SYSTEM`)
-                    .setDescription(`\`\`\`${text}\`\`\`\nSkopiuj i wklej na <#${REP_CHANNEL_ID}>`);
-
-                const row = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder()
-                        .setCustomId("close_ticket")
-                        .setLabel("Zamknij")
-                        .setStyle(ButtonStyle.Danger)
-                );
-
-                await channel.send({
-                    content: `${interaction.user} <@&${STAFF_ROLE_ID}>`,
-                    embeds: [embed],
-                    components: [row]
-                });
+                await giveClientRole(interaction);
 
                 return interaction.reply({
-                    content: `${EMOJI.ticket} Ticket: ${channel}`,
+                    content: `${EMOJI.money} Skopiuj i wklej:\n\`\`\`${text}\`\`\``,
                     ephemeral: true
                 });
             }
 
             // =========================
-            // CLOSE TICKET
+            // EXCHANGE SUBMIT
             // =========================
-            if (interaction.isButton() && interaction.customId === "close_ticket") {
+            if (interaction.isModalSubmit() && interaction.customId === "lc_exchange") {
 
-                if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
-                    return interaction.reply({
-                        content: `${EMOJI.warning} Brak permisji`,
-                        ephemeral: true
-                    });
-                }
+                const from = interaction.fields.getTextInputValue("from");
+                const to = interaction.fields.getTextInputValue("to");
+                const amount = interaction.fields.getTextInputValue("amount");
 
-                return interaction.channel.delete().catch(() => {});
+                const text = `+rep ${interaction.user} Exchange ${from} to ${to} ${amount}PLN`;
+
+                await giveClientRole(interaction);
+
+                return interaction.reply({
+                    content: `${EMOJI.money} Skopiuj i wklej:\n\`\`\`${text}\`\`\``,
+                    ephemeral: true
+                });
             }
 
         } catch (err) {
-            console.log(err);
-        }
-    });
-
-    // =====================================
-    // REP AUTO REMOVE ACCESS
-    // =====================================
-    client.on(Events.MessageCreate, async (message) => {
-
-        try {
-
-            if (message.author.bot) return;
-            if (message.channel.id !== REP_CHANNEL_ID) return;
-
-            const ticket = message.guild.channels.cache.find(c =>
-                c.topic?.startsWith(message.author.id)
-            );
-
-            if (!ticket) return;
-
-            await ticket.permissionOverwrites.edit(message.author.id, {
-                ViewChannel: false
-            });
-
-            await ticket.send({
-                content: `${EMOJI.lock} Dostęp odebrany po rep`
-            });
-
-        } catch (err) {
-            console.log(err);
+            console.log("LC ERROR:", err);
         }
     });
 };
