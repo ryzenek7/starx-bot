@@ -1,3 +1,4 @@
+```js
 const {
     Events,
     EmbedBuilder,
@@ -70,26 +71,28 @@ module.exports = (client) => {
     };
 
     // =====================================
-    // INTERACTION
+    // INTERACTION CREATE
     // =====================================
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
             // =====================================
-            // /LC
+            // /LC COMMAND
             // =====================================
             if (
                 interaction.isChatInputCommand() &&
                 interaction.commandName === "lc"
             ) {
 
+                // STAFF CHECK
                 if (
                     !interaction.member.roles.cache.has(STAFF_ROLE_ID)
                 ) {
 
                     return interaction.reply({
-                        content: `${EMOJI.warning} Brak permisji.`,
+                        content:
+                            `${EMOJI.warning} Brak permisji.`,
                         ephemeral: true
                     });
                 }
@@ -136,7 +139,7 @@ module.exports = (client) => {
                 const type = interaction.values[0];
 
                 // =====================================
-                // PURCHASED MODAL
+                // PURCHASED
                 // =====================================
                 if (type === "purchased") {
 
@@ -145,20 +148,16 @@ module.exports = (client) => {
                             .setCustomId("lc_purchased")
                             .setTitle("StarX Exchange • Purchased");
 
-                    const seller =
-                        new TextInputBuilder()
-                            .setCustomId("seller")
-                            .setLabel("@Seller")
-                            .setPlaceholder("@ryzen")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
                     const product =
                         new TextInputBuilder()
                             .setCustomId("product")
                             .setLabel("Produkt")
-                            .setPlaceholder("CDA premium lifetime")
-                            .setStyle(TextInputStyle.Short)
+                            .setPlaceholder(
+                                "CDA Premium Lifetime"
+                            )
+                            .setStyle(
+                                TextInputStyle.Short
+                            )
                             .setRequired(true);
 
                     const price =
@@ -166,7 +165,9 @@ module.exports = (client) => {
                             .setCustomId("price")
                             .setLabel("Kwota")
                             .setPlaceholder("10")
-                            .setStyle(TextInputStyle.Short)
+                            .setStyle(
+                                TextInputStyle.Short
+                            )
                             .setRequired(true);
 
                     const payment =
@@ -174,21 +175,27 @@ module.exports = (client) => {
                             .setCustomId("payment")
                             .setLabel("Metoda płatności")
                             .setPlaceholder("BLIK")
-                            .setStyle(TextInputStyle.Short)
+                            .setStyle(
+                                TextInputStyle.Short
+                            )
                             .setRequired(true);
 
                     modal.addComponents(
-                        new ActionRowBuilder().addComponents(seller),
-                        new ActionRowBuilder().addComponents(product),
-                        new ActionRowBuilder().addComponents(price),
-                        new ActionRowBuilder().addComponents(payment)
+                        new ActionRowBuilder()
+                            .addComponents(product),
+
+                        new ActionRowBuilder()
+                            .addComponents(price),
+
+                        new ActionRowBuilder()
+                            .addComponents(payment)
                     );
 
                     return interaction.showModal(modal);
                 }
 
                 // =====================================
-                // EXCHANGE MODAL
+                // EXCHANGE
                 // =====================================
                 if (type === "exchange") {
 
@@ -197,20 +204,14 @@ module.exports = (client) => {
                             .setCustomId("lc_exchange")
                             .setTitle("StarX Exchange • Exchange");
 
-                    const seller =
-                        new TextInputBuilder()
-                            .setCustomId("seller")
-                            .setLabel("@Seller")
-                            .setPlaceholder("@ryzen")
-                            .setStyle(TextInputStyle.Short)
-                            .setRequired(true);
-
                     const from =
                         new TextInputBuilder()
                             .setCustomId("from")
                             .setLabel("Z czego")
                             .setPlaceholder("LTC")
-                            .setStyle(TextInputStyle.Short)
+                            .setStyle(
+                                TextInputStyle.Short
+                            )
                             .setRequired(true);
 
                     const to =
@@ -218,7 +219,9 @@ module.exports = (client) => {
                             .setCustomId("to")
                             .setLabel("Na co")
                             .setPlaceholder("BLIK")
-                            .setStyle(TextInputStyle.Short)
+                            .setStyle(
+                                TextInputStyle.Short
+                            )
                             .setRequired(true);
 
                     const amount =
@@ -226,14 +229,20 @@ module.exports = (client) => {
                             .setCustomId("amount")
                             .setLabel("Kwota")
                             .setPlaceholder("280")
-                            .setStyle(TextInputStyle.Short)
+                            .setStyle(
+                                TextInputStyle.Short
+                            )
                             .setRequired(true);
 
                     modal.addComponents(
-                        new ActionRowBuilder().addComponents(seller),
-                        new ActionRowBuilder().addComponents(from),
-                        new ActionRowBuilder().addComponents(to),
-                        new ActionRowBuilder().addComponents(amount)
+                        new ActionRowBuilder()
+                            .addComponents(from),
+
+                        new ActionRowBuilder()
+                            .addComponents(to),
+
+                        new ActionRowBuilder()
+                            .addComponents(amount)
                     );
 
                     return interaction.showModal(modal);
@@ -248,28 +257,47 @@ module.exports = (client) => {
                 interaction.customId === "lc_purchased"
             ) {
 
-                const seller =
-                    interaction.fields.getTextInputValue("seller");
-
                 const product =
-                    interaction.fields.getTextInputValue("product");
+                    interaction.fields.getTextInputValue(
+                        "product"
+                    );
 
                 const price =
-                    interaction.fields.getTextInputValue("price");
+                    interaction.fields.getTextInputValue(
+                        "price"
+                    );
 
                 const payment =
-                    interaction.fields.getTextInputValue("payment");
+                    interaction.fields.getTextInputValue(
+                        "payment"
+                    );
 
                 const finalText =
-                    `+rep ${seller} Purchased ${product} ${price}PLN [${payment}]`;
+                    `+rep ${interaction.user} Purchased ${product} ${price}PLN [${payment}]`;
 
-                const embed = new EmbedBuilder()
-                    .setColor("#1b2dff")
-                    .setTitle(
-                        `${EMOJI.money} StarX Exchange » Legit Check`
-                    )
-                    .setDescription(
-`${EMOJI.pin} Legit został przygotowany
+                // =====================================
+                // SEND TO CHANNEL
+                // =====================================
+                const channel =
+                    client.channels.cache.get(
+                        LEGIT_CHANNEL_ID
+                    );
+
+                await channel.send({
+                    content: finalText
+                });
+
+                // =====================================
+                // EMBED
+                // =====================================
+                const embed =
+                    new EmbedBuilder()
+                        .setColor("#1b2dff")
+                        .setTitle(
+                            `${EMOJI.money} StarX Exchange » Legit Check`
+                        )
+                        .setDescription(
+`${EMOJI.pin} Legit został wysłany
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -281,12 +309,13 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
-                    )
-                    .setFooter({
-                        text: "© 2026 StarX Exchange"
-                    })
-                    .setTimestamp();
+${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
+                        )
+                        .setFooter({
+                            text:
+                                "© 2026 StarX Exchange"
+                        })
+                        .setTimestamp();
 
                 return interaction.reply({
                     embeds: [embed],
@@ -302,28 +331,47 @@ ${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
                 interaction.customId === "lc_exchange"
             ) {
 
-                const seller =
-                    interaction.fields.getTextInputValue("seller");
-
                 const from =
-                    interaction.fields.getTextInputValue("from");
+                    interaction.fields.getTextInputValue(
+                        "from"
+                    );
 
                 const to =
-                    interaction.fields.getTextInputValue("to");
+                    interaction.fields.getTextInputValue(
+                        "to"
+                    );
 
                 const amount =
-                    interaction.fields.getTextInputValue("amount");
+                    interaction.fields.getTextInputValue(
+                        "amount"
+                    );
 
                 const finalText =
-                    `+rep ${seller} exchange ${from} to ${to} ${amount}PLN`;
+                    `+rep ${interaction.user} exchange ${from} to ${to} ${amount}PLN`;
 
-                const embed = new EmbedBuilder()
-                    .setColor("#1b2dff")
-                    .setTitle(
-                        `${EMOJI.money} StarX Exchange » Legit Check`
-                    )
-                    .setDescription(
-`${EMOJI.pin} Legit został przygotowany
+                // =====================================
+                // SEND TO CHANNEL
+                // =====================================
+                const channel =
+                    client.channels.cache.get(
+                        LEGIT_CHANNEL_ID
+                    );
+
+                await channel.send({
+                    content: finalText
+                });
+
+                // =====================================
+                // EMBED
+                // =====================================
+                const embed =
+                    new EmbedBuilder()
+                        .setColor("#1b2dff")
+                        .setTitle(
+                            `${EMOJI.money} StarX Exchange » Legit Check`
+                        )
+                        .setDescription(
+`${EMOJI.pin} Legit został wysłany
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -335,12 +383,13 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
-                    )
-                    .setFooter({
-                        text: "© 2026 StarX Exchange"
-                    })
-                    .setTimestamp();
+${EMOJI.lock} Wysłano na <#${LEGIT_CHANNEL_ID}>`
+                        )
+                        .setFooter({
+                            text:
+                                "© 2026 StarX Exchange"
+                        })
+                        .setTimestamp();
 
                 return interaction.reply({
                     embeds: [embed],
@@ -350,7 +399,10 @@ ${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
 
         } catch (err) {
 
-            console.log("❌ LC ERROR:", err);
+            console.log(
+                "❌ LC ERROR:",
+                err
+            );
 
             try {
 
@@ -370,3 +422,4 @@ ${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
         }
     });
 };
+```
