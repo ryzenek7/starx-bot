@@ -1,4 +1,3 @@
-```js
 const {
     Events,
     SlashCommandBuilder,
@@ -517,4 +516,3 @@ module.exports = (client) => {
         return winners;
     }
 };
-```
