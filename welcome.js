@@ -56,7 +56,7 @@ module.exports = (client) => {
 ``,
 `## ${EMOJI.pin} Ważne kanały`,
 `> ${EMOJI.exchange} Wymiany — <#1499513009188376767>`,
-`> ${EMOJI.ticket} Tickety — <#1499512781861556314>`,
+`> ${EMOJI.ticket} Tickety — <#1509429804770791494>`,
 `> ${EMOJI.legit} Legit Check — <#1499519884860854505>`,
 `> ⭐ Opinie — <#1499519935657935049>`,
 `> ${EMOJI.calc} Kalkulator — <#1499568863602540645>`,
