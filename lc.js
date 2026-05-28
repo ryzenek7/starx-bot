@@ -12,30 +12,87 @@ const {
 module.exports = (client) => {
 
     // =====================================
-    // STAFF ROLE
+    // CONFIG
     // =====================================
     const STAFF_ROLE_ID = "1500930428993933373";
+    const REP_CHANNEL_ID = "1500893110048133253";
 
     // =====================================
     // EMOJI
     // =====================================
     const EMOJI = {
-        money: "<a:money:1501685438103031920>",
-        warning: "<:warning:1501693444030992395>",
-        pin: "<:pin:1501697389050986546>",
-        zap: "<:zap:1501697151737139350>",
-        lock: "<:lock:1501697222901895258>"
+
+        // =========================
+        // TICKETY / SYSTEM
+        // =========================
+        ticket: "<:TICKET:1501697124734206032>",
+        pin: "<:PIN:1501697389050986546>",
+        zap: "<:PIORUN:1501697151737139350>",
+        lock: "<:ZAMKNIETE:1501697222901895258>",
+        warning: "<:PILNE:1501693444030992395>",
+        support: "<:WSPARCIE:1500243961124618381>",
+        admin: "<:ADM:1501989271077388500>",
+        list: "<:LIST:1501693215328440370>",
+        clock: "<:CZAS:1502030015943151868>",
+
+        // =========================
+        // MONEY / ANIMOWANE
+        // =========================
+        money: "<a:m_:1501685438103031920>",
+        arrow: "<a:Arrow_White:1508094625984811038>",
+        nitro: "<a:nitro:1501684762601848963>",
+
+        // =========================
+        // PAYMENT METHODS
+        // =========================
+        blik: "<:blik:1499784231608389742>",
+        paypal: "<:paypal:1499784258091483236>",
+        crypto: "<:crypto:1499784635201224724>",
+        ltc: "<:ltc:1499784285211726014>",
+
+        // =========================
+        // SHOP / STREAMING
+        // =========================
+        spotify: "<:Spotify:1500238701718933627>",
+        netflix: "<:Netflix:1500238788306403398>",
+        ytpremium: "<:ytpremium:1500239415937859605>",
+        hbomax: "<:HBOmax:1500239251143524464>",
+        crunchyroll: "<:CRUNCHYROLL:1501686424158605463>",
+        disney: "<:DISNEY:1501686870025699449>",
+        primevideo: "<:primevideo:1502001410311716984>",
+        chatgpt: "<:521605chatgpt:1502001751019094097>",
+        capcut: "<:Capcut:1502002116405887039>",
+        cda: "<:CDA:1508077411873325076>",
+
+        // =========================
+        // VPN
+        // =========================
+        nordvpn: "<:NORDVPN:1501999409343369400>",
+        mullvad: "<:mullvad:1501999834159255712>",
+        tunnelbear: "<:TUNNELBEARVPN:1502000450009042984>",
+
+        // =========================
+        // MIDDLEMAN / SHOP
+        // =========================
+        middleman: "<:LUDZIE:1500243884733894716>",
+        cart: "<:SKLEP:1500243849535033577>",
+        box: "<:SKLEP:1500243849535033577>",
+
+        // =========================
+        // INNE
+        // =========================
+        prime: "<:primevideo:1502001410311716984>"
     };
 
     // =====================================
-    // INTERACTION
+    // INTERACTION CREATE
     // =====================================
     client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
             // =====================================
-            // /LC
+            // /LC COMMAND
             // =====================================
             if (
                 interaction.isChatInputCommand() &&
@@ -50,19 +107,20 @@ module.exports = (client) => {
                 ) {
 
                     return interaction.reply({
-                        content: `${EMOJI.warning} Brak permisji.`,
+                        content: `${EMOJI.warning} Nie masz permisji.`,
                         ephemeral: true
                     });
                 }
 
                 // =====================================
-                // MENU
+                // SELECT MENU
                 // =====================================
                 const menu =
                     new StringSelectMenuBuilder()
                         .setCustomId("lc_type")
-                        .setPlaceholder("Wybierz typ legit check")
+                        .setPlaceholder("📌 Wybierz typ legit check")
                         .addOptions(
+
                             new StringSelectMenuOptionBuilder()
                                 .setLabel("Purchased")
                                 .setDescription("Zakup produktu")
@@ -109,7 +167,7 @@ module.exports = (client) => {
                     const product =
                         new TextInputBuilder()
                             .setCustomId("product")
-                            .setLabel("Produkt")
+                            .setLabel("📦 Produkt")
                             .setPlaceholder("Netflix Premium")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -117,7 +175,7 @@ module.exports = (client) => {
                     const price =
                         new TextInputBuilder()
                             .setCustomId("price")
-                            .setLabel("Kwota")
+                            .setLabel("💸 Kwota")
                             .setPlaceholder("20")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -125,7 +183,7 @@ module.exports = (client) => {
                     const payment =
                         new TextInputBuilder()
                             .setCustomId("payment")
-                            .setLabel("Metoda płatności")
+                            .setLabel("💳 Metoda płatności")
                             .setPlaceholder("BLIK")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -152,7 +210,7 @@ module.exports = (client) => {
                     const from =
                         new TextInputBuilder()
                             .setCustomId("from")
-                            .setLabel("Z czego")
+                            .setLabel("📤 Z czego")
                             .setPlaceholder("LTC")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -160,7 +218,7 @@ module.exports = (client) => {
                     const to =
                         new TextInputBuilder()
                             .setCustomId("to")
-                            .setLabel("Na co")
+                            .setLabel("📥 Na co")
                             .setPlaceholder("BLIK")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -168,7 +226,7 @@ module.exports = (client) => {
                     const amount =
                         new TextInputBuilder()
                             .setCustomId("amount")
-                            .setLabel("Kwota")
+                            .setLabel("💸 Kwota")
                             .setPlaceholder("300")
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true);
@@ -213,11 +271,11 @@ module.exports = (client) => {
                             `${EMOJI.money} StarX Exchange » Legit Check`
                         )
                         .setDescription(
-`${EMOJI.pin} Legit został wysłany
+`${EMOJI.pin} **Legit został utworzony**
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.zap} Treść:
+${EMOJI.zap} **Treść wiadomości:**
 
 \`\`\`
 ${finalText}
@@ -225,27 +283,29 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.lock} Wysłano na ${interaction.channel}`
+${EMOJI.ticket} **Ticket:** ${interaction.channel}
+
+${EMOJI.arrow} **Skopiuj powyższą wiadomość**
+${EMOJI.arrow} **I wklej ją na kanał <#${REP_CHANNEL_ID}>**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI.lock} **StarX Exchange Security**
+`
                         )
                         .setFooter({
                             text:
-                                `© 2026 StarX Exchange • Dziś o ${new Date().toLocaleTimeString("pl-PL", {
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                })}`
+                                `© 2026 StarX Exchange`
                         })
                         .setTimestamp();
 
                 // =====================================
-                // WYŚLIJ NA TEN SAM KANAŁ
+                // SEND
                 // =====================================
                 await interaction.channel.send({
                     embeds: [embed]
                 });
 
-                // =====================================
-                // RESPONSE
-                // =====================================
                 return interaction.reply({
                     content:
                         `${EMOJI.money} Legit został wysłany.`,
@@ -283,11 +343,11 @@ ${EMOJI.lock} Wysłano na ${interaction.channel}`
                             `${EMOJI.money} StarX Exchange » Legit Check`
                         )
                         .setDescription(
-`${EMOJI.pin} Legit został wysłany
+`${EMOJI.pin} **Legit został utworzony**
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.zap} Treść:
+${EMOJI.zap} **Treść wiadomości:**
 
 \`\`\`
 ${finalText}
@@ -295,27 +355,29 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.lock} Wysłano na ${interaction.channel}`
+${EMOJI.ticket} **Ticket:** ${interaction.channel}
+
+${EMOJI.arrow} **Skopiuj powyższą wiadomość**
+${EMOJI.arrow} **I wklej ją na kanał <#${REP_CHANNEL_ID}>**
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI.lock} **StarX Exchange Security**
+`
                         )
                         .setFooter({
                             text:
-                                `© 2026 StarX Exchange • Dziś o ${new Date().toLocaleTimeString("pl-PL", {
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                })}`
+                                `© 2026 StarX Exchange`
                         })
                         .setTimestamp();
 
                 // =====================================
-                // WYŚLIJ NA TEN SAM KANAŁ
+                // SEND
                 // =====================================
                 await interaction.channel.send({
                     embeds: [embed]
                 });
 
-                // =====================================
-                // RESPONSE
-                // =====================================
                 return interaction.reply({
                     content:
                         `${EMOJI.money} Legit został wysłany.`,
