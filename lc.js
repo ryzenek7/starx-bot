@@ -251,7 +251,7 @@ module.exports = (client) => {
                 if (type === "contest") {
 
                     const finalText =
-                        `+rep <@1330652001075335300> konkurs`;
+                        `+rep ${interaction.user} konkurs`;
 
                     const embed =
                         new EmbedBuilder()
