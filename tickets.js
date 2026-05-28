@@ -21,7 +21,7 @@ module.exports = (client) => {
   const REALIZATOR_ROLE_ID = "1500930428993933373";
 
   // =========================================
-  // COLOR (DODANE)
+  // COLOR
   // =========================================
   const EMBED_COLOR = "#1b2dff";
 
@@ -182,20 +182,31 @@ module.exports = (client) => {
     // =========================
     // MENU
     // =========================
-    if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select") {
+    if (
+      interaction.isStringSelectMenu() &&
+      interaction.customId === "ticket_select"
+    ) {
 
       const type = interaction.values[0];
 
+      // =====================================
+      // CHECK EXISTING TICKET
+      // =====================================
+      const existing =
+        interaction.guild.channels.cache.find(c =>
+          c.topic?.startsWith(interaction.user.id)
+        );
+
+      if (existing)
+        return interaction.reply({
+          content: `${EMOJI.warning} Masz już ticket: ${existing}`,
+          ephemeral: true
+        });
+
+      // =====================================
+      // EXCHANGE
+      // =====================================
       if (type === "exchange") {
-
-        const existing =
-          interaction.guild.channels.cache.find(c => c.topic === interaction.user.id);
-
-        if (existing)
-          return interaction.reply({
-            content: `${EMOJI.warning} Masz już ticket: ${existing}`,
-            ephemeral: true
-          });
 
         const modal =
           new ModalBuilder()
@@ -217,29 +228,39 @@ module.exports = (client) => {
         return interaction.showModal(modal);
       }
 
-      const existing =
-        interaction.guild.channels.cache.find(c => c.topic === interaction.user.id);
-
-      if (existing)
-        return interaction.reply({
-          content: `${EMOJI.warning} Masz już ticket: ${existing}`,
-          ephemeral: true
-        });
-
+      // =====================================
+      // CATEGORY NAME
+      // =====================================
       let categoryName = "Pomoc";
-      if (type === "buy") categoryName = "Zakup";
-      if (type === "middleman") categoryName = "Middleman";
 
+      if (type === "buy")
+        categoryName = "Zakup";
+
+      if (type === "middleman")
+        categoryName = "Middleman";
+
+      // =====================================
+      // CREATE CHANNEL
+      // =====================================
       const channel =
         await interaction.guild.channels.create({
-          name: `${type}-${interaction.user.username}`.toLowerCase(),
-          topic: interaction.user.id,
-          type: ChannelType.GuildText,
+
+          name:
+            `${type}-${interaction.user.username}`.toLowerCase(),
+
+          topic:
+            `${interaction.user.id}:${type}`,
+
+          type:
+            ChannelType.GuildText,
+
           permissionOverwrites: [
+
             {
               id: interaction.guild.id,
               deny: [PermissionsBitField.Flags.ViewChannel]
             },
+
             {
               id: interaction.user.id,
               allow: [
@@ -249,6 +270,7 @@ module.exports = (client) => {
                 PermissionsBitField.Flags.AttachFiles
               ]
             },
+
             {
               id: REALIZATOR_ROLE_ID,
               allow: [
@@ -261,8 +283,12 @@ module.exports = (client) => {
           ]
         });
 
+      // =====================================
+      // BUTTON
+      // =====================================
       const row =
         new ActionRowBuilder().addComponents(
+
           new ButtonBuilder()
             .setCustomId("close_ticket")
             .setEmoji("❌")
@@ -270,26 +296,46 @@ module.exports = (client) => {
             .setStyle(ButtonStyle.Danger)
         );
 
+      // =====================================
+      // EMBED
+      // =====================================
       const embed =
         new EmbedBuilder()
+
           .setColor(EMBED_COLOR)
-          .setTitle(`${EMOJI.ticket} 🌟 StarX Exchange × ${categoryName.toUpperCase()}`)
+
+          .setTitle(
+            `${EMOJI.ticket} 🌟 StarX Exchange × ${categoryName.toUpperCase()}`
+          )
+
           .setDescription([
+
             `> ${EMOJI.arrow} Użytkownik ${interaction.user} utworzył ticket`,
             `> ${EMOJI.arrow} Kategoria: \`${categoryName}\``,
-            ``,
-            `> ${EMOJI.arrow} Realizator odpowie najszybciej jak to możliwe`
-          ].join("\n"))
-          .setFooter({ text: "© 2026 StarX Exchange" });
 
+            ``,
+
+            `> ${EMOJI.arrow} Realizator odpowie najszybciej jak to możliwe`
+
+          ].join("\n"))
+
+          .setFooter({
+            text: "© 2026 StarX Exchange"
+          });
+
+      // =====================================
+      // SEND
+      // =====================================
       await channel.send({
-        content: `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
+        content:
+          `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
         embeds: [embed],
         components: [row]
       });
 
       return interaction.reply({
-        content: `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
+        content:
+          `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
         ephemeral: true
       });
     }
@@ -297,9 +343,13 @@ module.exports = (client) => {
     // =========================
     // MODAL
     // =========================
-    if (interaction.isModalSubmit() && interaction.customId === "exchange_modal") {
+    if (
+      interaction.isModalSubmit() &&
+      interaction.customId === "exchange_modal"
+    ) {
 
-      const amount = interaction.fields.getTextInputValue("exchange_amount");
+      const amount =
+        interaction.fields.getTextInputValue("exchange_amount");
 
       if (isNaN(amount))
         return interaction.reply({
@@ -307,17 +357,35 @@ module.exports = (client) => {
           ephemeral: true
         });
 
-      exchangeData.set(interaction.user.id, { amount });
+      exchangeData.set(interaction.user.id, {
+        amount
+      });
 
       const fromMenu =
         new StringSelectMenuBuilder()
           .setCustomId("exchange_from")
           .setPlaceholder("Z CZEGO")
           .addOptions([
-            { label: "BLIK", value: "BLIK", emoji: { id: "1499784231608389742" } },
-            { label: "PAYPAL", value: "PAYPAL", emoji: { id: "1499784258091483236" } },
-            { label: "CRYPTO", value: "CRYPTO", emoji: { id: "1499784635201224724" } },
-            { label: "LTC", value: "LTC", emoji: { id: "1499784285211726014" } }
+            {
+              label: "BLIK",
+              value: "BLIK",
+              emoji: { id: "1499784231608389742" }
+            },
+            {
+              label: "PAYPAL",
+              value: "PAYPAL",
+              emoji: { id: "1499784258091483236" }
+            },
+            {
+              label: "CRYPTO",
+              value: "CRYPTO",
+              emoji: { id: "1499784635201224724" }
+            },
+            {
+              label: "LTC",
+              value: "LTC",
+              emoji: { id: "1499784285211726014" }
+            }
           ]);
 
       const toMenu =
@@ -325,10 +393,26 @@ module.exports = (client) => {
           .setCustomId("exchange_to")
           .setPlaceholder("NA CO")
           .addOptions([
-            { label: "BLIK", value: "BLIK", emoji: { id: "1499784231608389742" } },
-            { label: "PAYPAL", value: "PAYPAL", emoji: { id: "1499784258091483236" } },
-            { label: "CRYPTO", value: "CRYPTO", emoji: { id: "1499784635201224724" } },
-            { label: "LTC", value: "LTC", emoji: { id: "1499784285211726014" } }
+            {
+              label: "BLIK",
+              value: "BLIK",
+              emoji: { id: "1499784231608389742" }
+            },
+            {
+              label: "PAYPAL",
+              value: "PAYPAL",
+              emoji: { id: "1499784258091483236" }
+            },
+            {
+              label: "CRYPTO",
+              value: "CRYPTO",
+              emoji: { id: "1499784635201224724" }
+            },
+            {
+              label: "LTC",
+              value: "LTC",
+              emoji: { id: "1499784285211726014" }
+            }
           ]);
 
       const createButton =
@@ -339,26 +423,41 @@ module.exports = (client) => {
           .setStyle(ButtonStyle.Success);
 
       return interaction.reply({
+
         embeds: [
+
           new EmbedBuilder()
+
             .setColor(EMBED_COLOR)
-            .setTitle(`${EMOJI.money} 🌟 StarX Exchange × WYMIANA WALUTY`)
+
+            .setTitle(
+              `${EMOJI.money} 🌟 StarX Exchange × WYMIANA WALUTY`
+            )
+
             .setDescription([
+
               `## JAKA KWOTA`,
               `> ${EMOJI.arrow} **${amount} PLN**`,
+
               ``,
+
               `## Z CZEGO`,
               `> ${EMOJI.arrow} Wybierz metodę poniżej`,
+
               ``,
+
               `## NA CO`,
               `> ${EMOJI.arrow} Wybierz metodę poniżej`
+
             ].join("\n"))
         ],
+
         components: [
           new ActionRowBuilder().addComponents(fromMenu),
           new ActionRowBuilder().addComponents(toMenu),
           new ActionRowBuilder().addComponents(createButton)
         ],
+
         ephemeral: true
       });
     }
@@ -366,12 +465,19 @@ module.exports = (client) => {
     // =========================
     // FROM
     // =========================
-    if (interaction.isStringSelectMenu() && interaction.customId === "exchange_from") {
+    if (
+      interaction.isStringSelectMenu() &&
+      interaction.customId === "exchange_from"
+    ) {
 
-      const data = exchangeData.get(interaction.user.id);
-      if (!data) return interaction.deferUpdate();
+      const data =
+        exchangeData.get(interaction.user.id);
+
+      if (!data)
+        return interaction.deferUpdate();
 
       data.from = interaction.values[0];
+
       exchangeData.set(interaction.user.id, data);
 
       return interaction.deferUpdate();
@@ -380,12 +486,19 @@ module.exports = (client) => {
     // =========================
     // TO
     // =========================
-    if (interaction.isStringSelectMenu() && interaction.customId === "exchange_to") {
+    if (
+      interaction.isStringSelectMenu() &&
+      interaction.customId === "exchange_to"
+    ) {
 
-      const data = exchangeData.get(interaction.user.id);
-      if (!data) return interaction.deferUpdate();
+      const data =
+        exchangeData.get(interaction.user.id);
+
+      if (!data)
+        return interaction.deferUpdate();
 
       data.to = interaction.values[0];
+
       exchangeData.set(interaction.user.id, data);
 
       return interaction.deferUpdate();
@@ -394,32 +507,55 @@ module.exports = (client) => {
     // =========================
     // CREATE EXCHANGE
     // =========================
-    if (interaction.isButton() && interaction.customId === "create_exchange_ticket") {
+    if (
+      interaction.isButton() &&
+      interaction.customId === "create_exchange_ticket"
+    ) {
 
-      const data = exchangeData.get(interaction.user.id);
+      const data =
+        exchangeData.get(interaction.user.id);
 
       if (!data?.from || !data?.to)
         return interaction.reply({
-          content: `${EMOJI.warning} Wybierz obie metody.`,
+          content:
+            `${EMOJI.warning} Wybierz obie metody.`,
           ephemeral: true
         });
 
-      const exchange = `${data.from}->${data.to}`;
-      const percent = rates[exchange] || 4;
+      const exchange =
+        `${data.from}->${data.to}`;
+
+      const percent =
+        rates[exchange] || 4;
 
       const afterFee =
-        (Number(data.amount) * (1 - percent / 100)).toFixed(2);
+        (
+          Number(data.amount) *
+          (1 - percent / 100)
+        ).toFixed(2);
 
+      // =====================================
+      // CREATE CHANNEL
+      // =====================================
       const channel =
         await interaction.guild.channels.create({
-          name: `${data.from.toLowerCase()}-${data.to.toLowerCase()}`,
-          topic: interaction.user.id,
-          type: ChannelType.GuildText,
+
+          name:
+            `${data.from.toLowerCase()}-${data.to.toLowerCase()}-${interaction.user.username}`.toLowerCase(),
+
+          topic:
+            `${interaction.user.id}:exchange`,
+
+          type:
+            ChannelType.GuildText,
+
           permissionOverwrites: [
+
             {
               id: interaction.guild.id,
               deny: [PermissionsBitField.Flags.ViewChannel]
             },
+
             {
               id: interaction.user.id,
               allow: [
@@ -429,6 +565,7 @@ module.exports = (client) => {
                 PermissionsBitField.Flags.AttachFiles
               ]
             },
+
             {
               id: REALIZATOR_ROLE_ID,
               allow: [
@@ -441,8 +578,12 @@ module.exports = (client) => {
           ]
         });
 
+      // =====================================
+      // BUTTON
+      // =====================================
       const row =
         new ActionRowBuilder().addComponents(
+
           new ButtonBuilder()
             .setCustomId("close_ticket")
             .setEmoji("❌")
@@ -450,25 +591,45 @@ module.exports = (client) => {
             .setStyle(ButtonStyle.Danger)
         );
 
+      // =====================================
+      // EMBED
+      // =====================================
       const embed =
         new EmbedBuilder()
+
           .setColor(EMBED_COLOR)
-          .setTitle(`${EMOJI.money} 🌟 StarX Exchange × WYMIANA WALUTY`)
+
+          .setTitle(
+            `${EMOJI.money} 🌟 StarX Exchange × WYMIANA WALUTY`
+          )
+
           .setDescription([
+
             `> ${EMOJI.arrow} Klient: ${interaction.user}`,
             `> ${EMOJI.arrow} Status: \`Oczekiwanie na realizatora\``,
+
             ``,
+
             `## ${EMOJI.money} INFORMACJE O WYMIANIE`,
+
             `> ${EMOJI.arrow} Kwota: \`${data.amount} PLN\``,
             `> ${EMOJI.arrow} Z czego: \`${data.from}\``,
             `> ${EMOJI.arrow} Na co: \`${data.to}\``,
             `> ${EMOJI.arrow} Prowizja: \`${percent}%\``,
             `> ${EMOJI.arrow} Po prowizji: \`${afterFee} PLN\``
-          ].join("\n"))
-          .setFooter({ text: "© 2026 StarX Exchange" });
 
+          ].join("\n"))
+
+          .setFooter({
+            text: "© 2026 StarX Exchange"
+          });
+
+      // =====================================
+      // SEND
+      // =====================================
       await channel.send({
-        content: `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
+        content:
+          `${interaction.user} <@&${REALIZATOR_ROLE_ID}>`,
         embeds: [embed],
         components: [row]
       });
@@ -476,7 +637,8 @@ module.exports = (client) => {
       exchangeData.delete(interaction.user.id);
 
       return interaction.update({
-        content: `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
+        content:
+          `${EMOJI.ticket} Ticket został utworzony: ${channel}`,
         embeds: [],
         components: []
       });
@@ -485,21 +647,35 @@ module.exports = (client) => {
     // =========================
     // CLOSE
     // =========================
-    if (interaction.isButton() && interaction.customId === "close_ticket") {
+    if (
+      interaction.isButton() &&
+      interaction.customId === "close_ticket"
+    ) {
 
-      if (!interaction.member.roles.cache.has(REALIZATOR_ROLE_ID)) {
+      if (
+        !interaction.member.roles.cache.has(
+          REALIZATOR_ROLE_ID
+        )
+      ) {
+
         return interaction.reply({
-          content: `${EMOJI.warning} Tylko realizator może zamknąć ticket.`,
+          content:
+            `${EMOJI.warning} Tylko realizator może zamknąć ticket.`,
           ephemeral: true
         });
       }
 
       await interaction.reply({
-        content: `${EMOJI.lock} Ticket zostanie zamknięty za 3 sekundy...`
+        content:
+          `${EMOJI.lock} Ticket zostanie zamknięty za 3 sekundy...`
       });
 
       setTimeout(async () => {
-        await interaction.channel.delete().catch(() => {});
+
+        await interaction.channel
+          .delete()
+          .catch(() => {});
+
       }, 3000);
     }
   });
