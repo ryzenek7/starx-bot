@@ -283,14 +283,8 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.ticket} **Ticket:** ${interaction.channel}
-
-${EMOJI.arrow} **Skopiuj powyższą wiadomość**
-${EMOJI.arrow} **I wklej ją na kanał <#${REP_CHANNEL_ID}>**
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${EMOJI.lock} **StarX Exchange Security**
+${EMOJI.arrow} **Skopiuj wiadomość**
+${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**
 `
                         )
                         .setFooter({
@@ -355,14 +349,8 @@ ${finalText}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-${EMOJI.ticket} **Ticket:** ${interaction.channel}
-
-${EMOJI.arrow} **Skopiuj powyższą wiadomość**
-${EMOJI.arrow} **I wklej ją na kanał <#${REP_CHANNEL_ID}>**
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${EMOJI.lock} **StarX Exchange Security**
+${EMOJI.arrow} **Skopiuj wiadomość**
+${EMOJI.arrow} **Wklej na <#${REP_CHANNEL_ID}>**
 `
                         )
                         .setFooter({
