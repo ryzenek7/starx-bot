@@ -1,4 +1,4 @@
-````js
+```js
 const {
     Events,
     EmbedBuilder,
@@ -28,19 +28,19 @@ module.exports = (client) => {
     };
 
     // =====================================
-    // INTERACTIONS
+    // INTERACTION
     // =====================================
-    client.on(Events.InteractionCreate, async interaction => {
+    client.on(Events.InteractionCreate, async (interaction) => {
 
         try {
 
             // =====================================
             // /LC
             // =====================================
-            if (interaction.isChatInputCommand()) {
-
-                if (interaction.commandName !== "lc")
-                    return;
+            if (
+                interaction.isChatInputCommand() &&
+                interaction.commandName === "lc"
+            ) {
 
                 // perms
                 if (
@@ -50,7 +50,7 @@ module.exports = (client) => {
                     return interaction.reply({
                         content:
                             `${EMOJI.warning} Brak permisji.`,
-                        flags: 64
+                        ephemeral: true
                     });
                 }
 
@@ -61,10 +61,10 @@ module.exports = (client) => {
                     .setCustomId("lc_modal")
                     .setTitle("StarX Exchange • Legit Check");
 
-                const input =
+                const textInput =
                     new TextInputBuilder()
                         .setCustomId("lc_text")
-                        .setLabel("Produkt / exchange")
+                        .setLabel("Produkt / Exchange")
                         .setPlaceholder(
                             "Netflix Lifetime 10PLN [BLIK]"
                         )
@@ -73,22 +73,23 @@ module.exports = (client) => {
                         )
                         .setRequired(true);
 
-                modal.addComponents(
+                const row =
                     new ActionRowBuilder()
-                        .addComponents(input)
-                );
+                        .addComponents(textInput);
 
+                modal.addComponents(row);
+
+                // WAŻNE
                 return await interaction.showModal(modal);
             }
 
             // =====================================
             // MODAL SUBMIT
             // =====================================
-            if (interaction.isModalSubmit()) {
-
-                if (
-                    interaction.customId !== "lc_modal"
-                ) return;
+            if (
+                interaction.isModalSubmit() &&
+                interaction.customId === "lc_modal"
+            ) {
 
                 const text =
                     interaction.fields.getTextInputValue(
@@ -97,7 +98,9 @@ module.exports = (client) => {
 
                 let finalText = "";
 
-                // custom +rep
+                // =====================================
+                // CUSTOM +REP
+                // =====================================
                 if (
                     text
                         .toLowerCase()
@@ -108,7 +111,6 @@ module.exports = (client) => {
 
                 } else {
 
-                    // auto purchased
                     finalText =
                         `+rep ${interaction.user} Purchased ${text}`;
                 }
@@ -117,29 +119,31 @@ module.exports = (client) => {
                 // EMBED
                 // =====================================
                 const embed = new EmbedBuilder()
-                    .setColor("#2b2d31")
+                    .setColor("#1b2dff")
                     .setTitle(
                         `${EMOJI.money} StarX Exchange » Legit Check`
                     )
-                    .setDescription([
-                        `> ${EMOJI.pin} Legit check został przygotowany`,
-                        "",
-                        `## ${EMOJI.zap} Treść`,
-                        "```",
-                        finalText,
-                        "```",
-                        "",
-                        `${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
-                    ].join("\n"))
+                    .setDescription(
+`${EMOJI.pin} Legit został przygotowany
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI.zap} Treść:
+
+\`\`\`
+${finalText}
+\`\`\`
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+${EMOJI.lock} Wyślij na <#${LEGIT_CHANNEL_ID}>`
+                    )
                     .setFooter({
                         text:
-                            "StarX Exchange • Legit System"
+                            "© 2026 StarX Exchange"
                     })
                     .setTimestamp();
 
-                // =====================================
-                // PUBLIC
-                // =====================================
                 return await interaction.reply({
                     embeds: [embed]
                 });
@@ -148,22 +152,26 @@ module.exports = (client) => {
         } catch (err) {
 
             console.log(
-                "❌ LC SYSTEM ERROR:",
+                "❌ LC ERROR:",
                 err
             );
 
-            if (
-                !interaction.replied &&
-                !interaction.deferred
-            ) {
+            try {
 
-                await interaction.reply({
-                    content:
-                        `${EMOJI.warning} Wystąpił błąd.`,
-                    flags: 64
-                }).catch(() => {});
-            }
+                if (
+                    !interaction.replied &&
+                    !interaction.deferred
+                ) {
+
+                    await interaction.reply({
+                        content:
+                            `${EMOJI.warning} Wystąpił błąd.`,
+                        ephemeral: true
+                    });
+                }
+
+            } catch {}
         }
     });
 };
-````
+```
