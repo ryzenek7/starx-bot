@@ -34,7 +34,7 @@ module.exports = (client) => {
 
 ⚠️ Oddanie głosu <a:1499784378992295956:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
         )
-        .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
+        .setImage("https://i.imgur.com/QYhsGEm_d.webp?maxwidth=760&fidelity=grand")
         .setFooter({
           text: "© 2026 StarX Exchange x Legit Check"
         });
@@ -98,7 +98,7 @@ module.exports = (client) => {
 
 ⚠️ Oddanie głosu <a:1499784378992295956:1499784378992295956> bez dowodu i sensownego powodu może skutkować karą.`
       )
-      .setImage("https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand")
+      .setImage("https://i.imgur.com/QYhsGEm_d.webp?maxwidth=760&fidelity=grand")
       .setFooter({
         text: "© 2026 StarX Exchange x Legit Check"
       });
