@@ -204,7 +204,7 @@ ${EMOJI.arrow} Kliknij przycisk poniżej aby dołączyć.
                 )
 
                 .setImage(
-                    "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+                    "https://i.imgur.com/QYhsGEm_d.webp?maxwidth=760&fidelity=grand"
                 )
 
                 .setFooter({
@@ -383,7 +383,7 @@ ${EMOJI.ticket} **ID**
                 )
 
                 .setImage(
-                    "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+                    "https://i.imgur.com/QYhsGEm_d.webp?maxwidth=760&fidelity=grand"
                 );
 
         const row =
