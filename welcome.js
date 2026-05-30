@@ -81,7 +81,7 @@ module.exports = (client) => {
         )
 
         .setImage(
-          "https://i.imgur.com/4KfOswz_d.webp?maxwidth=760&fidelity=grand"
+          "https://i.imgur.com/QYhsGEm_d.webp?maxwidth=760&fidelity=grand"
         )
 
         .setFooter({
